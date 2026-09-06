@@ -5,6 +5,7 @@ import {
   FolderKanban,
   Landmark,
   LayoutDashboard,
+  Radar,
   Settings,
   ShieldCheck,
   Users,
@@ -28,6 +29,7 @@ export type ModuleId =
   | "pricing"
   | "capacity"
   | "talent"
+  | "sourcing"
   | "sales"
   | "finance"
   | "qa"
@@ -79,6 +81,13 @@ export const modules: readonly ModuleDefinition[] = [
     href: "/talent",
     icon: Users,
     status: "planned",
+    group: "modules",
+  },
+  {
+    id: "sourcing",
+    href: "/sourcing",
+    icon: Radar,
+    status: "active",
     group: "modules",
   },
   {

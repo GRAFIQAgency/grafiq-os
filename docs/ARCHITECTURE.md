@@ -117,6 +117,14 @@ costs. Tables: `business_settings` (single row, `id = 1`) and `role_costs`.
   it (foreign-key violation); deactivating is the safe alternative.
 - Shared currency list: `src/config/currencies.ts`; `Currency` type in `src/types/database.ts`.
 
+### The `sourcing` module (existing, v1)
+
+Talent and company discovery engine — see `docs/SOURCING.md`. Notable choices:
+connector registry with per-source enable/disable, one polymorphic
+`sourcing_source_records` table, deterministic dedupe keys, scoring results kept
+in `ai_evaluations`, and shared entities (`talent_candidates`, `company_leads`)
+that Talent Bench and CRM will reuse instead of copying.
+
 ## Internationalisation (EN / CS)
 
 The UI is bilingual without any i18n library:

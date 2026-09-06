@@ -78,3 +78,230 @@ export interface RoleCostRow {
   is_active: boolean;
   position: number;
 }
+
+// --- Sourcing module (supabase/migrations/0004_sourcing.sql) ---
+
+export type SourcingEntityType = "talent" | "company";
+export type SearchRunStatus = "queued" | "running" | "completed" | "failed" | "cancelled";
+export type TalentSeniority = "junior" | "mid" | "senior" | "lead";
+export type TalentEmploymentType = "freelancer" | "contractor" | "employee";
+export type TalentAvailability = "available" | "limited" | "unavailable" | "unknown";
+export type TalentStatus =
+  | "discovered" | "reviewed" | "shortlisted" | "contacted" | "interview"
+  | "trial" | "approved" | "preferred" | "rejected" | "archived";
+export type CompanyStatus =
+  | "discovered" | "reviewed" | "shortlisted" | "contacted" | "qualified" | "rejected" | "archived";
+export type CrmStatus = "prospect" | "lead" | "customer" | "lost";
+export type CompanySizeBucket = "1-10" | "11-50" | "51-200" | "201-500" | "501-1000" | "1000+";
+export type BusinessModel = "b2b" | "b2c" | "both";
+export type CompanyType =
+  | "saas" | "ecommerce" | "services" | "agency" | "manufacturing" | "hospitality" | "real_estate" | "other";
+export type SignalStrength = "low" | "medium" | "high";
+
+export interface SourcingSourceRow {
+  id: string;
+  enabled: boolean;
+  config: Record<string, unknown>;
+  last_run_at: string | null;
+  last_error: string | null;
+  records_collected: number;
+  updated_at: string;
+}
+
+export interface SourcingSearchRow {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+  entity_type: SourcingEntityType;
+  name: string;
+  filters: Record<string, unknown>;
+  last_run_at: string | null;
+}
+
+export interface SourcingSearchRunRow {
+  id: string;
+  created_at: string;
+  created_by: string | null;
+  search_id: string | null;
+  entity_type: SourcingEntityType;
+  filters: Record<string, unknown>;
+  status: SearchRunStatus;
+  started_at: string | null;
+  finished_at: string | null;
+  sources_total: number;
+  sources_completed: number;
+  results_total: number;
+  results_new: number;
+  results_duplicates: number;
+  errors: { sourceId: string; message: string; retries: number }[];
+}
+
+export interface TalentCandidateRow {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+  full_name: string;
+  headline: string | null;
+  role: string | null;
+  email: string | null;
+  profile_url: string | null;
+  portfolio_url: string | null;
+  avatar_url: string | null;
+  country: string | null;
+  city: string | null;
+  remote: boolean | null;
+  seniority: TalentSeniority | null;
+  employment_type: TalentEmploymentType | null;
+  hourly_rate_min: number | null;
+  hourly_rate_max: number | null;
+  rate_currency: Currency | null;
+  availability: TalentAvailability | null;
+  years_experience: number | null;
+  agency_experience: boolean | null;
+  skills: string[];
+  technologies: string[];
+  languages: string[];
+  summary: string | null;
+  status: TalentStatus;
+  in_talent_bench: boolean;
+  bench_added_at: string | null;
+  tags: string[];
+  ratings: Record<string, number>;
+  ai_score: number | null;
+  manual_score: number | null;
+  first_discovered_at: string;
+  last_checked_at: string;
+  email_key: string | null;
+  profile_key: string | null;
+  portfolio_key: string | null;
+  name_location_key: string | null;
+}
+
+export interface CompanyLeadRow {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+  name: string;
+  domain: string | null;
+  website: string | null;
+  logo_url: string | null;
+  registration_id: string | null;
+  industry: string | null;
+  country: string | null;
+  city: string | null;
+  employee_count: number | null;
+  size_bucket: CompanySizeBucket | null;
+  revenue: number | null;
+  revenue_currency: Currency | null;
+  founded_year: number | null;
+  description: string | null;
+  technologies: string[];
+  keywords: string[];
+  business_model: BusinessModel | null;
+  company_type: CompanyType | null;
+  language: string | null;
+  status: CompanyStatus;
+  crm_status: CrmStatus | null;
+  crm_added_at: string | null;
+  tags: string[];
+  lead_score: number | null;
+  manual_score: number | null;
+  first_discovered_at: string;
+  last_checked_at: string;
+  name_location_key: string | null;
+}
+
+export interface SourcingSourceRecordRow {
+  id: string;
+  entity_type: SourcingEntityType;
+  entity_id: string;
+  source_id: string;
+  source_entity_id: string;
+  source_url: string | null;
+  run_id: string | null;
+  payload: Record<string, unknown>;
+  retrieved_at: string;
+}
+
+export interface CompanySignalRow {
+  id: string;
+  company_id: string;
+  type: string;
+  strength: SignalStrength;
+  confidence: number;
+  detected_at: string;
+  source_id: string | null;
+  description: string | null;
+}
+
+export interface CompanyContactRow {
+  id: string;
+  created_at: string;
+  company_id: string;
+  name: string;
+  job_title: string | null;
+  email: string | null;
+  phone: string | null;
+  profile_url: string | null;
+  source_id: string | null;
+}
+
+export interface TalentRoleProfileRow {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  name: string;
+  role: string;
+  description: string | null;
+  required_skills: string[];
+  nice_to_have_skills: string[];
+  min_years_experience: number | null;
+  preferred_countries: string[];
+  max_hourly_rate: number | null;
+  rate_currency: Currency | null;
+  agency_experience_preferred: boolean;
+  communication_expectations: string | null;
+  portfolio_required: boolean;
+  is_active: boolean;
+}
+
+export interface AiEvaluationRow {
+  id: string;
+  created_at: string;
+  entity_type: SourcingEntityType;
+  entity_id: string;
+  role_profile_id: string | null;
+  provider: string;
+  model: string | null;
+  score: number;
+  strengths: string[];
+  weaknesses: string[];
+  missing_info: string[];
+  risks: string[];
+  reasoning: string | null;
+  factors: { factor: string; weight: number; score: number; note?: string }[];
+}
+
+export interface InternalNoteRow {
+  id: string;
+  created_at: string;
+  entity_type: string;
+  entity_id: string;
+  author_id: string | null;
+  author_name: string | null;
+  body: string;
+}
+
+export interface ActivityLogRow {
+  id: string;
+  created_at: string;
+  entity_type: string;
+  entity_id: string;
+  action: string;
+  actor_id: string | null;
+  actor_name: string | null;
+  details: Record<string, unknown>;
+}

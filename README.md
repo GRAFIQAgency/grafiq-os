@@ -55,6 +55,7 @@ npm test        # Vitest unit tests (business logic)
    - `0001_profiles.sql` — `profiles` table, auto-create trigger, RLS.
    - `0002_pricing.sql` — `pricing_estimates` + `pricing_cost_items` for the Pricing module.
    - `0003_business_settings.sql` — `business_settings` + `role_costs` for Settings → Business.
+   - `0004_sourcing.sql` — Sourcing module tables (talent, companies, signals, searches, sources, evaluations, notes, activity).
 5. Create users. This is an internal tool with **no public signup**: add team
    members in **Authentication → Users → Add user** (set a password, or send an
    invite). Optionally give them a `full_name` in the user metadata; it becomes
@@ -90,6 +91,7 @@ src/
     dashboard/            Placeholder dashboard widgets and example data
     pricing/              Pricing / profit calculator (first real module, see its README)
     settings/             Business settings: company, margins, payment terms, role costs
+    sourcing/             Talent & lead discovery engine (see docs/SOURCING.md)
     projects/ capacity/ … Reserved folders with a README each
   types/
     database.ts           Database row types (hand-written for now)
@@ -138,4 +140,5 @@ Short version (full details in `docs/ARCHITECTURE.md`):
 ## Documentation for future sessions
 
 - `docs/ARCHITECTURE.md` — conventions and extension guide (read this first).
+- `docs/SOURCING.md` — sourcing engine: connectors, normalisation, dedupe, scoring.
 - `CLAUDE.md` / `AGENTS.md` — pointers for AI coding sessions.
