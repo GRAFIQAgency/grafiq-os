@@ -1,0 +1,18 @@
+import type { NextRequest } from "next/server";
+
+import { updateSession } from "@/lib/supabase/proxy";
+
+/**
+ * Next.js proxy (formerly "middleware"). Runs before every matched request.
+ * Auth logic lives in `src/lib/supabase/proxy.ts` to keep this file thin.
+ */
+export async function proxy(request: NextRequest) {
+  return updateSession(request);
+}
+
+export const config = {
+  matcher: [
+    // Run on everything except Next internals and static assets.
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+  ],
+};
