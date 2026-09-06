@@ -11,7 +11,7 @@ export function CompanyFiltersForm({ filters, dict }: { filters: CompanyFilters;
   const base = `${getModule("sourcing").href}/companies`;
 
   return (
-    <form method="get" action={base} className="space-y-4 rounded-lg border bg-card p-4">
+    <form method="get" action={base} className="space-y-4 rounded-lg border bg-card p-4" data-guide="sourcing-filters">
       <div className="flex flex-col gap-3 md:flex-row md:items-end">
         <FilterField label={dict.common.search} className="flex-1">
           <TextFilter name="q" defaultValue={filters.q} placeholder={s.companySearchPlaceholder} />

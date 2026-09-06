@@ -33,11 +33,11 @@ export function SavedSearchesTable({ searches }: { searches: SavedSearch[] }) {
       : `${base}/companies?${companyFiltersToParams(s.filters as CompanyFilters).toString()}`;
 
   if (!searches.length) {
-    return <div className="flex h-24 items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground">{t.empty}</div>;
+    return <div className="flex h-24 items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground" data-guide="searches-table">{t.empty}</div>;
   }
 
   return (
-    <div className="overflow-x-auto rounded-md border">
+    <div className="overflow-x-auto rounded-md border" data-guide="searches-table">
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">

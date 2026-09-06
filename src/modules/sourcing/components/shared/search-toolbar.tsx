@@ -58,7 +58,7 @@ export function SearchToolbar({ entityType }: SearchToolbarProps) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Button type="button" onClick={search} disabled={isRunning}>
+      <Button type="button" onClick={search} disabled={isRunning} data-guide="sourcing-search">
         {isRunning ? <Loader2 className="animate-spin" data-icon="inline-start" /> : <Radar data-icon="inline-start" />}
         {isRunning ? t.running : t.run}
       </Button>

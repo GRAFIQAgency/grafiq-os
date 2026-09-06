@@ -120,13 +120,13 @@ export function BusinessSettingsForm({ initial, persisted }: BusinessSettingsFor
           {saveState.status === "error" ? <span className="text-destructive">{saveState.message}</span> : null}
           {saveState.status === "idle" && !persisted ? t.business.usingDefaults : null}
         </p>
-        <Button type="button" size="sm" onClick={save} disabled={isSaving}>
+        <Button type="button" size="sm" onClick={save} disabled={isSaving} data-guide="settings-save">
           {isSaving ? <Loader2 className="animate-spin" data-icon="inline-start" /> : <Save data-icon="inline-start" />}
           {t.business.saveChanges}
         </Button>
       </div>
 
-      <Card>
+      <Card data-guide="settings-company">
         <CardHeader>
           <CardTitle>{t.company.title}</CardTitle>
         </CardHeader>
@@ -157,7 +157,7 @@ export function BusinessSettingsForm({ initial, persisted }: BusinessSettingsFor
         </CardContent>
       </Card>
 
-      <Card>
+      <Card data-guide="settings-economics">
         <CardHeader>
           <CardTitle>{t.economics.title}</CardTitle>
           <CardDescription>{t.economics.description}</CardDescription>
@@ -172,7 +172,7 @@ export function BusinessSettingsForm({ initial, persisted }: BusinessSettingsFor
         </CardContent>
       </Card>
 
-      <Card>
+      <Card data-guide="settings-terms">
         <CardHeader>
           <CardTitle>{t.paymentTerms.title}</CardTitle>
           <CardDescription>{t.paymentTerms.description}</CardDescription>

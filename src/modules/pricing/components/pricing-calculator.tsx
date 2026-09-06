@@ -100,7 +100,7 @@ export function PricingCalculator({ initialEstimate, defaults, thresholds }: Pri
             <RotateCcw data-icon="inline-start" />
             {t.reset}
           </Button>
-          <Button type="button" size="sm" onClick={save} disabled={isSaving}>
+          <Button type="button" size="sm" onClick={save} disabled={isSaving} data-guide="pricing-save">
             {isSaving ? <Loader2 className="animate-spin" data-icon="inline-start" /> : <Save data-icon="inline-start" />}
             {draft.id ? t.update : t.save}
           </Button>

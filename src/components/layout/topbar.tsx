@@ -1,5 +1,6 @@
 import { getDictionary } from "@/lib/i18n/server";
 import type { CurrentUser } from "@/modules/auth/types";
+import { GuideHelpButton } from "@/modules/guide/components/guide-help-button";
 
 import { LanguageSwitcher } from "./language-switcher";
 import { MobileNav } from "./mobile-nav";
@@ -22,6 +23,7 @@ export async function Topbar({ currentUser }: TopbarProps) {
       </div>
       <SearchPlaceholder label={dict.common.search} />
       <LanguageSwitcher />
+      <GuideHelpButton />
       <UserMenu currentUser={currentUser} />
     </header>
   );

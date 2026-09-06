@@ -43,7 +43,7 @@ export function AddTalentSheet() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline">
+        <Button variant="outline" data-guide="sourcing-add-talent">
           <UserPlus data-icon="inline-start" />
           {t.open}
         </Button>

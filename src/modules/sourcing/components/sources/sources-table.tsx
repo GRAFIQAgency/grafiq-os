@@ -37,7 +37,7 @@ export function SourcesTable({ sources, registered }: { sources: SourceState[]; 
   };
 
   return (
-    <div className="overflow-x-auto rounded-md border">
+    <div className="overflow-x-auto rounded-md border" data-guide="sources-table">
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">

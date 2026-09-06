@@ -125,6 +125,22 @@ connector registry with per-source enable/disable, one polymorphic
 in `ai_evaluations`, and shared entities (`talent_candidates`, `company_leads`)
 that Talent Bench and CRM will reuse instead of copying.
 
+### The `guide` module (existing) — the interactive tutorial
+
+`src/modules/guide/content.ts` is the product's work-process description in
+chapters and steps (setup → pricing → talent → clients → sources → what's next).
+It powers three surfaces: the `/guide` page with progress checkboxes, the "?"
+help panel in the top bar (chapter for the current route), and the cross-page
+tour (`?guide=<step-id>` spotlights the element with a matching
+`data-guide="<anchor>"` attribute). Texts live under `guide.*` in the
+dictionaries; progress lives in `localStorage`.
+
+**Rule: every feature change updates the guide in the same change** — add or
+edit steps, keep `data-guide` anchors on the controls the steps talk about, and
+add both language texts. `content.test.ts` enforces coverage of every active
+module and that step links are real routes. "What's next" lists planned
+modules automatically from the registry.
+
 ## Internationalisation (EN / CS)
 
 The UI is bilingual without any i18n library:

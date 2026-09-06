@@ -41,7 +41,7 @@ export function CsvImportForm() {
   const columns = entityType === "talent" ? TALENT_CSV_COLUMNS : COMPANY_CSV_COLUMNS;
 
   return (
-    <Card className="gap-4">
+    <Card className="gap-4" data-guide="sources-csv">
       <CardHeader>
         <CardTitle>{t.csvTitle}</CardTitle>
         <CardDescription>{t.csvDescription}</CardDescription>

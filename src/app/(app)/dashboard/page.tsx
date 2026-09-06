@@ -3,6 +3,7 @@ import { PlaceholderBadge } from "@/components/shared/placeholder-badge";
 import { moduleMetadata } from "@/lib/i18n/metadata";
 import { getDictionary } from "@/lib/i18n/server";
 import { DashboardOverview } from "@/modules/dashboard/components/dashboard-overview";
+import { WelcomeBanner } from "@/modules/guide/components/welcome-banner";
 
 export const generateMetadata = moduleMetadata("dashboard");
 
@@ -16,7 +17,10 @@ export default async function DashboardPage() {
         description={dict.modules.dashboard.description}
         actions={<PlaceholderBadge label={dict.common.exampleData} />}
       />
-      <DashboardOverview dict={dict} />
+      <WelcomeBanner />
+      <div data-guide="dashboard-stats">
+        <DashboardOverview dict={dict} />
+      </div>
     </div>
   );
 }

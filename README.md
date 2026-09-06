@@ -94,6 +94,7 @@ src/
     pricing/              Pricing / profit calculator (first real module, see its README)
     settings/             Business settings: company, margins, payment terms, role costs
     sourcing/             Talent & lead discovery engine (see docs/SOURCING.md)
+    guide/                Interactive tutorial: /guide page, "?" help panel, cross-page tour (must stay 1:1 with the product)
     projects/ capacity/ … Reserved folders with a README each
   types/
     database.ts           Database row types (hand-written for now)

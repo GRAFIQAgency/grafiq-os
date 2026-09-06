@@ -26,6 +26,7 @@ export function LanguageSwitcher() {
     <div
       role="radiogroup"
       aria-label={dict.common.language}
+      data-guide="language-switcher"
       className={cn("flex h-8 items-center rounded-md border bg-muted/30 p-0.5", isPending && "opacity-60")}
     >
       {LOCALES.map((code) => {

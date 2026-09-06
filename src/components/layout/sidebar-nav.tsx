@@ -21,7 +21,7 @@ export function SidebarNav({ collapsed = false, onNavigate }: SidebarNavProps) {
   const { dict } = useI18n();
 
   return (
-    <nav aria-label={dict.common.mainNavigation} className="flex flex-col gap-6">
+    <nav aria-label={dict.common.mainNavigation} className="flex flex-col gap-6" data-guide="nav-sidebar">
       {groups.map((group) => {
         const items = modules.filter((m) => m.group === group);
         if (items.length === 0) return null;

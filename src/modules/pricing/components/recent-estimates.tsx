@@ -21,7 +21,7 @@ export async function RecentEstimates({ items, activeId }: RecentEstimatesProps)
   const basePath = getModule("pricing").href;
 
   return (
-    <Card className="gap-4">
+    <Card className="gap-4" data-guide="pricing-recent">
       <CardHeader>
         <CardTitle>{t.title}</CardTitle>
         <CardDescription>{t.description}</CardDescription>

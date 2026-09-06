@@ -25,7 +25,7 @@ export function FinancialSummary({ summary, currency, thresholds }: FinancialSum
   const money = (v: number | null) => (v === null ? "—" : formatMoney(v, currency, locale));
 
   return (
-    <Card className="gap-5 lg:sticky lg:top-20">
+    <Card className="gap-5 lg:sticky lg:top-20" data-guide="pricing-summary">
       <CardHeader>
         <CardTitle>{t.title}</CardTitle>
       </CardHeader>

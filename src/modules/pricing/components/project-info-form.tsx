@@ -26,7 +26,7 @@ export function ProjectInfoForm({ value, onChange, fieldErrors = {} }: ProjectIn
   const t = dict.pricing.project;
 
   return (
-    <Card>
+    <Card data-guide="pricing-project">
       <CardHeader>
         <CardTitle>{t.title}</CardTitle>
       </CardHeader>

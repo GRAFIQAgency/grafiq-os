@@ -42,7 +42,7 @@ export function CostItemsTable({
   const presetNames = rolePresets.length > 0 ? rolePresets.map((r) => r.name) : [...FALLBACK_ROLE_PRESETS];
 
   return (
-    <Card className="gap-4">
+    <Card className="gap-4" data-guide="pricing-costs">
       <CardHeader>
         <CardTitle>{t.title}</CardTitle>
         <CardDescription>{t.description}</CardDescription>

@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  BookOpen,
   Calculator,
   CalendarRange,
   FolderKanban,
@@ -33,7 +34,8 @@ export type ModuleId =
   | "sales"
   | "finance"
   | "qa"
-  | "settings";
+  | "settings"
+  | "guide";
 
 export type ModuleStatus = "active" | "planned";
 
@@ -115,6 +117,13 @@ export const modules: readonly ModuleDefinition[] = [
     id: "settings",
     href: "/settings",
     icon: Settings,
+    status: "active",
+    group: "system",
+  },
+  {
+    id: "guide",
+    href: "/guide",
+    icon: BookOpen,
     status: "active",
     group: "system",
   },

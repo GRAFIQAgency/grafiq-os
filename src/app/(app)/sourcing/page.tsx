@@ -9,7 +9,7 @@ export const generateMetadata = moduleMetadata("sourcing");
 export default async function SourcingOverviewPage() {
   const [dict, locale, stats, runs] = await Promise.all([getDictionary(), getLocale(), getOverviewStats(), listRecentRuns()]);
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-guide="sourcing-overview">
       <QuickStart dict={dict} />
       <OverviewWidgets stats={stats} dict={dict} />
       <RecentRuns runs={runs} dict={dict} locale={locale} />

@@ -129,11 +129,11 @@ export function ReviewList<T extends { id: string }>({ items, actions, saveLabel
   const allSelected = items.length > 0 && selectedIds.length === items.length;
 
   if (items.length === 0) {
-    return <div className="flex h-32 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">{t.noResults}</div>;
+    return <div className="flex h-32 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground" data-guide="sourcing-review">{t.noResults}</div>;
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-guide="sourcing-review">
       <div className="flex flex-wrap items-center gap-2 rounded-md border bg-card/60 px-3 py-2 text-xs text-muted-foreground">
         <label className="flex items-center gap-2">
           <Checkbox checked={allSelected} onCheckedChange={(v) => setSelected(v ? new Set(items.map((i) => i.id)) : new Set())} aria-label="select all" />
