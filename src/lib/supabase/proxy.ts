@@ -5,10 +5,15 @@ import { getSupabaseEnv } from "@/config/env";
 import { siteConfig } from "@/config/site";
 
 /** Routes reachable without a session. Everything else requires login. */
-const PUBLIC_ROUTES = [siteConfig.loginRoute];
+const PUBLIC_ROUTES = [siteConfig.loginRoute, ...siteConfig.publicRoutes];
+/** Public routes that signed-in users should not see (they get sent to the app instead). */
+const AUTH_ONLY_ROUTES = [siteConfig.loginRoute];
+
+const matches = (routes: readonly string[], pathname: string) =>
+  routes.some((route) => pathname === route || pathname.startsWith(`${route}/`));
 
 function isPublicRoute(pathname: string) {
-  return PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
+  return matches(PUBLIC_ROUTES, pathname);
 }
 
 /**
@@ -42,6 +47,14 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
+  const isApi = pathname.startsWith("/api/");
+
+  // CORS preflights carry no cookies; route handlers answer them themselves.
+  if (isApi && request.method === "OPTIONS") return response;
+
+  if (!user && isApi) {
+    return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+  }
 
   if (!user && !isPublicRoute(pathname)) {
     const loginUrl = request.nextUrl.clone();
@@ -51,7 +64,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (user && isPublicRoute(pathname)) {
+  if (user && matches(AUTH_ONLY_ROUTES, pathname)) {
     const appUrl = request.nextUrl.clone();
     appUrl.pathname = siteConfig.defaultRoute;
     appUrl.search = "";

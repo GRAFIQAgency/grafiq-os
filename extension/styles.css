@@ -1,0 +1,28 @@
+:root { color-scheme: dark; --bg: #1c1c1c; --card: #232323; --fg: #f4f4f4; --muted: #a3a3a3; --border: rgba(255,255,255,.09); --input: rgba(255,255,255,.06); --accent: #f4f4f4; --danger: #f87171; --ok: #34d399; }
+* { box-sizing: border-box; }
+body { margin: 0; width: 420px; background: var(--bg); color: var(--fg); font: 13px/1.45 -apple-system, "Segoe UI", Roboto, sans-serif; }
+header { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+header .brand { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+header .brand span.mark { display: inline-flex; width: 22px; height: 22px; align-items: center; justify-content: center; border-radius: 5px; background: var(--fg); color: #111; font-size: 12px; font-weight: 700; }
+header .status { font-size: 11px; color: var(--muted); }
+main { padding: 12px 14px 14px; }
+.platform { font-size: 11px; color: var(--muted); margin-bottom: 10px; display: flex; justify-content: space-between; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.grid .full { grid-column: 1 / -1; }
+label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+input, select, textarea { width: 100%; height: 30px; border: 1px solid var(--border); border-radius: 6px; background: var(--input); color: var(--fg); padding: 0 8px; font: inherit; }
+textarea { height: 64px; padding: 6px 8px; resize: vertical; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: rgba(255,255,255,.35); }
+.row { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
+button { height: 32px; padding: 0 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--fg); color: #111; font: inherit; font-weight: 600; cursor: pointer; }
+button.ghost { background: transparent; color: var(--fg); }
+button:disabled { opacity: .5; cursor: default; }
+.msg { font-size: 12px; color: var(--muted); }
+.msg.error { color: var(--danger); }
+.msg.ok { color: var(--ok); }
+.notice { padding: 12px; border: 1px dashed var(--border); border-radius: 8px; color: var(--muted); font-size: 12px; }
+a { color: var(--fg); }
+.options { width: auto; max-width: 560px; margin: 0 auto; }
+.options main { padding: 20px; }
+.options h1 { font-size: 16px; margin: 0 0 4px; }
+.options p { color: var(--muted); margin: 0 0 16px; }

@@ -88,8 +88,25 @@ Rules:
 - API keys stay server-side (`process.env`); connectors run only in Server
   Actions.
 
-Shipped connectors: `mock-talent`, `mock-companies` (deterministic demo data
-to prove the engine) and `csv-import` (manual). 
+Shipped connectors:
+
+| id | type | what it does | setup |
+| --- | --- | --- | --- |
+| `github` | api | Official GitHub REST API: user search by keywords, language and location, then public profile + repo languages → candidate (role and seniority are estimated and say so) | optional `GITHUB_TOKEN` (fine-grained, no scopes) raises limits from 10 to 30 searches/min |
+| `manual` | manual | "Add talent" side panel on Sourcing → Talent: referrals and people found on platforms where GRAFIQ holds an account | none |
+| `inbound-application` | manual | Public form at `/apply`; candidates submit their own data with explicit consent | `SUPABASE_SERVICE_ROLE_KEY` (server-only) |
+| `clipper` | manual | GRAFIQ Clipper browser extension (`extension/`): saves the profile you are viewing on Upwork, Fiverr, Navolnenoze.cz and other pages via `POST /api/sourcing/clip` | install the extension, set the app URL in its options |
+| `csv-import` | csv | CSV upload on Sourcing → Sources | none |
+| `mock-talent`, `mock-companies` | mock | Deterministic demo data to prove the engine; disable in production | none |
+
+Not implemented on purpose: LinkedIn (terms prohibit automated access and the
+site is login/anti-bot protected), Upwork/Malt (partner API approval needed —
+use the manual form until then).
+
+The public form writes through a service-role client (`src/lib/supabase/admin.ts`)
+because RLS only allows signed-in users. That client is `server-only`, the input
+is validated by `services/talent-input.ts`, a honeypot drops bots, and consent
+is required and recorded in the candidate summary and source record. 
 
 ### Adding a connector
 
@@ -98,8 +115,24 @@ to prove the engine) and `csv-import` (manual).
    record a stable `sourceEntityId` and a `sourceUrl`.
 2. Register it in `connectors/registry.ts`.
 3. Add a migration: `insert into public.sourcing_sources (id, enabled) values ('<id>', false);`
+   (see `0005_sourcing_talent_sources.sql` for the pattern)
 4. Throw on failure — the runner retries gently and isolates the error.
 5. Add the connector's display strings if needed (name comes from code).
+
+### Browser clipper
+
+`extension/` is a Manifest V3 Chrome extension with no build step. The popup
+injects `extract.js` into the current tab (activeTab permission only), which
+returns a normalised profile using a generic reader (schema.org Person, Open
+Graph, headings) layered with platform readers (Upwork, Fiverr, Navolnenoze.cz,
+Czech boards, GitHub, Behance, Dribbble). The user edits the fields and saves.
+
+`src/app/api/sourcing/clip/route.ts` receives the clip: CORS allows only
+`chrome-extension://` origins with credentials, the custom `X-GRAFIQ-Clipper`
+header forces a preflight (CSRF guard), the request uses the user's normal
+session cookies (RLS applies), input goes through `validateTalentInput`, and
+the record is ingested with source `clipper`. `src/lib/supabase/proxy.ts`
+returns JSON 401 for unauthenticated `/api/*` calls instead of redirecting.
 
 ## Search runs
 

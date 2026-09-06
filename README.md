@@ -56,6 +56,8 @@ npm test        # Vitest unit tests (business logic)
    - `0002_pricing.sql` — `pricing_estimates` + `pricing_cost_items` for the Pricing module.
    - `0003_business_settings.sql` — `business_settings` + `role_costs` for Settings → Business.
    - `0004_sourcing.sql` — Sourcing module tables (talent, companies, signals, searches, sources, evaluations, notes, activity).
+   - `0005_sourcing_talent_sources.sql` — registers the GitHub, manual and inbound-application connectors.
+   - `0006_sourcing_clipper.sql` — registers the browser clipper connector.
 5. Create users. This is an internal tool with **no public signup**: add team
    members in **Authentication → Users → Add user** (set a password, or send an
    invite). Optionally give them a `full_name` in the user metadata; it becomes
@@ -97,6 +99,7 @@ src/
     database.ts           Database row types (hand-written for now)
 supabase/
   migrations/             SQL migrations, applied manually or via Supabase CLI
+extension/                GRAFIQ Clipper browser extension (see extension/README.md)
 docs/
   ARCHITECTURE.md         How the app is organised and how to extend it
 ```

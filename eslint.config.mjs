@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Browser extension: plain JS with chrome.* globals, no build step.
+    "extension/**",
   ]),
 ]);
 

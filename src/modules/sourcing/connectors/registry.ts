@@ -1,5 +1,8 @@
 import type { EntityType } from "../types";
+import { clipperConnector } from "./clipper";
 import { csvImportConnector } from "./csv-import";
+import { githubConnector } from "./github";
+import { inboundApplicationConnector, manualConnector } from "./manual";
 import { mockCompaniesConnector } from "./mock-companies";
 import { mockTalentConnector } from "./mock-talent";
 import type { SourceConnector } from "./types";
@@ -10,9 +13,13 @@ import type { SourceConnector } from "./types";
  * Enabling/disabling happens in Sourcing → Sources (persisted in the DB).
  */
 export const connectors: readonly SourceConnector[] = [
+  githubConnector,
   mockTalentConnector,
   mockCompaniesConnector,
   csvImportConnector,
+  manualConnector,
+  inboundApplicationConnector,
+  clipperConnector,
 ];
 
 export function getConnector(id: string): SourceConnector | undefined {

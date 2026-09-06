@@ -3,6 +3,7 @@ import { moduleMetadata } from "@/lib/i18n/metadata";
 import { getDictionary } from "@/lib/i18n/server";
 import { Pagination } from "@/modules/sourcing/components/shared/pagination";
 import { SearchToolbar } from "@/modules/sourcing/components/shared/search-toolbar";
+import { AddTalentSheet } from "@/modules/sourcing/components/talent/add-talent-sheet";
 import { TalentFiltersForm } from "@/modules/sourcing/components/talent/talent-filters";
 import { TalentList } from "@/modules/sourcing/components/talent/talent-list";
 import { listTalent } from "@/modules/sourcing/queries/talent";
@@ -21,7 +22,10 @@ export default async function SourcingTalentPage({ searchParams }: PageProps<"/s
   return (
     <div className="space-y-4">
       <TalentFiltersForm filters={filters} dict={dict} />
-      <SearchToolbar entityType="talent" />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <SearchToolbar entityType="talent" />
+        <AddTalentSheet />
+      </div>
       <TalentList items={page.items} />
       <Pagination basePath={`${getModule("sourcing").href}/talent`} params={urlParams} page={page.page} pageSize={page.pageSize} total={page.total} />
     </div>

@@ -25,6 +25,8 @@ export interface IngestContext {
   sourceId: string;
   runId?: string;
   actor: Actor;
+  /** Override the cookie-bound client (e.g. service-role client for public inbound forms). */
+  client?: SupabaseClient;
 }
 
 export interface IngestStats {
@@ -145,7 +147,7 @@ async function findExistingTalent(supabase: SupabaseClient, t: NormalizedTalent)
 
 async function scoreAndStoreTalent(supabase: SupabaseClient, row: TalentCandidateRow) {
   const candidate = rowToTalent(row);
-  const profile = await findRoleProfileForRole(candidate.role);
+  const profile = await findRoleProfileForRole(candidate.role, supabase);
   const result = await scoreTalent(candidate, profile);
   await storeEvaluation(supabase, "talent", row.id, result, profile?.id ?? null);
   await supabase.from("talent_candidates").update({ ai_score: result.score }).eq("id", row.id);
@@ -153,7 +155,7 @@ async function scoreAndStoreTalent(supabase: SupabaseClient, row: TalentCandidat
 }
 
 export async function ingestTalent(records: NormalizedTalent[], ctx: IngestContext): Promise<IngestStats> {
-  const supabase = await createClient();
+  const supabase = ctx.client ?? (await createClient());
   const stats = emptyStats();
   stats.total = records.length;
 
@@ -295,7 +297,7 @@ async function scoreAndStoreCompany(supabase: SupabaseClient, row: CompanyLeadRo
 }
 
 export async function ingestCompanies(records: NormalizedCompany[], ctx: IngestContext): Promise<IngestStats> {
-  const supabase = await createClient();
+  const supabase = ctx.client ?? (await createClient());
   const stats = emptyStats();
   stats.total = records.length;
 
