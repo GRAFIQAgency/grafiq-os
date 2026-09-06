@@ -3,24 +3,30 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { siteConfig } from "@/config/site";
+import { I18nProvider } from "@/lib/i18n/client";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
 
 import "./globals.css";
 
-const fontSans = Geist({ variable: "--font-sans", subsets: ["latin"] });
-const fontMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+const fontSans = Geist({ variable: "--font-sans", subsets: ["latin", "latin-ext"] });
+const fontMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin", "latin-ext"] });
 
 export const metadata: Metadata = {
   title: { default: siteConfig.name, template: `%s · ${siteConfig.name}` },
   description: siteConfig.description,
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const [locale, dict] = await Promise.all([getLocale(), getDictionary()]);
+
   return (
     // `dark` is the default theme for GRAFIQ OS. Light tokens exist in
     // globals.css, so a theme toggle can be added later without a redesign.
-    <html lang="en" className={`${fontSans.variable} ${fontMono.variable} dark h-full antialiased`}>
+    <html lang={locale} className={`${fontSans.variable} ${fontMono.variable} dark h-full antialiased`}>
       <body className="flex min-h-full flex-col">
-        <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
+        <I18nProvider locale={locale} dict={dict}>
+          <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
+        </I18nProvider>
       </body>
     </html>
   );

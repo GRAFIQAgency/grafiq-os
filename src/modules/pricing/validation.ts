@@ -1,9 +1,27 @@
+import { interpolate } from "@/lib/i18n/interpolate";
+
 import { CURRENCIES } from "./constants";
 import type { CostItemInput, EstimateInput, SaveEstimateResult } from "./types";
 
 type ValidationOutcome =
   | { data: EstimateInput; errors?: undefined }
   | { data?: undefined; errors: SaveEstimateResult };
+
+/** Translated messages (dict.pricing.validation). Passed in to keep this file pure. */
+export interface EstimateValidationMessages {
+  invalidPayload: string;
+  fixFields: string;
+  projectNameRequired: string;
+  maxLength: string;
+  currency: string;
+  revenue: string;
+  targetMargin: string;
+  itemName: string;
+  itemKind: string;
+  itemHours: string;
+  itemRate: string;
+  itemAmount: string;
+}
 
 const MAX_NAME = 200;
 
@@ -24,27 +42,30 @@ function asNonNegativeNumber(value: unknown): number | null {
  * Validates untrusted input (from the client) into a well-typed EstimateInput.
  * Dependency-free on purpose; swap for zod if forms grow more complex.
  */
-export function validateEstimateInput(raw: unknown): ValidationOutcome {
+export function validateEstimateInput(
+  raw: unknown,
+  msg: EstimateValidationMessages
+): ValidationOutcome {
   const fieldErrors: Record<string, string> = {};
-  if (!isRecord(raw)) return { errors: { error: "Invalid estimate payload." } };
+  if (!isRecord(raw)) return { errors: { error: msg.invalidPayload } };
+
+  const maxLength = interpolate(msg.maxLength, { max: MAX_NAME });
 
   const projectName = asText(raw.projectName);
-  if (!projectName) fieldErrors.projectName = "Project name is required.";
-  else if (projectName.length > MAX_NAME) fieldErrors.projectName = `Max ${MAX_NAME} characters.`;
+  if (!projectName) fieldErrors.projectName = msg.projectNameRequired;
+  else if (projectName.length > MAX_NAME) fieldErrors.projectName = maxLength;
 
   const clientName = asText(raw.clientName);
-  if (clientName.length > MAX_NAME) fieldErrors.clientName = `Max ${MAX_NAME} characters.`;
+  if (clientName.length > MAX_NAME) fieldErrors.clientName = maxLength;
 
   const currency = CURRENCIES.find((c) => c === raw.currency);
-  if (!currency) fieldErrors.currency = "Choose a currency.";
+  if (!currency) fieldErrors.currency = msg.currency;
 
   const revenue = asNonNegativeNumber(raw.revenue);
-  if (revenue === null) fieldErrors.revenue = "Enter a valid client price.";
+  if (revenue === null) fieldErrors.revenue = msg.revenue;
 
   const targetMargin = asNonNegativeNumber(raw.targetMargin);
-  if (targetMargin === null || targetMargin >= 100) {
-    fieldErrors.targetMargin = "Target margin must be between 0 and 99.99.";
-  }
+  if (targetMargin === null || targetMargin >= 100) fieldErrors.targetMargin = msg.targetMargin;
 
   const rawItems = Array.isArray(raw.items) ? raw.items : [];
   const items: CostItemInput[] = [];
@@ -56,11 +77,11 @@ export function validateEstimateInput(raw: unknown): ValidationOutcome {
     const hourlyRate = asNonNegativeNumber(item.hourlyRate ?? 0);
     const fixedAmount = asNonNegativeNumber(item.fixedAmount ?? 0);
 
-    if (!name) fieldErrors[`items.${index}.name`] = "Cost name is required.";
-    if (!kind) fieldErrors[`items.${index}.kind`] = "Invalid cost type.";
-    if (hours === null) fieldErrors[`items.${index}.hours`] = "Invalid hours.";
-    if (hourlyRate === null) fieldErrors[`items.${index}.hourlyRate`] = "Invalid rate.";
-    if (fixedAmount === null) fieldErrors[`items.${index}.fixedAmount`] = "Invalid amount.";
+    if (!name) fieldErrors[`items.${index}.name`] = msg.itemName;
+    if (!kind) fieldErrors[`items.${index}.kind`] = msg.itemKind;
+    if (hours === null) fieldErrors[`items.${index}.hours`] = msg.itemHours;
+    if (hourlyRate === null) fieldErrors[`items.${index}.hourlyRate`] = msg.itemRate;
+    if (fixedAmount === null) fieldErrors[`items.${index}.fixedAmount`] = msg.itemAmount;
 
     if (name && kind && hours !== null && hourlyRate !== null && fixedAmount !== null) {
       items.push({ name, kind, hours, hourlyRate, fixedAmount });
@@ -70,7 +91,7 @@ export function validateEstimateInput(raw: unknown): ValidationOutcome {
   const id = typeof raw.id === "string" && raw.id ? raw.id : undefined;
 
   if (Object.keys(fieldErrors).length > 0) {
-    return { errors: { error: "Please fix the highlighted fields.", fieldErrors } };
+    return { errors: { error: msg.fixFields, fieldErrors } };
   }
 
   return {

@@ -5,6 +5,7 @@ import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { BrandMark } from "@/components/shared/brand-mark";
+import { useI18n } from "@/lib/i18n/client";
 
 import { SidebarNav } from "./sidebar-nav";
 import { useSidebar } from "./sidebar-context";
@@ -12,6 +13,7 @@ import { useSidebar } from "./sidebar-context";
 /** Desktop sidebar. Hidden below `lg`, where the mobile drawer takes over. */
 export function Sidebar() {
   const { collapsed, toggle } = useSidebar();
+  const { dict } = useI18n();
 
   return (
     <aside
@@ -25,7 +27,7 @@ export function Sidebar() {
         <BrandMark compact={collapsed} />
       </div>
 
-      <div className={cn("flex-1 overflow-y-auto py-4", collapsed ? "px-3" : "px-3")}>
+      <div className="flex-1 overflow-y-auto px-3 py-4">
         <SidebarNav collapsed={collapsed} />
       </div>
 
@@ -34,12 +36,12 @@ export function Sidebar() {
           variant="ghost"
           size={collapsed ? "icon" : "sm"}
           onClick={toggle}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={collapsed ? dict.common.expandSidebar : dict.common.collapseSidebar}
           aria-expanded={!collapsed}
           className={cn("text-muted-foreground", !collapsed && "w-full justify-start")}
         >
           {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
-          {!collapsed ? <span>Collapse</span> : null}
+          {!collapsed ? <span>{dict.common.collapse}</span> : null}
         </Button>
       </div>
     </aside>

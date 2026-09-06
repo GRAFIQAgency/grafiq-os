@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 
 import { siteConfig } from "@/config/site";
+import { getDictionary } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 
 import type { LoginFormState } from "./types";
@@ -18,14 +19,15 @@ export async function signIn(
   _prevState: LoginFormState,
   formData: FormData
 ): Promise<LoginFormState> {
-  const validated = validateLoginInput(formData);
+  const dict = await getDictionary();
+  const validated = validateLoginInput(formData, dict.auth);
   if (validated.errors) return validated.errors;
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(validated.data);
 
   if (error) {
-    return { error: "Invalid email or password." };
+    return { error: dict.auth.invalidCredentials };
   }
 
   redirect(safeRedirectPath(formData.get("next")));

@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useI18n } from "@/lib/i18n/client";
 
 import { COST_ROLE_PRESETS } from "../constants";
 import type { CostItemDraft } from "../draft";
@@ -33,12 +34,14 @@ export function CostItemsTable({
   onRemove,
 }: CostItemsTableProps) {
   const presetsListId = useId();
+  const { dict, locale } = useI18n();
+  const t = dict.pricing.costs;
 
   return (
     <Card className="gap-4">
       <CardHeader>
-        <CardTitle>Direct costs</CardTitle>
-        <CardDescription>Internal cost of delivering the project: hours × internal rate, or a fixed amount.</CardDescription>
+        <CardTitle>{t.title}</CardTitle>
+        <CardDescription>{t.description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <datalist id={presetsListId}>
@@ -51,11 +54,11 @@ export function CostItemsTable({
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead>Role / cost</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead className="text-right">Hours</TableHead>
-                <TableHead className="text-right">Rate / amount</TableHead>
-                <TableHead className="text-right">Total</TableHead>
+                <TableHead>{t.role}</TableHead>
+                <TableHead>{t.type}</TableHead>
+                <TableHead className="text-right">{t.hours}</TableHead>
+                <TableHead className="text-right">{t.rateOrAmount}</TableHead>
+                <TableHead className="text-right">{t.total}</TableHead>
                 <TableHead />
               </TableRow>
             </TableHeader>
@@ -63,7 +66,7 @@ export function CostItemsTable({
               {items.length === 0 ? (
                 <TableRow className="hover:bg-transparent">
                   <TableCell colSpan={6} className="h-20 text-center text-sm text-muted-foreground">
-                    No cost items yet. Add the roles needed to deliver this project.
+                    {t.empty}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -84,10 +87,10 @@ export function CostItemsTable({
             <TableFooter>
               <TableRow className="hover:bg-transparent">
                 <TableCell colSpan={4} className="text-sm font-medium">
-                  Total direct costs
+                  {t.totalDirect}
                 </TableCell>
                 <TableCell className="text-right font-semibold tabular-nums">
-                  {formatMoney(directCosts, currency)}
+                  {formatMoney(directCosts, currency, locale)}
                 </TableCell>
                 <TableCell />
               </TableRow>
@@ -97,7 +100,7 @@ export function CostItemsTable({
 
         <Button type="button" variant="outline" size="sm" onClick={onAdd}>
           <Plus data-icon="inline-start" />
-          Add cost
+          {t.add}
         </Button>
       </CardContent>
     </Card>

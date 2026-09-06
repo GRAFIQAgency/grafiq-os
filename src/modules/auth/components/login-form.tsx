@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useI18n } from "@/lib/i18n/client";
 
 import { signIn } from "../actions";
 import type { LoginFormState } from "../types";
@@ -19,13 +20,14 @@ interface LoginFormProps {
 
 export function LoginForm({ nextPath }: LoginFormProps) {
   const [state, formAction, pending] = useActionState(signIn, initialState);
+  const { dict } = useI18n();
 
   return (
     <form action={formAction} className="space-y-5" noValidate>
       {nextPath ? <input type="hidden" name="next" value={nextPath} /> : null}
 
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{dict.auth.email}</Label>
         <Input
           id="email"
           name="email"
@@ -41,7 +43,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">{dict.auth.password}</Label>
         <Input
           id="password"
           name="password"
@@ -67,7 +69,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
 
       <Button type="submit" size="lg" className="w-full" disabled={pending}>
         {pending ? <Loader2 className="animate-spin" /> : null}
-        {pending ? "Signing in…" : "Sign in"}
+        {pending ? dict.auth.signingIn : dict.auth.signIn}
       </Button>
     </form>
   );

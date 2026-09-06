@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TableCell, TableRow } from "@/components/ui/table";
+import { useI18n } from "@/lib/i18n/client";
+import { interpolate } from "@/lib/i18n/interpolate";
 
 import { costItemTotal } from "../calculations";
 import { costItemDraftToInput, type CostItemDraft } from "../draft";
@@ -31,6 +33,9 @@ export function CostItemRow({
   onChange,
   onRemove,
 }: CostItemRowProps) {
+  const { dict, locale } = useI18n();
+  const t = dict.pricing.costs;
+  const n = index + 1;
   const total = costItemTotal(costItemDraftToInput(item));
   const isFixed = item.kind === "fixed";
   const errorFor = (field: string) => fieldErrors[`items.${index}.${field}`];
@@ -42,19 +47,19 @@ export function CostItemRow({
           list={presetsListId}
           value={item.name}
           onChange={(e) => onChange({ name: e.target.value })}
-          placeholder="Role or cost name"
-          aria-label={`Cost ${index + 1} name`}
+          placeholder={t.namePlaceholder}
+          aria-label={interpolate(t.costName, { n })}
           aria-invalid={Boolean(errorFor("name"))}
         />
       </TableCell>
       <TableCell>
         <Select value={item.kind} onValueChange={(kind) => onChange({ kind: kind as CostItemKind })}>
-          <SelectTrigger aria-label={`Cost ${index + 1} type`} className="w-28">
+          <SelectTrigger aria-label={interpolate(t.costType, { n })} className="w-28">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="hourly">Hourly</SelectItem>
-            <SelectItem value="fixed">Fixed</SelectItem>
+            <SelectItem value="hourly">{t.hourly}</SelectItem>
+            <SelectItem value="fixed">{t.fixed}</SelectItem>
           </SelectContent>
         </Select>
       </TableCell>
@@ -70,7 +75,7 @@ export function CostItemRow({
             value={item.hours}
             onChange={(e) => onChange({ hours: e.target.value })}
             placeholder="0"
-            aria-label={`Cost ${index + 1} hours`}
+            aria-label={interpolate(t.costHours, { n })}
             className="w-24 text-right tabular-nums"
           />
         )}
@@ -85,7 +90,7 @@ export function CostItemRow({
             value={item.fixedAmount}
             onChange={(e) => onChange({ fixedAmount: e.target.value })}
             placeholder="0"
-            aria-label={`Cost ${index + 1} fixed amount`}
+            aria-label={interpolate(t.costAmount, { n })}
             className="w-32 text-right tabular-nums"
           />
         ) : (
@@ -97,19 +102,21 @@ export function CostItemRow({
             value={item.hourlyRate}
             onChange={(e) => onChange({ hourlyRate: e.target.value })}
             placeholder="0"
-            aria-label={`Cost ${index + 1} hourly cost`}
+            aria-label={interpolate(t.costRate, { n })}
             className="w-32 text-right tabular-nums"
           />
         )}
       </TableCell>
-      <TableCell className="text-right font-medium tabular-nums">{formatMoney(total, currency)}</TableCell>
+      <TableCell className="text-right font-medium tabular-nums">
+        {formatMoney(total, currency, locale)}
+      </TableCell>
       <TableCell className="w-10 pr-2">
         <Button
           type="button"
           variant="ghost"
           size="icon-sm"
           onClick={onRemove}
-          aria-label={`Remove cost ${index + 1}`}
+          aria-label={interpolate(t.remove, { n })}
           className="text-muted-foreground hover:text-foreground"
         >
           <X />

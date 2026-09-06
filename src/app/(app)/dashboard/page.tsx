@@ -1,23 +1,22 @@
-import type { Metadata } from "next";
-
 import { PageHeader } from "@/components/shared/page-header";
 import { PlaceholderBadge } from "@/components/shared/placeholder-badge";
-import { getModule } from "@/config/modules";
+import { moduleMetadata } from "@/lib/i18n/metadata";
+import { getDictionary } from "@/lib/i18n/server";
 import { DashboardOverview } from "@/modules/dashboard/components/dashboard-overview";
 
-export const metadata: Metadata = { title: "Dashboard" };
+export const generateMetadata = moduleMetadata("dashboard");
 
-export default function DashboardPage() {
-  const mod = getModule("dashboard");
+export default async function DashboardPage() {
+  const dict = await getDictionary();
 
   return (
     <div className="space-y-8">
       <PageHeader
-        title={mod.title}
-        description={mod.description}
-        actions={<PlaceholderBadge label="Example data" />}
+        title={dict.modules.dashboard.title}
+        description={dict.modules.dashboard.description}
+        actions={<PlaceholderBadge label={dict.common.exampleData} />}
       />
-      <DashboardOverview />
+      <DashboardOverview dict={dict} />
     </div>
   );
 }

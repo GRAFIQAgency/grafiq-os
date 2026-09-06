@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useI18n } from "@/lib/i18n/client";
 
 import { CURRENCIES } from "../constants";
 import type { EstimateDraft } from "../draft";
@@ -21,32 +22,35 @@ interface ProjectInfoFormProps {
 }
 
 export function ProjectInfoForm({ value, onChange, fieldErrors = {} }: ProjectInfoFormProps) {
+  const { dict } = useI18n();
+  const t = dict.pricing.project;
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Project information</CardTitle>
+        <CardTitle>{t.title}</CardTitle>
       </CardHeader>
       <CardContent className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-5">
-        <Field label="Project name" htmlFor="projectName" error={fieldErrors.projectName} className="xl:col-span-2">
+        <Field label={t.projectName} htmlFor="projectName" error={fieldErrors.projectName} className="xl:col-span-2">
           <Input
             id="projectName"
             value={value.projectName}
             onChange={(e) => onChange({ projectName: e.target.value })}
-            placeholder="e.g. Brand identity refresh"
+            placeholder={t.projectNamePlaceholder}
             aria-invalid={Boolean(fieldErrors.projectName)}
           />
         </Field>
 
-        <Field label="Client" htmlFor="clientName" error={fieldErrors.clientName} hint="optional">
+        <Field label={t.client} htmlFor="clientName" error={fieldErrors.clientName} hint={dict.common.optional}>
           <Input
             id="clientName"
             value={value.clientName}
             onChange={(e) => onChange({ clientName: e.target.value })}
-            placeholder="Client name"
+            placeholder={t.clientPlaceholder}
           />
         </Field>
 
-        <Field label="Client price excl. VAT" htmlFor="revenue" error={fieldErrors.revenue}>
+        <Field label={t.price} htmlFor="revenue" error={fieldErrors.revenue ?? fieldErrors.currency}>
           <div className="flex gap-2">
             <Input
               id="revenue"
@@ -61,7 +65,7 @@ export function ProjectInfoForm({ value, onChange, fieldErrors = {} }: ProjectIn
               aria-invalid={Boolean(fieldErrors.revenue)}
             />
             <Select value={value.currency} onValueChange={(c) => onChange({ currency: c as Currency })}>
-              <SelectTrigger aria-label="Currency" className="w-24 shrink-0">
+              <SelectTrigger aria-label={t.currency} className="w-24 shrink-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -75,7 +79,7 @@ export function ProjectInfoForm({ value, onChange, fieldErrors = {} }: ProjectIn
           </div>
         </Field>
 
-        <Field label="Target margin" htmlFor="targetMargin" error={fieldErrors.targetMargin}>
+        <Field label={t.targetMargin} htmlFor="targetMargin" error={fieldErrors.targetMargin}>
           <div className="relative">
             <Input
               id="targetMargin"

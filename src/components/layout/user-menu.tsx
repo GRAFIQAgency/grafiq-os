@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getDictionary } from "@/lib/i18n/server";
 import { signOut } from "@/modules/auth/actions";
 import type { CurrentUser } from "@/modules/auth/types";
 
@@ -17,13 +18,14 @@ interface UserMenuProps {
   currentUser: CurrentUser;
 }
 
-export function UserMenu({ currentUser }: UserMenuProps) {
+export async function UserMenu({ currentUser }: UserMenuProps) {
   const { displayName, initials, user, profile } = currentUser;
+  const dict = await getDictionary();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-9 gap-2.5 px-1.5" aria-label="Open user menu">
+        <Button variant="ghost" className="h-9 gap-2.5 px-1.5" aria-label={dict.common.openUserMenu}>
           <Avatar className="size-7">
             {profile?.avatar_url ? <AvatarImage src={profile.avatar_url} alt="" /> : null}
             <AvatarFallback className="text-[11px] font-medium">{initials}</AvatarFallback>
@@ -41,7 +43,7 @@ export function UserMenu({ currentUser }: UserMenuProps) {
           <DropdownMenuItem asChild>
             <button type="submit" className="w-full">
               <LogOut />
-              Sign out
+              {dict.common.signOut}
             </button>
           </DropdownMenuItem>
         </form>

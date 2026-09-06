@@ -100,6 +100,27 @@ The reference implementation of a "real" module. Notable choices:
 - Reads (`queries.ts`) fail soft with a server-side log so the page still
   renders if the migration has not been applied yet.
 
+## Internationalisation (EN / CS)
+
+The UI is bilingual without any i18n library:
+
+- `src/lib/i18n/dictionaries/en.ts` is the source of truth; its shape is the
+  `Dictionary` type and `cs.ts` must implement every key (TypeScript enforces it).
+- The locale lives in a cookie (`grafiq:locale`), not in the URL, so routes
+  stay unchanged. `LanguageSwitcher` calls the `setLocale` Server Action and
+  refreshes.
+- Server Components and Actions: `const dict = await getDictionary()` from
+  `@/lib/i18n/server`. Client Components: `const { dict, locale } = useI18n()`
+  from `@/lib/i18n/client`.
+- Placeholders use `{name}` and `interpolate()` from `@/lib/i18n/interpolate`.
+- Module titles/descriptions live under `dict.modules.<id>`, not in the registry.
+- Page tab titles: `export const generateMetadata = moduleMetadata("<id>")`.
+- Pure logic (validation, calculations) must not import dictionaries. Pass the
+  messages it needs as a parameter (see `modules/pricing/validation.ts`).
+- Number and date formatting uses `INTL_LOCALES[locale]` (`en-GB` / `cs-CZ`).
+
+When adding UI text: add the key to `en.ts` and `cs.ts` in the same change.
+
 ## Routing conventions
 
 - `src/app/(auth)/…` — public pages (login). Chrome-free layout.

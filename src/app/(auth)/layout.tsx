@@ -1,11 +1,13 @@
 import { BrandMark } from "@/components/shared/brand-mark";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
 
 /** Centered, chrome-free layout for authentication pages. */
 export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <div className="flex h-14 items-center px-6">
+      <div className="flex h-14 items-center justify-between px-6">
         <BrandMark />
+        <LanguageSwitcher />
       </div>
       <div className="flex flex-1 items-center justify-center px-4 pb-14">
         <div className="w-full max-w-sm">{children}</div>

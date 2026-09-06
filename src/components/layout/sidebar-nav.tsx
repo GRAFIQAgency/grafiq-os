@@ -6,12 +6,9 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { modules, type ModuleDefinition } from "@/config/modules";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useI18n } from "@/lib/i18n/client";
 
-const groups: { key: ModuleDefinition["group"]; label: string }[] = [
-  { key: "overview", label: "Overview" },
-  { key: "modules", label: "Modules" },
-  { key: "system", label: "System" },
-];
+const groups: ModuleDefinition["group"][] = ["overview", "modules", "system"];
 
 interface SidebarNavProps {
   collapsed?: boolean;
@@ -21,18 +18,19 @@ interface SidebarNavProps {
 
 export function SidebarNav({ collapsed = false, onNavigate }: SidebarNavProps) {
   const pathname = usePathname();
+  const { dict } = useI18n();
 
   return (
-    <nav aria-label="Main navigation" className="flex flex-col gap-6">
+    <nav aria-label={dict.common.mainNavigation} className="flex flex-col gap-6">
       {groups.map((group) => {
-        const items = modules.filter((m) => m.group === group.key);
+        const items = modules.filter((m) => m.group === group);
         if (items.length === 0) return null;
 
         return (
-          <div key={group.key} className="flex flex-col gap-1">
+          <div key={group} className="flex flex-col gap-1">
             {!collapsed ? (
               <p className="mb-1 px-3 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-                {group.label}
+                {dict.nav[group]}
               </p>
             ) : (
               <div className="mx-3 mb-1 border-t" aria-hidden="true" />
@@ -41,6 +39,8 @@ export function SidebarNav({ collapsed = false, onNavigate }: SidebarNavProps) {
               <NavItem
                 key={item.id}
                 item={item}
+                title={dict.modules[item.id].title}
+                plannedLabel={dict.common.planned}
                 active={pathname === item.href || pathname.startsWith(`${item.href}/`)}
                 collapsed={collapsed}
                 onNavigate={onNavigate}
@@ -55,12 +55,14 @@ export function SidebarNav({ collapsed = false, onNavigate }: SidebarNavProps) {
 
 interface NavItemProps {
   item: ModuleDefinition;
+  title: string;
+  plannedLabel: string;
   active: boolean;
   collapsed: boolean;
   onNavigate?: () => void;
 }
 
-function NavItem({ item, active, collapsed, onNavigate }: NavItemProps) {
+function NavItem({ item, title, plannedLabel, active, collapsed, onNavigate }: NavItemProps) {
   const Icon = item.icon;
 
   const link = (
@@ -82,9 +84,9 @@ function NavItem({ item, active, collapsed, onNavigate }: NavItemProps) {
         />
       ) : null}
       <Icon className="size-4 shrink-0" aria-hidden="true" />
-      {!collapsed ? <span className="truncate">{item.title}</span> : null}
+      {!collapsed ? <span className="truncate">{title}</span> : null}
       {!collapsed && item.status === "planned" ? (
-        <span className="ml-auto size-1.5 rounded-full bg-muted-foreground/30" title="Planned" />
+        <span className="ml-auto size-1.5 rounded-full bg-muted-foreground/30" title={plannedLabel} />
       ) : null}
     </Link>
   );
@@ -95,7 +97,7 @@ function NavItem({ item, active, collapsed, onNavigate }: NavItemProps) {
     <Tooltip>
       <TooltipTrigger asChild>{link}</TooltipTrigger>
       <TooltipContent side="right" sideOffset={8}>
-        {item.title}
+        {title}
       </TooltipContent>
     </Tooltip>
   );

@@ -4,11 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 interface EmptyPanelProps {
   title: string;
   description: string;
+  /** Translated text for the empty area, e.g. dict.common.nothingToShow. */
+  emptyLabel: string;
   className?: string;
 }
 
 /** A card with a title and a dashed empty area — used for not-yet-built widgets. */
-export function EmptyPanel({ title, description, className }: EmptyPanelProps) {
+export function EmptyPanel({ title, description, emptyLabel, className }: EmptyPanelProps) {
   return (
     <Card className={cn("gap-4", className)}>
       <CardHeader>
@@ -17,7 +19,7 @@ export function EmptyPanel({ title, description, className }: EmptyPanelProps) {
       </CardHeader>
       <CardContent>
         <div className="flex h-40 items-center justify-center rounded-md border border-dashed text-xs text-muted-foreground">
-          Nothing to show yet
+          {emptyLabel}
         </div>
       </CardContent>
     </Card>

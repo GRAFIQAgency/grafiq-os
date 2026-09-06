@@ -1,10 +1,13 @@
+"use client";
+
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { useI18n } from "@/lib/i18n/client";
 
 import { formatMoney, formatPercent } from "../format";
 import type { Currency, PricingSummary } from "../types";
-import { HEALTH_DESCRIPTIONS, HealthBadge } from "./health-badge";
+import { HealthBadge, healthDescription } from "./health-badge";
 
 interface FinancialSummaryProps {
   summary: PricingSummary;
@@ -12,23 +15,26 @@ interface FinancialSummaryProps {
 }
 
 export function FinancialSummary({ summary, currency }: FinancialSummaryProps) {
+  const { dict, locale } = useI18n();
+  const t = dict.pricing.summary;
+  const healthText = dict.pricing.health;
   const hasRevenue = summary.revenue > 0;
-  const money = (v: number | null) => (v === null ? "—" : formatMoney(v, currency));
+  const money = (v: number | null) => (v === null ? "—" : formatMoney(v, currency, locale));
 
   return (
     <Card className="gap-5 lg:sticky lg:top-20">
       <CardHeader>
-        <CardTitle>Financial summary</CardTitle>
+        <CardTitle>{t.title}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="rounded-lg border bg-muted/30 p-5">
           <div className="flex items-start justify-between gap-3">
-            <p className="text-sm font-medium text-muted-foreground">Gross margin</p>
+            <p className="text-sm font-medium text-muted-foreground">{t.grossMargin}</p>
             {hasRevenue ? (
-              <HealthBadge status={summary.health} />
+              <HealthBadge status={summary.health} text={healthText} />
             ) : (
               <span className="inline-flex h-5 items-center rounded-full border border-dashed px-2 text-xs text-muted-foreground">
-                No price yet
+                {t.noPriceYet}
               </span>
             )}
           </div>
@@ -38,36 +44,38 @@ export function FinancialSummary({ summary, currency }: FinancialSummaryProps) {
               !hasRevenue && "text-muted-foreground/50"
             )}
           >
-            {formatPercent(summary.grossMargin)}
+            {formatPercent(summary.grossMargin, locale)}
           </p>
           <p className="mt-2 text-xs text-muted-foreground">
-            {hasRevenue
-              ? HEALTH_DESCRIPTIONS[summary.health]
-              : "Enter the client price to evaluate this project."}
+            {hasRevenue ? healthDescription(summary.health, healthText) : t.enterPrice}
           </p>
         </div>
 
         <dl className="space-y-3 text-sm">
-          <SummaryRow label="Revenue" value={money(summary.revenue)} />
-          <SummaryRow label="Direct costs" value={money(summary.directCosts)} />
+          <SummaryRow label={t.revenue} value={money(summary.revenue)} />
+          <SummaryRow label={t.directCosts} value={money(summary.directCosts)} />
           <SummaryRow
-            label="Gross profit"
+            label={t.grossProfit}
             value={money(summary.grossProfit)}
             valueClassName={cn("font-semibold", summary.grossProfit < 0 && "text-red-400")}
           />
           <Separator />
-          <SummaryRow label="Target margin" value={formatPercent(summary.targetMargin, 0)} />
+          <SummaryRow label={t.targetMargin} value={formatPercent(summary.targetMargin, locale, 0)} />
           <SummaryRow
-            label="Recommended price"
+            label={t.recommendedPrice}
             value={money(summary.recommendedPrice)}
             valueClassName="font-semibold"
-            hint="Minimum price to reach the target margin"
+            hint={t.recommendedHint}
           />
         </dl>
 
         <div className="flex items-center justify-between rounded-md border px-3 py-2.5 text-sm">
-          <span className="text-muted-foreground">Project health</span>
-          {hasRevenue ? <HealthBadge status={summary.health} /> : <span className="text-muted-foreground">—</span>}
+          <span className="text-muted-foreground">{t.health}</span>
+          {hasRevenue ? (
+            <HealthBadge status={summary.health} text={healthText} />
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
         </div>
       </CardContent>
     </Card>

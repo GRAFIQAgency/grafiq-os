@@ -80,6 +80,7 @@ src/
     site.ts               App name and default routes
     env.ts                Environment variable access
   lib/
+    i18n/                 EN/CS dictionaries, locale cookie, server + client helpers
     supabase/             Supabase client factories (browser, server, proxy)
     utils.ts              `cn()` helper
   modules/                Feature modules (see below)
@@ -124,6 +125,8 @@ Short version (full details in `docs/ARCHITECTURE.md`):
 - **No public signup.** Users are created by an admin in the Supabase dashboard.
 - **Dark theme by default**, with light tokens kept in `globals.css` so a toggle
   can be added later.
+- **Bilingual UI (EN/CS) without a library.** Typed dictionaries in
+  `src/lib/i18n`, locale stored in a cookie, switcher in the top bar.
 - **Minimal dependencies.** No form library, no validation library, no state
   manager. Add them when a module genuinely needs them.
 - **Business logic is pure and tested.** Calculations live in plain functions

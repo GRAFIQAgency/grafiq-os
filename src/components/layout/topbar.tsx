@@ -1,5 +1,7 @@
+import { getDictionary } from "@/lib/i18n/server";
 import type { CurrentUser } from "@/modules/auth/types";
 
+import { LanguageSwitcher } from "./language-switcher";
 import { MobileNav } from "./mobile-nav";
 import { PageTitle } from "./page-title";
 import { SearchPlaceholder } from "./search-placeholder";
@@ -9,14 +11,17 @@ interface TopbarProps {
   currentUser: CurrentUser;
 }
 
-export function Topbar({ currentUser }: TopbarProps) {
+export async function Topbar({ currentUser }: TopbarProps) {
+  const dict = await getDictionary();
+
   return (
     <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:px-6">
       <MobileNav />
       <div className="min-w-0 flex-1">
         <PageTitle />
       </div>
-      <SearchPlaceholder />
+      <SearchPlaceholder label={dict.common.search} />
+      <LanguageSwitcher />
       <UserMenu currentUser={currentUser} />
     </header>
   );

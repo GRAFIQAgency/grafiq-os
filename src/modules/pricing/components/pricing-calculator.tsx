@@ -6,6 +6,7 @@ import { Loader2, RotateCcw, Save } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { getModule } from "@/config/modules";
+import { useI18n } from "@/lib/i18n/client";
 
 import { saveEstimate } from "../actions";
 import { summarizeEstimate } from "../calculations";
@@ -31,6 +32,8 @@ type SaveState = { status: "idle" } | { status: "saved" } | { status: "error"; m
 
 export function PricingCalculator({ initialEstimate }: PricingCalculatorProps) {
   const router = useRouter();
+  const { dict } = useI18n();
+  const t = dict.pricing.toolbar;
   const [draft, setDraft] = useState<EstimateDraft>(() =>
     initialEstimate ? draftFromEstimate(initialEstimate) : createEmptyDraft()
   );
@@ -83,18 +86,18 @@ export function PricingCalculator({ initialEstimate }: PricingCalculatorProps) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground" role="status" aria-live="polite">
-          {saveState.status === "saved" ? "Estimate saved." : null}
+          {saveState.status === "saved" ? t.saved : null}
           {saveState.status === "error" ? <span className="text-destructive">{saveState.message}</span> : null}
-          {saveState.status === "idle" && draft.id ? "Editing a saved estimate." : null}
+          {saveState.status === "idle" && draft.id ? t.editingSaved : null}
         </p>
         <div className="flex items-center gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={reset} disabled={isSaving}>
             <RotateCcw data-icon="inline-start" />
-            Reset
+            {t.reset}
           </Button>
           <Button type="button" size="sm" onClick={save} disabled={isSaving}>
             {isSaving ? <Loader2 className="animate-spin" data-icon="inline-start" /> : <Save data-icon="inline-start" />}
-            {draft.id ? "Update estimate" : "Save estimate"}
+            {draft.id ? t.update : t.save}
           </Button>
         </div>
       </div>

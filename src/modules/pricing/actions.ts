@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 
 import { getModule } from "@/config/modules";
+import { interpolate } from "@/lib/i18n/interpolate";
+import { getDictionary } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/modules/auth/queries";
 
@@ -28,12 +30,15 @@ function toItemRows(estimateId: string, estimate: EstimateInput) {
  * Postgres function if it ever becomes a problem.
  */
 export async function saveEstimate(raw: unknown): Promise<SaveEstimateResult> {
-  const validated = validateEstimateInput(raw);
+  const dict = await getDictionary();
+  const errors = dict.pricing.errors;
+
+  const validated = validateEstimateInput(raw, dict.pricing.validation);
   if (validated.errors) return validated.errors;
   const estimate = validated.data;
 
   const currentUser = await getCurrentUser();
-  if (!currentUser) return { error: "You must be signed in to save an estimate." };
+  if (!currentUser) return { error: errors.mustSignIn };
 
   const supabase = await createClient();
   const estimateRow = {
@@ -48,26 +53,30 @@ export async function saveEstimate(raw: unknown): Promise<SaveEstimateResult> {
 
   if (estimateId) {
     const { error } = await supabase.from("pricing_estimates").update(estimateRow).eq("id", estimateId);
-    if (error) return { error: `Could not update estimate: ${error.message}` };
+    if (error) return { error: interpolate(errors.updateFailed, { message: error.message }) };
 
     const { error: deleteError } = await supabase
       .from("pricing_cost_items")
       .delete()
       .eq("estimate_id", estimateId);
-    if (deleteError) return { error: `Could not replace cost items: ${deleteError.message}` };
+    if (deleteError) {
+      return { error: interpolate(errors.replaceItemsFailed, { message: deleteError.message }) };
+    }
   } else {
     const { data, error } = await supabase
       .from("pricing_estimates")
       .insert({ ...estimateRow, created_by: currentUser.user.id })
       .select("id")
       .single<{ id: string }>();
-    if (error || !data) return { error: `Could not save estimate: ${error?.message ?? "unknown error"}` };
+    if (error || !data) {
+      return { error: interpolate(errors.saveFailed, { message: error?.message ?? "unknown error" }) };
+    }
     estimateId = data.id;
   }
 
   if (estimate.items.length > 0) {
     const { error } = await supabase.from("pricing_cost_items").insert(toItemRows(estimateId, estimate));
-    if (error) return { error: `Estimate saved, but cost items failed: ${error.message}` };
+    if (error) return { error: interpolate(errors.itemsFailed, { message: error.message }) };
   }
 
   revalidatePath(getModule("pricing").href);
