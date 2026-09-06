@@ -12,13 +12,14 @@ import { interpolate } from "@/lib/i18n/interpolate";
 import { costItemTotal } from "../calculations";
 import { costItemDraftToInput, type CostItemDraft } from "../draft";
 import { formatMoney } from "../format";
-import type { CostItemKind, Currency } from "../types";
+import type { CostItemKind, Currency, RolePreset } from "../types";
 
 interface CostItemRowProps {
   item: CostItemDraft;
   index: number;
   currency: Currency;
   presetsListId: string;
+  rolePresets: RolePreset[];
   fieldErrors?: Record<string, string>;
   onChange: (patch: Partial<CostItemDraft>) => void;
   onRemove: () => void;
@@ -29,6 +30,7 @@ export function CostItemRow({
   index,
   currency,
   presetsListId,
+  rolePresets,
   fieldErrors = {},
   onChange,
   onRemove,
@@ -40,13 +42,23 @@ export function CostItemRow({
   const isFixed = item.kind === "fixed";
   const errorFor = (field: string) => fieldErrors[`items.${index}.${field}`];
 
+  /** Picking a configured role pre-fills its default hourly cost (only if the rate is still empty). */
+  function changeName(name: string) {
+    const preset = rolePresets.find((r) => r.name.toLowerCase() === name.trim().toLowerCase());
+    if (preset && item.hourlyRate === "" && preset.currency === currency) {
+      onChange({ name, hourlyRate: String(preset.hourlyCost) });
+    } else {
+      onChange({ name });
+    }
+  }
+
   return (
     <TableRow className="hover:bg-transparent">
       <TableCell className="min-w-44">
         <Input
           list={presetsListId}
           value={item.name}
-          onChange={(e) => onChange({ name: e.target.value })}
+          onChange={(e) => changeName(e.target.value)}
           placeholder={t.namePlaceholder}
           aria-label={interpolate(t.costName, { n })}
           aria-invalid={Boolean(errorFor("name"))}

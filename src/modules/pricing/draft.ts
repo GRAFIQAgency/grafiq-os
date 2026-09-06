@@ -3,8 +3,7 @@
  * Numbers are kept as strings while editing so inputs behave naturally;
  * `draftToInput` parses them for calculations and saving.
  */
-import { DEFAULT_CURRENCY, DEFAULT_TARGET_MARGIN } from "./constants";
-import type { CostItemInput, CostItemKind, Currency, EstimateInput } from "./types";
+import type { CostItemInput, CostItemKind, Currency, EstimateInput, PricingDefaults } from "./types";
 
 export interface CostItemDraft {
   /** Client-only stable key for React lists. */
@@ -36,14 +35,18 @@ export function newCostItemDraft(name = ""): CostItemDraft {
   return { key: newKey(), name, kind: "hourly", hours: "", hourlyRate: "", fixedAmount: "" };
 }
 
-export function createEmptyDraft(): EstimateDraft {
+export function createEmptyDraft(defaults: PricingDefaults): EstimateDraft {
+  const first = defaults.rolePresets[0];
+  const firstItem = first
+    ? { ...newCostItemDraft(first.name), hourlyRate: numToText(first.hourlyCost) }
+    : newCostItemDraft();
   return {
     projectName: "",
     clientName: "",
-    currency: DEFAULT_CURRENCY,
+    currency: defaults.currency,
     revenue: "",
-    targetMargin: String(DEFAULT_TARGET_MARGIN),
-    items: [newCostItemDraft("Designer")],
+    targetMargin: String(defaults.targetMargin),
+    items: [firstItem],
   };
 }
 

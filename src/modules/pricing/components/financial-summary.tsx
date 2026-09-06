@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useI18n } from "@/lib/i18n/client";
+import { interpolate } from "@/lib/i18n/interpolate";
+import type { MarginThresholds } from "@/modules/settings/types";
 
 import { formatMoney, formatPercent } from "../format";
 import type { Currency, PricingSummary } from "../types";
@@ -12,9 +14,10 @@ import { HealthBadge, healthDescription } from "./health-badge";
 interface FinancialSummaryProps {
   summary: PricingSummary;
   currency: Currency;
+  thresholds: MarginThresholds;
 }
 
-export function FinancialSummary({ summary, currency }: FinancialSummaryProps) {
+export function FinancialSummary({ summary, currency, thresholds }: FinancialSummaryProps) {
   const { dict, locale } = useI18n();
   const t = dict.pricing.summary;
   const healthText = dict.pricing.health;
@@ -49,6 +52,11 @@ export function FinancialSummary({ summary, currency }: FinancialSummaryProps) {
           <p className="mt-2 text-xs text-muted-foreground">
             {hasRevenue ? healthDescription(summary.health, healthText) : t.enterPrice}
           </p>
+          {hasRevenue && summary.requiresApproval ? (
+            <p className="mt-2 rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1.5 text-xs text-red-400">
+              {interpolate(t.approvalRequired, { min: formatPercent(thresholds.minimum, locale, 0) })}
+            </p>
+          ) : null}
         </div>
 
         <dl className="space-y-3 text-sm">
@@ -60,7 +68,14 @@ export function FinancialSummary({ summary, currency }: FinancialSummaryProps) {
             valueClassName={cn("font-semibold", summary.grossProfit < 0 && "text-red-400")}
           />
           <Separator />
-          <SummaryRow label={t.targetMargin} value={formatPercent(summary.targetMargin, locale, 0)} />
+          <SummaryRow
+            label={t.targetMargin}
+            value={formatPercent(summary.targetMargin, locale, 0)}
+            hint={interpolate(t.thresholdsHint, {
+              target: formatPercent(thresholds.target, locale, 0),
+              warning: formatPercent(thresholds.warning, locale, 0),
+            })}
+          />
           <SummaryRow
             label={t.recommendedPrice}
             value={money(summary.recommendedPrice)}
@@ -96,7 +111,7 @@ function SummaryRow({ label, value, hint, valueClassName }: SummaryRowProps) {
         {label}
         {hint ? <span className="block text-xs text-muted-foreground/70">{hint}</span> : null}
       </dt>
-      <dd className={cn("text-right tabular-nums", valueClassName)}>{value}</dd>
+      <dd className={cn("shrink-0 text-right whitespace-nowrap tabular-nums", valueClassName)}>{value}</dd>
     </div>
   );
 }

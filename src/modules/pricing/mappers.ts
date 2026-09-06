@@ -1,3 +1,5 @@
+import type { MarginThresholds } from "@/modules/settings/types";
+
 import { grossMargin, healthStatus, totalDirectCosts } from "./calculations";
 import type { EstimateInput, EstimateListItem, EstimateWithItems } from "./types";
 
@@ -22,7 +24,7 @@ export function estimateFromRows(row: EstimateWithItems): EstimateInput {
 }
 
 /** Builds a "Recent Estimates" row, computing margin and health from the items. */
-export function estimateToListItem(row: EstimateWithItems): EstimateListItem {
+export function estimateToListItem(row: EstimateWithItems, thresholds: MarginThresholds): EstimateListItem {
   const input = estimateFromRows(row);
   const margin = grossMargin(input.revenue, totalDirectCosts(input.items));
   return {
@@ -32,7 +34,7 @@ export function estimateToListItem(row: EstimateWithItems): EstimateListItem {
     currency: row.currency,
     revenue: input.revenue,
     grossMargin: margin,
-    health: healthStatus(margin),
+    health: healthStatus(margin, thresholds),
     createdAt: row.created_at,
   };
 }

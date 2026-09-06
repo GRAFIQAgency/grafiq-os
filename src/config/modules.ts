@@ -106,7 +106,7 @@ export const modules: readonly ModuleDefinition[] = [
     id: "settings",
     href: "/settings",
     icon: Settings,
-    status: "planned",
+    status: "active",
     group: "system",
   },
 ];

@@ -1,16 +1,21 @@
 import { describe, expect, it } from "vitest";
 
+import type { MarginThresholds } from "@/modules/settings/types";
+
 import {
   costItemTotal,
   grossMargin,
   grossProfit,
   healthStatus,
   recommendedSellingPrice,
+  requiresFounderApproval,
   summarizeEstimate,
   totalDirectCosts,
 } from "./calculations";
-import { HEALTH_THRESHOLDS } from "./constants";
 import type { CostItemInput, EstimateInput } from "./types";
+
+/** Thresholds as configured in Business Settings. */
+const thresholds: MarginThresholds = { target: 60, warning: 50, minimum: 40 };
 
 const hourly = (hours: number, hourlyRate: number): CostItemInput => ({
   name: "Designer",
@@ -98,17 +103,32 @@ describe("recommendedSellingPrice", () => {
 
 describe("healthStatus", () => {
   it("follows the configured thresholds", () => {
-    const { HEALTHY_MIN, WARNING_MIN } = HEALTH_THRESHOLDS;
-    expect(healthStatus(HEALTHY_MIN)).toBe("healthy");
-    expect(healthStatus(HEALTHY_MIN + 20)).toBe("healthy");
-    expect(healthStatus(HEALTHY_MIN - 0.01)).toBe("warning");
-    expect(healthStatus(WARNING_MIN)).toBe("warning");
-    expect(healthStatus(WARNING_MIN - 0.01)).toBe("bad");
-    expect(healthStatus(-30)).toBe("bad");
+    expect(healthStatus(60, thresholds)).toBe("healthy");
+    expect(healthStatus(80, thresholds)).toBe("healthy");
+    expect(healthStatus(59.99, thresholds)).toBe("warning");
+    expect(healthStatus(50, thresholds)).toBe("warning");
+    expect(healthStatus(49.99, thresholds)).toBe("bad");
+    expect(healthStatus(-30, thresholds)).toBe("bad");
+  });
+
+  it("reacts to changed settings", () => {
+    const relaxed: MarginThresholds = { target: 40, warning: 30, minimum: 20 };
+    expect(healthStatus(45, relaxed)).toBe("healthy");
+    expect(healthStatus(35, relaxed)).toBe("warning");
+    expect(healthStatus(25, relaxed)).toBe("bad");
   });
 
   it("is bad when margin is undefined (zero revenue)", () => {
-    expect(healthStatus(null)).toBe("bad");
+    expect(healthStatus(null, thresholds)).toBe("bad");
+  });
+});
+
+describe("requiresFounderApproval", () => {
+  it("is true only below the minimum margin", () => {
+    expect(requiresFounderApproval(39.99, thresholds)).toBe(true);
+    expect(requiresFounderApproval(40, thresholds)).toBe(false);
+    expect(requiresFounderApproval(55, thresholds)).toBe(false);
+    expect(requiresFounderApproval(null, thresholds)).toBe(false);
   });
 });
 
@@ -123,17 +143,18 @@ describe("summarizeEstimate", () => {
   };
 
   it("produces a consistent summary", () => {
-    const s = summarizeEstimate(estimate);
+    const s = summarizeEstimate(estimate, thresholds);
     expect(s.revenue).toBe(300000);
     expect(s.directCosts).toBe(120000);
     expect(s.grossProfit).toBe(180000);
     expect(s.grossMargin).toBeCloseTo(60);
     expect(s.recommendedPrice).toBeCloseTo(300000);
     expect(s.health).toBe("healthy");
+    expect(s.requiresApproval).toBe(false);
   });
 
   it("handles zero revenue without throwing", () => {
-    const s = summarizeEstimate({ ...estimate, revenue: 0 });
+    const s = summarizeEstimate({ ...estimate, revenue: 0 }, thresholds);
     expect(s.grossProfit).toBe(-120000);
     expect(s.grossMargin).toBeNull();
     expect(s.health).toBe("bad");

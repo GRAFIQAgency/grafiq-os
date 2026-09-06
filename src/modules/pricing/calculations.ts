@@ -2,9 +2,11 @@
  * Pure pricing maths. No React, no Supabase — keep it that way so it stays
  * trivially unit-testable (see calculations.test.ts).
  *
- * All margins are in percent (60 means 60 %).
+ * All margins are in percent (60 means 60 %). Health thresholds come from
+ * Business Settings (Settings → Business → Project economics).
  */
-import { HEALTH_THRESHOLDS } from "./constants";
+import type { MarginThresholds } from "@/modules/settings/types";
+
 import type { CostItemInput, EstimateInput, HealthStatus, PricingSummary } from "./types";
 
 export function costItemTotal(item: CostItemInput): number {
@@ -36,14 +38,24 @@ export function recommendedSellingPrice(directCosts: number, targetMargin: numbe
   return directCosts / divisor;
 }
 
-export function healthStatus(margin: number | null): HealthStatus {
+/**
+ * healthy: margin >= target
+ * warning: warning <= margin < target
+ * bad:     margin < warning (or margin undefined)
+ */
+export function healthStatus(margin: number | null, thresholds: MarginThresholds): HealthStatus {
   if (margin === null) return "bad";
-  if (margin >= HEALTH_THRESHOLDS.HEALTHY_MIN) return "healthy";
-  if (margin >= HEALTH_THRESHOLDS.WARNING_MIN) return "warning";
+  if (margin >= thresholds.target) return "healthy";
+  if (margin >= thresholds.warning) return "warning";
   return "bad";
 }
 
-export function summarizeEstimate(estimate: EstimateInput): PricingSummary {
+/** Below the minimum margin a deal needs founder approval. */
+export function requiresFounderApproval(margin: number | null, thresholds: MarginThresholds): boolean {
+  return margin !== null && margin < thresholds.minimum;
+}
+
+export function summarizeEstimate(estimate: EstimateInput, thresholds: MarginThresholds): PricingSummary {
   const directCosts = totalDirectCosts(estimate.items);
   const margin = grossMargin(estimate.revenue, directCosts);
 
@@ -54,6 +66,7 @@ export function summarizeEstimate(estimate: EstimateInput): PricingSummary {
     grossMargin: margin,
     targetMargin: estimate.targetMargin,
     recommendedPrice: recommendedSellingPrice(directCosts, estimate.targetMargin),
-    health: healthStatus(margin),
+    health: healthStatus(margin, thresholds),
+    requiresApproval: requiresFounderApproval(margin, thresholds),
   };
 }

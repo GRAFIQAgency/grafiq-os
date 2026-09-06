@@ -8,15 +8,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useI18n } from "@/lib/i18n/client";
 
-import { COST_ROLE_PRESETS } from "../constants";
+import { FALLBACK_ROLE_PRESETS } from "../constants";
 import type { CostItemDraft } from "../draft";
 import { formatMoney } from "../format";
-import type { Currency } from "../types";
+import type { Currency, RolePreset } from "../types";
 import { CostItemRow } from "./cost-item-row";
 
 interface CostItemsTableProps {
   items: CostItemDraft[];
   currency: Currency;
+  /** Active roles from Business Settings; falls back to static names when empty. */
+  rolePresets: RolePreset[];
   directCosts: number;
   fieldErrors?: Record<string, string>;
   onAdd: () => void;
@@ -27,6 +29,7 @@ interface CostItemsTableProps {
 export function CostItemsTable({
   items,
   currency,
+  rolePresets,
   directCosts,
   fieldErrors,
   onAdd,
@@ -36,6 +39,7 @@ export function CostItemsTable({
   const presetsListId = useId();
   const { dict, locale } = useI18n();
   const t = dict.pricing.costs;
+  const presetNames = rolePresets.length > 0 ? rolePresets.map((r) => r.name) : [...FALLBACK_ROLE_PRESETS];
 
   return (
     <Card className="gap-4">
@@ -45,8 +49,8 @@ export function CostItemsTable({
       </CardHeader>
       <CardContent className="space-y-4">
         <datalist id={presetsListId}>
-          {COST_ROLE_PRESETS.map((role) => (
-            <option key={role} value={role} />
+          {presetNames.map((name) => (
+            <option key={name} value={name} />
           ))}
         </datalist>
 
@@ -77,6 +81,7 @@ export function CostItemsTable({
                     index={index}
                     currency={currency}
                     presetsListId={presetsListId}
+                    rolePresets={rolePresets}
                     fieldErrors={fieldErrors}
                     onChange={(patch) => onChange(item.key, patch)}
                     onRemove={() => onRemove(item.key)}

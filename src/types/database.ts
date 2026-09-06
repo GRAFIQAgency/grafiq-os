@@ -20,7 +20,9 @@ export interface ProfileRow {
 
 // --- Pricing module (supabase/migrations/0002_pricing.sql) ---
 
-export type PricingCurrency = "CZK" | "EUR" | "USD";
+/** Currencies supported by the app (also enforced by DB check constraints). */
+export type Currency = "CZK" | "EUR" | "USD";
+export type PricingCurrency = Currency;
 export type PricingCostItemKind = "hourly" | "fixed";
 
 export interface PricingEstimateRow {
@@ -46,5 +48,33 @@ export interface PricingCostItemRow {
   hours: number;
   hourly_rate: number;
   fixed_amount: number;
+  position: number;
+}
+
+// --- Settings module (supabase/migrations/0003_business_settings.sql) ---
+
+export interface BusinessSettingsRow {
+  /** Always 1 — single-company setup. */
+  id: number;
+  created_at: string;
+  updated_at: string;
+  company_name: string;
+  default_currency: Currency;
+  vat_rate: number;
+  target_margin: number;
+  warning_margin: number;
+  minimum_margin: number;
+  /** Percentages adding up to 100, e.g. [50, 30, 20]. */
+  payment_terms: number[];
+}
+
+export interface RoleCostRow {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  name: string;
+  hourly_cost: number;
+  currency: Currency;
+  is_active: boolean;
   position: number;
 }

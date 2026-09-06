@@ -7,6 +7,7 @@ import { Loader2, RotateCcw, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getModule } from "@/config/modules";
 import { useI18n } from "@/lib/i18n/client";
+import type { MarginThresholds } from "@/modules/settings/types";
 
 import { saveEstimate } from "../actions";
 import { summarizeEstimate } from "../calculations";
@@ -18,7 +19,7 @@ import {
   type CostItemDraft,
   type EstimateDraft,
 } from "../draft";
-import type { EstimateInput } from "../types";
+import type { EstimateInput, PricingDefaults } from "../types";
 import { CostItemsTable } from "./cost-items-table";
 import { FinancialSummary } from "./financial-summary";
 import { ProjectInfoForm } from "./project-info-form";
@@ -26,22 +27,26 @@ import { ProjectInfoForm } from "./project-info-form";
 interface PricingCalculatorProps {
   /** When set, the calculator opens with a saved estimate loaded. */
   initialEstimate?: EstimateInput;
+  /** Defaults for new estimates (currency, target margin, role presets) from Business Settings. */
+  defaults: PricingDefaults;
+  /** Health thresholds from Business Settings. */
+  thresholds: MarginThresholds;
 }
 
 type SaveState = { status: "idle" } | { status: "saved" } | { status: "error"; message: string };
 
-export function PricingCalculator({ initialEstimate }: PricingCalculatorProps) {
+export function PricingCalculator({ initialEstimate, defaults, thresholds }: PricingCalculatorProps) {
   const router = useRouter();
   const { dict } = useI18n();
   const t = dict.pricing.toolbar;
   const [draft, setDraft] = useState<EstimateDraft>(() =>
-    initialEstimate ? draftFromEstimate(initialEstimate) : createEmptyDraft()
+    initialEstimate ? draftFromEstimate(initialEstimate) : createEmptyDraft(defaults)
   );
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [saveState, setSaveState] = useState<SaveState>({ status: "idle" });
   const [isSaving, startSaving] = useTransition();
 
-  const summary = useMemo(() => summarizeEstimate(draftToInput(draft)), [draft]);
+  const summary = useMemo(() => summarizeEstimate(draftToInput(draft), thresholds), [draft, thresholds]);
 
   function update(patch: Partial<EstimateDraft>) {
     setDraft((prev) => ({ ...prev, ...patch }));
@@ -61,7 +66,7 @@ export function PricingCalculator({ initialEstimate }: PricingCalculatorProps) {
   }
 
   function reset() {
-    setDraft(createEmptyDraft());
+    setDraft(createEmptyDraft(defaults));
     setFieldErrors({});
     setSaveState({ status: "idle" });
     if (draft.id) router.push(getModule("pricing").href);
@@ -119,6 +124,7 @@ export function PricingCalculator({ initialEstimate }: PricingCalculatorProps) {
           <CostItemsTable
             items={draft.items}
             currency={draft.currency}
+            rolePresets={defaults.rolePresets}
             directCosts={summary.directCosts}
             fieldErrors={fieldErrors}
             onAdd={addItem}
@@ -126,7 +132,7 @@ export function PricingCalculator({ initialEstimate }: PricingCalculatorProps) {
             onRemove={removeItem}
           />
         </div>
-        <FinancialSummary summary={summary} currency={draft.currency} />
+        <FinancialSummary summary={summary} currency={draft.currency} thresholds={thresholds} />
       </div>
     </div>
   );

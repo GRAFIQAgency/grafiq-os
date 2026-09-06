@@ -4,8 +4,9 @@ Internal operating system for the GRAFIQ creative & digital agency. One modular
 web app that grows module by module: Dashboard, Projects, Pricing, Capacity,
 Talent, Sales, Finance, QA and Settings.
 
-**Current state:** foundation (app shell, auth, navigation) plus the first
-real module, **Pricing / Profit Calculator**. Other modules are placeholders.
+**Current state:** foundation (app shell, auth, navigation, EN/CS), the
+**Pricing / Profit Calculator** module and **Business Settings**. Other
+modules are placeholders.
 
 ## Tech stack
 
@@ -53,6 +54,7 @@ npm test        # Vitest unit tests (business logic)
    **SQL Editor** (or `supabase db push` if you use the Supabase CLI):
    - `0001_profiles.sql` — `profiles` table, auto-create trigger, RLS.
    - `0002_pricing.sql` — `pricing_estimates` + `pricing_cost_items` for the Pricing module.
+   - `0003_business_settings.sql` — `business_settings` + `role_costs` for Settings → Business.
 5. Create users. This is an internal tool with **no public signup**: add team
    members in **Authentication → Users → Add user** (set a password, or send an
    invite). Optionally give them a `full_name` in the user metadata; it becomes
@@ -87,6 +89,7 @@ src/
     auth/                 Login/logout actions, current-user queries, login form
     dashboard/            Placeholder dashboard widgets and example data
     pricing/              Pricing / profit calculator (first real module, see its README)
+    settings/             Business settings: company, margins, payment terms, role costs
     projects/ capacity/ … Reserved folders with a README each
   types/
     database.ts           Database row types (hand-written for now)

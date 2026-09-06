@@ -1,18 +1,21 @@
-# Settings module
+# Settings module (Business Settings v1)
 
-Not implemented yet. This folder is reserved for the Settings module.
-
-When building it, follow the layout described in `docs/ARCHITECTURE.md`:
+Company-wide defaults that other modules read instead of hardcoding:
+company name, default currency, VAT, margin thresholds, payment milestones
+and default hourly role costs.
 
 ```
-src/modules/settings/
-  components/   UI specific to this module
-  types.ts      Domain types
-  services.ts   Business logic (pure functions, no React)
-  queries.ts    Supabase reads (server-side)
-  actions.ts    Server Actions for writes ("use server")
-  validation.ts Input validation for forms/actions
+types.ts            BusinessSettings, MarginThresholds, RoleCost, inputs
+constants.ts        DEFAULT_BUSINESS_SETTINGS (used until the row is saved)
+services.ts         Pure helpers: payment-term sums, margin ordering, VAT maths. Tested.
+services.test.ts    Vitest
+validation.ts       Validates untrusted form payloads (messages passed in)
+queries.ts          getBusinessSettings, getMarginThresholds, listRoleCosts, listActiveRoleCosts
+actions.ts          saveBusinessSettings, saveRoleCost, setRoleCostActive, deleteRoleCost
+components/         business-settings-form (client), role-costs-table (client)
 ```
 
-The route lives at `src/app/(app)/settings/page.tsx` and should only compose
-components from this folder.
+Other modules should import from `queries.ts` (server) and `services.ts` (pure).
+Never read `business_settings` / `role_costs` directly elsewhere.
+
+Schema: `supabase/migrations/0003_business_settings.sql`.

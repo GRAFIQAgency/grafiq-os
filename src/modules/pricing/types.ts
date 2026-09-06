@@ -42,6 +42,8 @@ export interface PricingSummary {
   /** `null` when target margin is >= 100 % (no finite price satisfies it). */
   recommendedPrice: number | null;
   health: HealthStatus;
+  /** True when the margin is below the configured minimum (founder approval). */
+  requiresApproval: boolean;
 }
 
 /** Saved estimate with its cost items, as returned by queries. */
@@ -59,6 +61,20 @@ export interface EstimateListItem {
   grossMargin: number | null;
   health: HealthStatus;
   createdAt: string;
+}
+
+/** Defaults and presets a new estimate starts from (from Business Settings). */
+export interface PricingDefaults {
+  currency: Currency;
+  targetMargin: number;
+  /** Active roles with their default hourly cost, used as cost-line presets. */
+  rolePresets: RolePreset[];
+}
+
+export interface RolePreset {
+  name: string;
+  hourlyCost: number;
+  currency: Currency;
 }
 
 export interface SaveEstimateResult {

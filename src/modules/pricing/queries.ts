@@ -1,8 +1,23 @@
 import { createClient } from "@/lib/supabase/server";
+import { getBusinessSettings, getMarginThresholds, listActiveRoleCosts } from "@/modules/settings/queries";
 
 import { RECENT_ESTIMATES_LIMIT } from "./constants";
 import { estimateToListItem } from "./mappers";
-import type { EstimateListItem, EstimateWithItems } from "./types";
+import type { EstimateListItem, EstimateWithItems, PricingDefaults } from "./types";
+
+/** Defaults for a new estimate, read from Business Settings. */
+export async function getPricingDefaults(): Promise<PricingDefaults> {
+  const [settings, roles] = await Promise.all([getBusinessSettings(), listActiveRoleCosts()]);
+  return {
+    currency: settings.defaultCurrency,
+    targetMargin: settings.targetMargin,
+    rolePresets: roles.map((role) => ({
+      name: role.name,
+      hourlyCost: role.hourlyCost,
+      currency: role.currency,
+    })),
+  };
+}
 
 const ESTIMATE_WITH_ITEMS = "*, pricing_cost_items(*)";
 
@@ -23,6 +38,7 @@ export async function getEstimate(id: string): Promise<EstimateWithItems | null>
 
 export async function listRecentEstimates(): Promise<EstimateListItem[]> {
   const supabase = await createClient();
+  const thresholds = await getMarginThresholds();
   const { data, error } = await supabase
     .from("pricing_estimates")
     .select(ESTIMATE_WITH_ITEMS)
@@ -36,5 +52,5 @@ export async function listRecentEstimates(): Promise<EstimateListItem[]> {
     console.error("[pricing] listRecentEstimates failed:", error.message);
     return [];
   }
-  return (data ?? []).map(estimateToListItem);
+  return (data ?? []).map((row) => estimateToListItem(row, thresholds));
 }

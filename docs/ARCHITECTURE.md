@@ -87,7 +87,9 @@ exist, add `queries.ts` that aggregates their data and delete the placeholder.
 The reference implementation of a "real" module. Notable choices:
 
 - `calculations.ts` is pure and unit-tested (`calculations.test.ts`).
-  Thresholds and defaults are in `constants.ts`.
+  Margin thresholds, the default target margin, default currency and role
+  presets come from Business Settings via `modules/settings/queries.ts`;
+  the page passes them into the calculator as props.
 - The client component `components/pricing-calculator.tsx` owns form state
   as strings (`draft.ts`) and derives the summary with `useMemo`. Everything
   else in `components/` is presentational.
@@ -99,6 +101,21 @@ The reference implementation of a "real" module. Notable choices:
   to reset client state when the id changes.
 - Reads (`queries.ts`) fail soft with a server-side log so the page still
   renders if the migration has not been applied yet.
+
+### The `settings` module (existing, Business Settings v1)
+
+Company-wide defaults for one company: name, default currency, VAT, margin
+thresholds (target / warning / minimum), payment milestones and role hourly
+costs. Tables: `business_settings` (single row, `id = 1`) and `role_costs`.
+
+- Other modules read through `modules/settings/queries.ts`
+  (`getBusinessSettings`, `getMarginThresholds`, `listActiveRoleCosts`) and
+  the pure helpers in `services.ts`. Never query the tables directly.
+- Before the migration is applied, `getBusinessSettings()` returns
+  `DEFAULT_BUSINESS_SETTINGS` so pages keep working.
+- Deleting a role fails with a friendly message when a future table references
+  it (foreign-key violation); deactivating is the safe alternative.
+- Shared currency list: `src/config/currencies.ts`; `Currency` type in `src/types/database.ts`.
 
 ## Internationalisation (EN / CS)
 

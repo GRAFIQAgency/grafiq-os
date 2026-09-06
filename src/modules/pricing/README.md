@@ -7,7 +7,7 @@ estimates.
 ```
 calculations.ts       Pure maths (profit, margin, recommended price, health). Unit-tested.
 calculations.test.ts  Vitest tests — run with `npm test`.
-constants.ts          Health thresholds, default margin, currencies, role presets.
+constants.ts          Fallback role names, list limit. (Thresholds/defaults live in Settings.)
 types.ts              Domain types (EstimateInput, PricingSummary, …).
 draft.ts              Form-state helpers (string inputs ⇄ numeric EstimateInput).
 format.ts             Money / percent / date formatting.
@@ -25,4 +25,6 @@ passes it into the calculator and renders the recent list.
 
 Schema: `supabase/migrations/0002_pricing.sql` (`pricing_estimates`, `pricing_cost_items`).
 
-Health thresholds live in `constants.ts` (`HEALTH_THRESHOLDS`).
+Health thresholds, default target margin, default currency and role presets
+are read from Business Settings (`@/modules/settings/queries`) in the page and
+passed to the calculator. Change them in Settings → Business.
