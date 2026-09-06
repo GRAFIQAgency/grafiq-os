@@ -62,8 +62,9 @@ duplicate CRM record can never be created.
 | `activity_log` | Polymorphic lightweight audit trail |
 
 Row Level Security: every signed-in user can read and manage (internal tool).
-Generated `search_vector` columns power full-text search; GIN indexes cover
-skills/technologies/tags arrays.
+Generated `search_vector` columns power full-text search (they use the
+`immutable_array_to_string` helper because Postgres marks `array_to_string`
+as STABLE); GIN indexes cover skills/technologies/tags arrays.
 
 ## Connector system
 

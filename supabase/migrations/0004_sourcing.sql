@@ -59,6 +59,17 @@ create table public.sourcing_search_runs (
 create index sourcing_search_runs_created_idx on public.sourcing_search_runs (created_at desc);
 
 -- ---------------------------------------------------------------------------
+-- Helper: array_to_string() is STABLE in Postgres, but generated columns need
+-- IMMUTABLE expressions. For text[] the result never changes, so wrapping it is safe.
+-- ---------------------------------------------------------------------------
+create or replace function public.immutable_array_to_string(arr text[], sep text)
+returns text
+language sql
+immutable
+parallel safe
+as $$ select array_to_string(arr, sep) $$;
+
+-- ---------------------------------------------------------------------------
 -- Talent candidates (shared person entity)
 -- ---------------------------------------------------------------------------
 create table public.talent_candidates (
@@ -111,7 +122,7 @@ create table public.talent_candidates (
     to_tsvector('simple',
       coalesce(full_name, '') || ' ' || coalesce(headline, '') || ' ' || coalesce(role, '') || ' ' ||
       coalesce(city, '') || ' ' || coalesce(country, '') || ' ' || coalesce(summary, '') || ' ' ||
-      array_to_string(skills, ' ') || ' ' || array_to_string(technologies, ' ') || ' ' || array_to_string(tags, ' '))
+      public.immutable_array_to_string(skills, ' ') || ' ' || public.immutable_array_to_string(technologies, ' ') || ' ' || public.immutable_array_to_string(tags, ' '))
   ) stored
 );
 
@@ -173,7 +184,7 @@ create table public.company_leads (
     to_tsvector('simple',
       coalesce(name, '') || ' ' || coalesce(domain, '') || ' ' || coalesce(industry, '') || ' ' ||
       coalesce(city, '') || ' ' || coalesce(country, '') || ' ' || coalesce(description, '') || ' ' ||
-      array_to_string(technologies, ' ') || ' ' || array_to_string(keywords, ' ') || ' ' || array_to_string(tags, ' '))
+      public.immutable_array_to_string(technologies, ' ') || ' ' || public.immutable_array_to_string(keywords, ' ') || ' ' || public.immutable_array_to_string(tags, ' '))
   ) stored
 );
 
