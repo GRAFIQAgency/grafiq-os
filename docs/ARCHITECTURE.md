@@ -56,7 +56,8 @@ src/modules/<name>/
   components/     React components used only by this module
   types.ts        Domain types (Project, Quote, …). Import DB row types from src/types
   services.ts     Pure business logic: calculations, status rules, formatting.
-                  No React, no Supabase. Easy to unit test.
+                  No React, no Supabase. Easy to unit test. (May be named after
+                  what it does, e.g. `calculations.ts`; add `*.test.ts` next to it.)
   queries.ts      Server-side reads via createClient() from lib/supabase/server
   actions.ts      "use server" mutations. Validate → write → revalidatePath/redirect
   validation.ts   Parse/validate FormData or JSON input
@@ -80,6 +81,24 @@ small components over one large one.
 
 `data/placeholder.ts` holds example numbers, clearly marked. When real modules
 exist, add `queries.ts` that aggregates their data and delete the placeholder.
+
+### The `pricing` module (existing, v1)
+
+The reference implementation of a "real" module. Notable choices:
+
+- `calculations.ts` is pure and unit-tested (`calculations.test.ts`).
+  Thresholds and defaults are in `constants.ts`.
+- The client component `components/pricing-calculator.tsx` owns form state
+  as strings (`draft.ts`) and derives the summary with `useMemo`. Everything
+  else in `components/` is presentational.
+- Saving goes through one Server Action (`actions.ts` → `saveEstimate`) that
+  validates an untrusted object with `validation.ts`, writes the estimate and
+  replaces its cost items, then `revalidatePath`s the module route.
+- Reopening a saved estimate is URL-driven: `/pricing?estimate=<id>`. The page
+  fetches it server-side and passes it in as `initialEstimate`, using `key`
+  to reset client state when the id changes.
+- Reads (`queries.ts`) fail soft with a server-side log so the page still
+  renders if the migration has not been applied yet.
 
 ## Routing conventions
 
@@ -154,4 +173,5 @@ components.
 - No theme toggle (dark is default; light tokens exist).
 - No working search / command palette (top-bar search is a visual placeholder).
 - No role enforcement, no admin user management UI.
-- No tests. Add Vitest for `services.ts` files once real business logic exists.
+- Tests exist only for pure business logic (Vitest, `npm test`). No component
+  or end-to-end tests yet.

@@ -71,7 +71,7 @@ export const modules: readonly ModuleDefinition[] = [
     href: "/pricing",
     icon: Calculator,
     description: "Pricing and profit calculator for quotes and proposals.",
-    status: "planned",
+    status: "active",
     group: "modules",
   },
   {

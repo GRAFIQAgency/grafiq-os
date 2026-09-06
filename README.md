@@ -4,8 +4,8 @@ Internal operating system for the GRAFIQ creative & digital agency. One modular
 web app that grows module by module: Dashboard, Projects, Pricing, Capacity,
 Talent, Sales, Finance, QA and Settings.
 
-**Current phase: foundation only.** The app shell, authentication, navigation
-and placeholder pages exist. No module functionality is implemented yet.
+**Current state:** foundation (app shell, auth, navigation) plus the first
+real module, **Pricing / Profit Calculator**. Other modules are placeholders.
 
 ## Tech stack
 
@@ -34,6 +34,7 @@ Other scripts:
 npm run build   # production build (also type-checks)
 npm run start   # serve the production build
 npm run lint    # ESLint
+npm test        # Vitest unit tests (business logic)
 ```
 
 ## 2. Configuring Supabase
@@ -48,10 +49,10 @@ npm run lint    # ESLint
    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
    ```
 
-4. Run the migration in `supabase/migrations/0001_profiles.sql` in the
-   **SQL Editor** (or `supabase db push` if you use the Supabase CLI). It creates
-   the `profiles` table, a trigger that fills it for every new auth user, and
-   Row Level Security policies.
+4. Run the migrations in `supabase/migrations/` **in order** in the
+   **SQL Editor** (or `supabase db push` if you use the Supabase CLI):
+   - `0001_profiles.sql` — `profiles` table, auto-create trigger, RLS.
+   - `0002_pricing.sql` — `pricing_estimates` + `pricing_cost_items` for the Pricing module.
 5. Create users. This is an internal tool with **no public signup**: add team
    members in **Authentication → Users → Add user** (set a password, or send an
    invite). Optionally give them a `full_name` in the user metadata; it becomes
@@ -84,7 +85,8 @@ src/
   modules/                Feature modules (see below)
     auth/                 Login/logout actions, current-user queries, login form
     dashboard/            Placeholder dashboard widgets and example data
-    projects/ pricing/ … Reserved folders with a README each
+    pricing/              Pricing / profit calculator (first real module, see its README)
+    projects/ capacity/ … Reserved folders with a README each
   types/
     database.ts           Database row types (hand-written for now)
 supabase/
@@ -124,6 +126,8 @@ Short version (full details in `docs/ARCHITECTURE.md`):
   can be added later.
 - **Minimal dependencies.** No form library, no validation library, no state
   manager. Add them when a module genuinely needs them.
+- **Business logic is pure and tested.** Calculations live in plain functions
+  (e.g. `modules/pricing/calculations.ts`) with Vitest tests, never in components.
 
 ## Documentation for future sessions
 

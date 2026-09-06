@@ -1,18 +1,28 @@
-# Pricing module
+# Pricing module (v1)
 
-Not implemented yet. This folder is reserved for the Pricing module.
-
-When building it, follow the layout described in `docs/ARCHITECTURE.md`:
+Pricing / profit calculator: enter a client price and the internal cost lines,
+see gross margin, recommended price and a health status; save and reopen
+estimates.
 
 ```
-src/modules/pricing/
-  components/   UI specific to this module
-  types.ts      Domain types
-  services.ts   Business logic (pure functions, no React)
-  queries.ts    Supabase reads (server-side)
-  actions.ts    Server Actions for writes ("use server")
-  validation.ts Input validation for forms/actions
+calculations.ts       Pure maths (profit, margin, recommended price, health). Unit-tested.
+calculations.test.ts  Vitest tests — run with `npm test`.
+constants.ts          Health thresholds, default margin, currencies, role presets.
+types.ts              Domain types (EstimateInput, PricingSummary, …).
+draft.ts              Form-state helpers (string inputs ⇄ numeric EstimateInput).
+format.ts             Money / percent / date formatting.
+mappers.ts            DB rows → EstimateInput / list rows.
+validation.ts         Validates untrusted save payloads.
+queries.ts            Server reads: getEstimate, listRecentEstimates.
+actions.ts            Server Action: saveEstimate (create or update).
+components/           pricing-calculator (client, owns state), project-info-form,
+                      cost-items-table + cost-item-row, financial-summary,
+                      health-badge, recent-estimates (server).
 ```
 
-The route lives at `src/app/(app)/pricing/page.tsx` and should only compose
-components from this folder.
+Route: `src/app/(app)/pricing/page.tsx` — loads `?estimate=<id>` when present,
+passes it into the calculator and renders the recent list.
+
+Schema: `supabase/migrations/0002_pricing.sql` (`pricing_estimates`, `pricing_cost_items`).
+
+Health thresholds live in `constants.ts` (`HEALTH_THRESHOLDS`).
