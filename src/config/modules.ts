@@ -1,9 +1,9 @@
 import {
-  BarChart3,
   BookOpen,
   Calculator,
   CalendarRange,
   FolderKanban,
+  Handshake,
   Landmark,
   LayoutDashboard,
   Radar,
@@ -95,8 +95,8 @@ export const modules: readonly ModuleDefinition[] = [
   {
     id: "sales",
     href: "/sales",
-    icon: BarChart3,
-    status: "planned",
+    icon: Handshake,
+    status: "active",
     group: "modules",
   },
   {

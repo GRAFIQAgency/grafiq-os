@@ -20,13 +20,17 @@ import { Field, NativeSelect } from "./form-primitives";
 
 interface Prefill { id: string; name: string; clientName: string | null; currency: string; revenue: number; directCost: number; targetMargin: number }
 
-export function NewProjectForm({ pickers, prefill }: { pickers: ProjectPickers; prefill: Prefill | null }) {
+export function NewProjectForm({ pickers, prefill, initialClientId = null }: { pickers: ProjectPickers; prefill: Prefill | null; initialClientId?: string | null }) {
   const router = useRouter();
   const { dict } = useI18n();
   const t = dict.projects.create;
   const [estimateId, setEstimateId] = useState(prefill?.id ?? "");
   const [clients, setClients] = useState(pickers.clients);
-  const [clientId, setClientId] = useState(() => (prefill?.clientName ? pickers.clients.find((c) => c.label.toLowerCase() === prefill.clientName!.toLowerCase())?.id ?? "" : ""));
+  // Client preselection: explicit ?client= (e.g. from a won deal in Sales) wins over the estimate's client name.
+  const [clientId, setClientId] = useState(() => {
+    if (initialClientId && pickers.clients.some((c) => c.id === initialClientId)) return initialClientId;
+    return prefill?.clientName ? pickers.clients.find((c) => c.label.toLowerCase() === prefill.clientName!.toLowerCase())?.id ?? "" : "";
+  });
   const [addingClient, setAddingClient] = useState(false);
   const [newClient, setNewClient] = useState({ name: prefill?.clientName ?? "", website: "", country: "" });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -36,8 +40,11 @@ export function NewProjectForm({ pickers, prefill }: { pickers: ProjectPickers; 
 
   function chooseEstimate(id: string) {
     setEstimateId(id);
-    if (id) router.push(`${getModule("projects").href}/new?estimate=${id}`);
-    else router.push(`${getModule("projects").href}/new`);
+    const params = new URLSearchParams();
+    if (id) params.set("estimate", id);
+    if (clientId) params.set("client", clientId);
+    const qs = params.toString();
+    router.push(`${getModule("projects").href}/new${qs ? `?${qs}` : ""}`);
   }
 
   function addClient() {

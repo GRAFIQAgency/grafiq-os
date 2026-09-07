@@ -60,6 +60,7 @@ npm test        # Vitest unit tests (business logic)
    - `0006_sourcing_clipper.sql` — registers the browser clipper connector.
    - `0007_talent_bench.sql` — `talent_bench_details` (1:1 operational fields for the Talent Bench).
    - `0008_projects.sql` — Projects: projects, members, milestones, tasks, links, direct costs, change requests.
+   - `0009_sales.sql` — Sales: CRM pipeline stages on `company_leads` + `company_crm_details` (1:1 deal fields).
 5. Create users. This is an internal tool with **no public signup**: add team
    members in **Authentication → Users → Add user** (set a password, or send an
    invite). Optionally give them a `full_name` in the user metadata; it becomes
@@ -98,8 +99,9 @@ src/
     sourcing/             Talent & lead discovery engine (see docs/SOURCING.md)
     talent/               Talent Bench: operational view of people saved from Sourcing
     projects/             Projects: delivery centre with baseline/forecast economics and health
+    sales/                Sales: CRM pipeline over the shared company record (deals, contacts, customers)
     guide/                Interactive tutorial: /guide page, "?" help panel, cross-page tour (must stay 1:1 with the product)
-    projects/ capacity/ … Reserved folders with a README each
+    capacity/ finance/ qa/ Reserved folders with a README each
   types/
     database.ts           Database row types (hand-written for now)
 supabase/

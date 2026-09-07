@@ -38,8 +38,9 @@ of GRAFIQ OS. Sourcing creates them and moves them through lifecycle states:
 - Talent: `status` pipeline (discovered → … → preferred / rejected / archived)
   and `in_talent_bench` + `bench_added_at`. The future Talent module reads
   `in_talent_bench = true`.
-- Companies: `status` pipeline and `crm_status` (`prospect` on "Save to CRM")
-  + `crm_added_at`. The future CRM module reads `crm_status is not null`.
+- Companies: `status` pipeline and `crm_status` (`prospect` on "Save to CRM",
+  then the Sales pipeline stages) + `crm_added_at`. The Sales module reads
+  `crm_status is not null` and adds deal fields 1:1 in `company_crm_details`.
 
 "Already in CRM" is simply `crm_status !== null` on the same row, so a
 duplicate CRM record can never be created.
@@ -195,10 +196,11 @@ export CSV). Detail pages use cards, not modals.
   `actions/talent.ts` → `saveTalentToBench(ids)` and by the Talent module's
   "Add person". The Talent module (`src/modules/talent`) reads the same record and
   adds 1:1 operational details (`talent_bench_details`, migration 0007).
-- `actions/companies.ts` → `saveCompaniesToCrm(ids)` sets `crm_status = 'prospect'`
+- `actions/companies.ts` → `saveCompaniesToCrm(ids)` calls `services/crm.ts`
+  (`markInCrm`, shared with Sales "Add company"): sets `crm_status = 'prospect'`
   only where it is null, logs `saved_to_crm`. Cards show "Already in CRM" with a
   link to the record when set.
-- Future Talent / CRM modules should read these tables directly (no copying).
+- Talent, Sales and Projects read these tables directly (no copying); keep it that way for new modules.
 
 ## Data freshness
 

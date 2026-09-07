@@ -13,7 +13,7 @@ import { modules, type ModuleId } from "@/config/modules";
  * the tour can spotlight the real control.
  */
 
-export const GUIDE_CHAPTER_IDS = ["start", "setup", "pricing", "talent", "bench", "projects", "clients", "sources", "next"] as const;
+export const GUIDE_CHAPTER_IDS = ["start", "setup", "pricing", "talent", "bench", "projects", "clients", "sales", "sources", "next"] as const;
 export type GuideChapterId = (typeof GUIDE_CHAPTER_IDS)[number];
 
 export interface GuideChapter {
@@ -42,6 +42,7 @@ export const GUIDE_CHAPTERS: readonly GuideChapter[] = [
   { id: "bench", moduleId: "talent", pathPrefix: "/talent" },
   { id: "projects", moduleId: "projects", pathPrefix: "/projects" },
   { id: "clients", moduleId: "sourcing", pathPrefix: "/sourcing/companies" },
+  { id: "sales", moduleId: "sales", pathPrefix: "/sales" },
   { id: "sources", moduleId: "sourcing", pathPrefix: "/sourcing" },
   { id: "next", moduleId: "guide", pathPrefix: "/guide" },
 ];
@@ -101,7 +102,17 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
   { id: "clients-signals", chapterId: "clients", moduleId: "sourcing", href: "/sourcing/companies", anchor: "sourcing-review" },
   { id: "clients-crm", chapterId: "clients", moduleId: "sourcing", href: "/sourcing/companies", anchor: "sourcing-review" },
 
-  // 6. Sources and saved searches
+  // 8. Win the deal
+  { id: "sales-list", chapterId: "sales", moduleId: "sales", href: "/sales", anchor: "sales-list" },
+  { id: "sales-board", chapterId: "sales", moduleId: "sales", href: "/sales", anchor: "sales-view" },
+  { id: "sales-stage", chapterId: "sales", moduleId: "sales", href: "/sales", anchor: "sales-list" },
+  { id: "sales-deal", chapterId: "sales", moduleId: "sales", href: "/sales", anchor: "sales-list" },
+  { id: "sales-estimate", chapterId: "sales", moduleId: "sales", href: "/sales", anchor: "sales-list" },
+  { id: "sales-contacts", chapterId: "sales", moduleId: "sales", href: "/sales", anchor: "sales-list" },
+  { id: "sales-won", chapterId: "sales", moduleId: "sales", href: "/sales", anchor: "sales-list" },
+  { id: "sales-add", chapterId: "sales", moduleId: "sales", href: "/sales", anchor: "sales-add-company" },
+
+  // 9. Sources and saved searches
   { id: "sources-manage", chapterId: "sources", moduleId: "sourcing", href: "/sourcing/sources", anchor: "sources-table" },
   { id: "sources-csv", chapterId: "sources", moduleId: "sourcing", href: "/sourcing/sources", anchor: "sources-csv" },
   { id: "sources-saved", chapterId: "sources", moduleId: "sourcing", href: "/sourcing/searches", anchor: "searches-table" },

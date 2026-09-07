@@ -125,7 +125,7 @@ Talent and company discovery engine — see `docs/SOURCING.md`. Notable choices:
 connector registry with per-source enable/disable, one polymorphic
 `sourcing_source_records` table, deterministic dedupe keys, scoring results kept
 in `ai_evaluations`, and shared entities (`talent_candidates`, `company_leads`)
-that Talent Bench and CRM will reuse instead of copying.
+that Talent Bench, Sales (CRM) and Projects reuse instead of copying.
 
 ### The `talent` module (existing, Talent Bench v1)
 
@@ -164,10 +164,31 @@ SNAPSHOT), `project_milestones`, `project_tasks`, `project_links`,
 - Dependency direction: projects → pricing/settings/talent/sourcing
   services & queries (one-way).
 
+### The `sales` module (existing, CRM pipeline v1)
+
+Where companies saved from Sourcing become deals and customers. The deal IS the
+shared `company_leads` record: pipeline membership = `crm_status is not null`,
+the stage = `crm_status` (`prospect → contacted → qualified → proposal →
+negotiation → customer | lost`, migration 0009 widens the check constraint).
+Sales adds a 1:1 `company_crm_details` row (owner, value + currency,
+probability override, expected close, next step + date, lost reason, linked
+Pricing estimate, won/lost timestamps). Contacts stay in the shared
+`company_contacts`; notes/activity use `entity_type = 'company'`.
+
+- Entry points: "Save to CRM" in Sourcing and "Add company" in Sales both call
+  `sourcing/services/crm.ts` (`markInCrm`) — one code path, no duplicates.
+- Exit point: "Create project" on a deal opens `/projects/new?client=<id>&estimate=<id>`.
+- `services/pipeline.ts` — pure rules (tested): stage default probability,
+  weighted value, overdue next action, stage transitions, filters, sorting, stats.
+- Read API for Dashboard / Finance / Projects: `getPipelineStats`,
+  `listCustomers`, `listPipelineCompanies`. Projects exposes
+  `listProjectsByClient` for the deal page.
+- Dependency direction: sales → sourcing / pricing / projects (one-way).
+
 ### The `guide` module (existing) — the interactive tutorial
 
 `src/modules/guide/content.ts` is the product's work-process description in
-chapters and steps (setup → pricing → talent → clients → sources → what's next).
+chapters and steps (setup → pricing → talent → bench → projects → clients → sales → sources → what's next).
 It powers three surfaces: the `/guide` page with progress checkboxes, the "?"
 help panel in the top bar (chapter for the current route), and the cross-page
 tour (`?guide=<step-id>` spotlights the element with a matching

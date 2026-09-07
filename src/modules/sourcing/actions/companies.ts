@@ -1,5 +1,8 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+
+import { getModule } from "@/config/modules";
 import { createClient } from "@/lib/supabase/server";
 import type { CompanyLeadRow } from "@/types/database";
 
@@ -9,6 +12,7 @@ import { rowToCompany } from "../queries/mappers";
 import { scoreCompany } from "../scoring";
 import { currentActor } from "../services/actor";
 import { logActivity } from "../services/activity";
+import { markInCrm } from "../services/crm";
 import type { ActionResult, CompanyStatus } from "../types";
 import { cleanIds, cleanScore, cleanTags, failure, revalidateSourcing } from "./shared";
 
@@ -25,27 +29,19 @@ export async function updateCompanyStatus(ids: string[], status: CompanyStatus):
 }
 
 /**
- * Save to CRM = mark the shared company record as a CRM prospect. Companies
- * already in CRM are left untouched (no duplicates are ever created because
- * the lead IS the CRM record).
+ * Save to CRM = put the shared company record into the Sales pipeline (stage
+ * "prospect"). The lead IS the CRM record, so nothing is copied and companies
+ * already in CRM are left untouched. Shared code path: services/crm.ts.
  */
 export async function saveCompaniesToCrm(ids: string[]): Promise<ActionResult> {
   const list = cleanIds(ids);
   if (!list.length) return {};
   const supabase = await createClient();
   const actor = await currentActor();
-  const { data, error } = await supabase
-    .from("company_leads")
-    .update({ crm_status: "prospect", crm_added_at: new Date().toISOString() })
-    .in("id", list)
-    .is("crm_status", null)
-    .select("id, status")
-    .returns<{ id: string; status: CompanyStatus }[]>();
-  if (error) return failure(error);
-  const toPromote = (data ?? []).filter((r) => ["discovered", "reviewed"].includes(r.status)).map((r) => r.id);
-  if (toPromote.length) await supabase.from("company_leads").update({ status: "shortlisted" }).in("id", toPromote);
-  await logActivity(supabase, (data ?? []).map((r) => ({ entityType: "company" as const, entityId: r.id, action: "saved_to_crm" as const })), actor);
+  const result = await markInCrm(supabase, list, actor);
+  if (result.error) return failure({ message: result.error });
   revalidateSourcing();
+  revalidatePath(getModule("sales").href, "layout");
   return {};
 }
 

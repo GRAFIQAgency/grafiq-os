@@ -91,7 +91,8 @@ export type TalentStatus =
   | "trial" | "approved" | "preferred" | "rejected" | "archived";
 export type CompanyStatus =
   | "discovered" | "reviewed" | "shortlisted" | "contacted" | "qualified" | "rejected" | "archived";
-export type CrmStatus = "prospect" | "lead" | "customer" | "lost";
+/** CRM pipeline stage on the shared company record (Sales module). */
+export type CrmStatus = "prospect" | "contacted" | "qualified" | "proposal" | "negotiation" | "customer" | "lost";
 export type CompanySizeBucket = "1-10" | "11-50" | "51-200" | "201-500" | "501-1000" | "1000+";
 export type BusinessModel = "b2b" | "b2c" | "both";
 export type CompanyType =
@@ -212,6 +213,23 @@ export interface CompanyLeadRow {
   first_discovered_at: string;
   last_checked_at: string;
   name_location_key: string | null;
+}
+
+export interface CompanyCrmDetailsRow {
+  company_id: string;
+  created_at: string;
+  updated_at: string;
+  owner_id: string | null;
+  deal_value: number | null;
+  deal_currency: Currency | null;
+  probability: number | null;
+  expected_close: string | null;
+  next_step: string | null;
+  next_action_at: string | null;
+  lost_reason: string | null;
+  pricing_estimate_id: string | null;
+  won_at: string | null;
+  lost_at: string | null;
 }
 
 export interface SourcingSourceRecordRow {

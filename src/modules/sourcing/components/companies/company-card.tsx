@@ -69,7 +69,7 @@ export function CompanyCard({ lead, signals, state }: { lead: CompanyLead; signa
         <ScoreBadge score={lead.leadScore} manual={lead.manualScore} highFrom={HIGH_LEAD_SCORE} />
         <div className="flex flex-col items-end gap-1" onClick={(e) => e.stopPropagation()}>
           {lead.crmStatus ? (
-            <Link href={href} className="inline-flex h-6 items-center px-2 text-xs text-muted-foreground hover:text-foreground">{r.openCrm}</Link>
+            <Link href={`${getModule("sales").href}/${lead.id}`} className="inline-flex h-6 items-center px-2 text-xs text-muted-foreground hover:text-foreground">{r.openCrm}</Link>
           ) : (
             <Button size="xs" disabled={state.busy} onClick={() => state.act("save")}>{r.saveToCrm}</Button>
           )}

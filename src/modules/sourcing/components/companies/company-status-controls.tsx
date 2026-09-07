@@ -2,9 +2,11 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Building2, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { Building2, Handshake, Loader2 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { getModule } from "@/config/modules";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n/client";
 
@@ -24,10 +26,17 @@ export function CompanyStatusControls({ lead }: { lead: CompanyLead }) {
         <SelectTrigger className="w-44" aria-label={dict.sourcing.common.status}><SelectValue /></SelectTrigger>
         <SelectContent>{COMPANY_STATUSES.map((s) => <SelectItem key={s} value={s}>{t.statuses[s]}</SelectItem>)}</SelectContent>
       </Select>
-      <Button size="sm" disabled={pending || Boolean(lead.crmStatus)} onClick={() => start(async () => { await saveCompaniesToCrm([lead.id]); router.refresh(); })}>
-        {pending ? <Loader2 className="animate-spin" data-icon="inline-start" /> : <Building2 data-icon="inline-start" />}
-        {lead.crmStatus ? `${dict.sourcing.review.inCrm} · ${t.crmStatuses[lead.crmStatus]}` : dict.sourcing.review.saveToCrm}
-      </Button>
+      {lead.crmStatus ? (
+        <Link href={`${getModule("sales").href}/${lead.id}`} className={buttonVariants({ size: "sm", variant: "outline" })}>
+          <Handshake data-icon="inline-start" />
+          {dict.sourcing.review.openCrm} · {t.crmStatuses[lead.crmStatus]}
+        </Link>
+      ) : (
+        <Button size="sm" disabled={pending} onClick={() => start(async () => { await saveCompaniesToCrm([lead.id]); router.refresh(); })}>
+          {pending ? <Loader2 className="animate-spin" data-icon="inline-start" /> : <Building2 data-icon="inline-start" />}
+          {dict.sourcing.review.saveToCrm}
+        </Button>
+      )}
     </div>
   );
 }

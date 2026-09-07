@@ -179,6 +179,17 @@ export async function projectIdsByEstimate(estimateIds: string[]): Promise<Recor
 // Read API for Dashboard / Finance / Capacity (keep stable)
 // ---------------------------------------------------------------------------
 
+/** Projects for one client company (read API for Sales). */
+export async function listProjectsByClient(clientId: string): Promise<Project[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("projects").select(PROJECT_SELECT).eq("client_id", clientId).order("created_at", { ascending: false }).returns<ProjectJoined[]>();
+  if (error) {
+    console.error("[projects] listProjectsByClient failed:", error.message);
+    return [];
+  }
+  return (data ?? []).map(toProject);
+}
+
 export async function getProjectStats(): Promise<ProjectStats> {
   const items = (await fetchAllItems()).filter((i) => ACTIVE_STATUSES.includes(i.project.status));
   const margins = items.map((i) => i.financials.forecast.grossMargin).filter((m): m is number => m != null);

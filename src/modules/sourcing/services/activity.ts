@@ -10,7 +10,9 @@ export type ActivityAction =
   | "score_overridden" | "note_added" | "tags_changed" | "ratings_changed" | "source_updated" | "reviewed"
   // Projects module
   | "project_created" | "member_added" | "member_removed" | "task_completed" | "milestone_completed"
-  | "change_request_approved" | "deadline_changed" | "financial_warning";
+  | "change_request_approved" | "deadline_changed" | "financial_warning"
+  // Sales module (entity_type = company)
+  | "deal_stage_changed" | "deal_won" | "deal_lost" | "deal_updated" | "contact_added" | "contact_removed";
 
 /** Entities that share the polymorphic notes/activity tables. */
 export type ActivityEntityType = EntityType | "project";
