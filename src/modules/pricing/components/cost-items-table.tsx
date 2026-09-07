@@ -11,7 +11,8 @@ import { useI18n } from "@/lib/i18n/client";
 import { FALLBACK_ROLE_PRESETS } from "../constants";
 import type { CostItemDraft } from "../draft";
 import { formatMoney } from "../format";
-import type { Currency, RolePreset } from "../types";
+import { presetOptions } from "../presets";
+import type { Currency, PersonPreset, RolePreset } from "../types";
 import { CostItemRow } from "./cost-item-row";
 
 interface CostItemsTableProps {
@@ -19,6 +20,8 @@ interface CostItemsTableProps {
   currency: Currency;
   /** Active roles from Business Settings; falls back to static names when empty. */
   rolePresets: RolePreset[];
+  /** Active Talent Bench people with their rates. */
+  peoplePresets: PersonPreset[];
   directCosts: number;
   fieldErrors?: Record<string, string>;
   onAdd: () => void;
@@ -30,6 +33,7 @@ export function CostItemsTable({
   items,
   currency,
   rolePresets,
+  peoplePresets,
   directCosts,
   fieldErrors,
   onAdd,
@@ -39,7 +43,9 @@ export function CostItemsTable({
   const presetsListId = useId();
   const { dict, locale } = useI18n();
   const t = dict.pricing.costs;
-  const presetNames = rolePresets.length > 0 ? rolePresets.map((r) => r.name) : [...FALLBACK_ROLE_PRESETS];
+  const options = rolePresets.length > 0 || peoplePresets.length > 0
+    ? presetOptions(peoplePresets, rolePresets, currency, { roleDefault: t.roleDefault, perHour: t.perHourShort, noRate: t.noRate })
+    : FALLBACK_ROLE_PRESETS.map((name) => ({ value: name, label: "" }));
 
   return (
     <Card className="gap-4" data-guide="pricing-costs">
@@ -49,8 +55,8 @@ export function CostItemsTable({
       </CardHeader>
       <CardContent className="space-y-4">
         <datalist id={presetsListId}>
-          {presetNames.map((name) => (
-            <option key={name} value={name} />
+          {options.map((o) => (
+            <option key={o.value} value={o.value} label={o.label || undefined} />
           ))}
         </datalist>
 
@@ -82,6 +88,7 @@ export function CostItemsTable({
                     currency={currency}
                     presetsListId={presetsListId}
                     rolePresets={rolePresets}
+                    peoplePresets={peoplePresets}
                     fieldErrors={fieldErrors}
                     onChange={(patch) => onChange(item.key, patch)}
                     onRemove={() => onRemove(item.key)}

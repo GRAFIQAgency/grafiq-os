@@ -63,12 +63,22 @@ export interface EstimateListItem {
   createdAt: string;
 }
 
-/** Defaults and presets a new estimate starts from (from Business Settings). */
+/** Defaults and presets a new estimate starts from (Business Settings + Talent Bench). */
 export interface PricingDefaults {
   currency: Currency;
   targetMargin: number;
   /** Active roles with their default hourly cost, used as cost-line presets. */
   rolePresets: RolePreset[];
+  /** Active Talent Bench people with their own rate (or none), used as cost-line presets. */
+  peoplePresets: PersonPreset[];
+}
+
+export interface PersonPreset {
+  id: string;
+  name: string;
+  role: string | null;
+  hourlyCost: number | null;
+  currency: Currency | null;
 }
 
 export interface RolePreset {

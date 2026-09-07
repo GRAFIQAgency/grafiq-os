@@ -8,6 +8,7 @@ estimates.
 calculations.ts       Pure maths (profit, margin, recommended price, health). Unit-tested.
 calculations.test.ts  Vitest tests — run with `npm test`.
 constants.ts          Fallback role names, list limit. (Thresholds/defaults live in Settings.)
+presets.ts            Cost-line presets: person (Talent Bench rate) or role (Settings default), tested
 types.ts              Domain types (EstimateInput, PricingSummary, …).
 draft.ts              Form-state helpers (string inputs ⇄ numeric EstimateInput).
 format.ts             Money / percent / date formatting.

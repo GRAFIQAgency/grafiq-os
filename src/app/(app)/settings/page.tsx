@@ -4,14 +4,17 @@ import { getDictionary } from "@/lib/i18n/server";
 import { BusinessSettingsForm } from "@/modules/settings/components/business-settings-form";
 import { RoleCostsTable } from "@/modules/settings/components/role-costs-table";
 import { listRoleCosts, loadBusinessSettings } from "@/modules/settings/queries";
+import { PeopleRatesTable } from "@/modules/talent/components/people-rates-table";
+import { listActiveTalent } from "@/modules/talent/queries";
 
 export const generateMetadata = moduleMetadata("settings");
 
 export default async function SettingsPage() {
-  const [dict, { settings, persisted }, roles] = await Promise.all([
+  const [dict, { settings, persisted }, roles, people] = await Promise.all([
     getDictionary(),
     loadBusinessSettings(),
     listRoleCosts(),
+    listActiveTalent(),
   ]);
 
   return (
@@ -28,6 +31,12 @@ export default async function SettingsPage() {
 
         <BusinessSettingsForm key={persisted ? "db" : "defaults"} initial={settings} persisted={persisted} />
         <RoleCostsTable key={roles.map((r) => r.id).join(",")} roles={roles} defaultCurrency={settings.defaultCurrency} />
+        <PeopleRatesTable
+          key={people.map((p) => `${p.id}:${p.hourlyCost}:${p.role}`).join(",")}
+          people={people}
+          roleNames={roles.filter((r) => r.isActive).map((r) => r.name)}
+          defaultCurrency={settings.defaultCurrency}
+        />
       </section>
     </div>
   );

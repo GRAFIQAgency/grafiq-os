@@ -12,7 +12,8 @@ import { interpolate } from "@/lib/i18n/interpolate";
 import { costItemTotal } from "../calculations";
 import { costItemDraftToInput, type CostItemDraft } from "../draft";
 import { formatMoney } from "../format";
-import type { CostItemKind, Currency, RolePreset } from "../types";
+import { resolvePreset } from "../presets";
+import type { CostItemKind, Currency, PersonPreset, RolePreset } from "../types";
 
 interface CostItemRowProps {
   item: CostItemDraft;
@@ -20,6 +21,7 @@ interface CostItemRowProps {
   currency: Currency;
   presetsListId: string;
   rolePresets: RolePreset[];
+  peoplePresets: PersonPreset[];
   fieldErrors?: Record<string, string>;
   onChange: (patch: Partial<CostItemDraft>) => void;
   onRemove: () => void;
@@ -31,6 +33,7 @@ export function CostItemRow({
   currency,
   presetsListId,
   rolePresets,
+  peoplePresets,
   fieldErrors = {},
   onChange,
   onRemove,
@@ -42,11 +45,17 @@ export function CostItemRow({
   const isFixed = item.kind === "fixed";
   const errorFor = (field: string) => fieldErrors[`items.${index}.${field}`];
 
-  /** Picking a configured role pre-fills its default hourly cost (only if the rate is still empty). */
+  const match = resolvePreset(item.name, peoplePresets, rolePresets, currency);
+
+  /**
+   * Picking a person (Talent Bench) or a role (Settings) pre-fills the hourly
+   * cost: the person's own rate wins, else the role default. Only fills while
+   * the rate is still empty, so a manually typed rate is never overwritten.
+   */
   function changeName(name: string) {
-    const preset = rolePresets.find((r) => r.name.toLowerCase() === name.trim().toLowerCase());
-    if (preset && item.hourlyRate === "" && preset.currency === currency) {
-      onChange({ name, hourlyRate: String(preset.hourlyCost) });
+    const preset = resolvePreset(name, peoplePresets, rolePresets, currency);
+    if (preset && item.hourlyRate === "" && preset.hourlyCost != null) {
+      onChange({ name: preset.name, hourlyRate: String(preset.hourlyCost) });
     } else {
       onChange({ name });
     }
@@ -63,6 +72,9 @@ export function CostItemRow({
           aria-label={interpolate(t.costName, { n })}
           aria-invalid={Boolean(errorFor("name"))}
         />
+        {match?.kind === "person" ? (
+          <p className="mt-1 text-[11px] text-muted-foreground">{match.role ?? t.person}{match.hourlyCost == null ? ` · ${t.noRate}` : ""}</p>
+        ) : null}
       </TableCell>
       <TableCell>
         <Select value={item.kind} onValueChange={(kind) => onChange({ kind: kind as CostItemKind })}>

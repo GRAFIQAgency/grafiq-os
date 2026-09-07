@@ -60,6 +60,7 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
   { id: "setup-economics", chapterId: "setup", moduleId: "settings", href: "/settings", anchor: "settings-economics" },
   { id: "setup-terms", chapterId: "setup", moduleId: "settings", href: "/settings", anchor: "settings-terms" },
   { id: "setup-roles", chapterId: "setup", moduleId: "settings", href: "/settings", anchor: "settings-roles" },
+  { id: "setup-people", chapterId: "setup", moduleId: "talent", href: "/settings", anchor: "settings-people" },
   { id: "setup-save", chapterId: "setup", moduleId: "settings", href: "/settings", anchor: "settings-save" },
 
   // 3. Price a project

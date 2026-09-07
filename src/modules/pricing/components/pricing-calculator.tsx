@@ -125,6 +125,7 @@ export function PricingCalculator({ initialEstimate, defaults, thresholds }: Pri
             items={draft.items}
             currency={draft.currency}
             rolePresets={defaults.rolePresets}
+            peoplePresets={defaults.peoplePresets}
             directCosts={summary.directCosts}
             fieldErrors={fieldErrors}
             onAdd={addItem}

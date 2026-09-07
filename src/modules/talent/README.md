@@ -17,6 +17,8 @@ services/filters.ts       URL params → filters/sort
 validation.ts             Bench details form validation
 queries.ts                listBench, getBenchPerson + read API for future modules:
                           listActiveTalent, listAvailableTalent, listTalentByRole, getTalentCapacityData
-actions.ts                saveBenchDetails, archiveFromBench, restoreToBench, addPersonToBench (same pipeline as Sourcing manual add)
-components/               talent-filters, talent-table, talent-detail, bench-details-form, bench-status-controls, add-person-sheet
+actions.ts                saveBenchDetails, archiveFromBench, restoreToBench, addPersonToBench (same pipeline as Sourcing manual add),
+                          setPersonRate / addPersonWithRate (Settings → People rates)
+components/               talent-filters, talent-table, talent-detail, bench-details-form, bench-status-controls, add-person-sheet,
+                          people-rates-table (rendered on the Settings page; Pricing reads the rates via listActiveTalent)
 ```

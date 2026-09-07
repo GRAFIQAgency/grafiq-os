@@ -1,7 +1,7 @@
 import { CURRENCIES } from "@/config/currencies";
 
 import { BENCH_STATUSES, ENGAGEMENT_TYPES } from "./constants";
-import type { ActionResult, BenchDetailsInput } from "./types";
+import type { ActionResult, BenchDetailsInput, PersonRateInput } from "./types";
 
 export interface BenchValidationMessages {
   invalidNumber: string;
@@ -9,6 +9,7 @@ export interface BenchValidationMessages {
   hoursRange: string;
   invalidStatus: string;
   tooLong: string;
+  nameRequired: string;
 }
 
 type Outcome = { data: BenchDetailsInput; errors?: undefined } | { data?: undefined; errors: ActionResult };
@@ -61,6 +62,27 @@ export function validateBenchDetails(raw: unknown, msg: BenchValidationMessages)
       dayRate: dayRate ?? null,
       minimumEngagement: minimumEngagement || null,
       commercialNotes: commercialNotes || null,
+    },
+  };
+}
+
+type RateOutcome = { data: PersonRateInput; errors?: undefined } | { data?: undefined; errors: ActionResult };
+
+/** Settings → People rates: name (new people only), role, hourly cost, currency. */
+export function validatePersonRate(raw: unknown, msg: BenchValidationMessages, options: { requireName: boolean }): RateOutcome {
+  if (!isRecord(raw)) return { errors: { error: msg.invalidNumber } };
+  const fieldErrors: Record<string, string> = {};
+  const fullName = text(raw.fullName, 200);
+  if (options.requireName && !fullName) fieldErrors.fullName = msg.nameRequired;
+  const hourlyCost = optNum(raw.hourlyCost);
+  if (hourlyCost === undefined) fieldErrors.hourlyCost = msg.invalidNumber;
+  if (Object.keys(fieldErrors).length) return { errors: { error: Object.values(fieldErrors)[0], fieldErrors } };
+  return {
+    data: {
+      fullName: fullName || undefined,
+      role: text(raw.role, 100) || null,
+      hourlyCost: hourlyCost ?? null,
+      costCurrency: oneOf(raw.costCurrency, CURRENCIES) ?? null,
     },
   };
 }

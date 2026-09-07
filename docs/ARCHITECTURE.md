@@ -91,6 +91,9 @@ The reference implementation of a "real" module. Notable choices:
 - `calculations.ts` is pure and unit-tested (`calculations.test.ts`).
   Margin thresholds, the default target margin, default currency and role
   presets come from Business Settings via `modules/settings/queries.ts`;
+  people presets (per-person rates) come from `modules/talent/queries.ts`
+  (`listActiveTalent`) and `presets.ts` resolves a typed/picked name to a
+  person's own rate or the role default (never mixing currencies);
   the page passes them into the calculator as props.
 - The client component `components/pricing-calculator.tsx` owns form state
   as strings (`draft.ts`) and derives the summary with `useMemo`. Everything
@@ -113,6 +116,11 @@ costs. Tables: `business_settings` (single row, `id = 1`) and `role_costs`.
 - Other modules read through `modules/settings/queries.ts`
   (`getBusinessSettings`, `getMarginThresholds`, `listActiveRoleCosts`) and
   the pure helpers in `services.ts`. Never query the tables directly.
+- Settings → Business also shows **People rates**: per-person hourly costs.
+  Those rows are Talent Bench people (`talent_candidates` +
+  `talent_bench_details.hourly_cost`), rendered by
+  `modules/talent/components/people-rates-table.tsx` and composed into the
+  settings route. Role costs are the fallback when a person has no rate.
 - Before the migration is applied, `getBusinessSettings()` returns
   `DEFAULT_BUSINESS_SETTINGS` so pages keep working.
 - Deleting a role fails with a friendly message when a future table references

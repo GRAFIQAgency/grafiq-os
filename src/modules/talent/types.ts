@@ -66,6 +66,14 @@ export interface BenchDetailsInput {
   commercialNotes: string | null;
 }
 
+/** Settings → People rates row (role + own hourly cost). */
+export interface PersonRateInput {
+  fullName?: string;
+  role: string | null;
+  hourlyCost: number | null;
+  costCurrency: Currency | null;
+}
+
 /** Compact shape for future Projects / Capacity / Pricing modules. */
 export interface TalentCapacityRecord {
   id: string;

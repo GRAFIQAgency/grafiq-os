@@ -14,12 +14,14 @@ import { ingestTalent } from "@/modules/sourcing/services/ingest";
 import { validateTalentInput } from "@/modules/sourcing/services/talent-input";
 
 import { archiveTransition, restoreTransition } from "./services/bench";
-import type { ActionResult } from "./types";
-import { validateBenchDetails } from "./validation";
+import type { ActionResult, PersonRateInput } from "./types";
+import { validateBenchDetails, validatePersonRate } from "./validation";
 
 function revalidateTalent() {
   revalidatePath(getModule("talent").href, "layout");
   revalidatePath(getModule("sourcing").href, "layout");
+  revalidatePath(getModule("settings").href);
+  revalidatePath(getModule("pricing").href);
 }
 
 async function fail(message: string): Promise<ActionResult> {
@@ -90,6 +92,43 @@ export async function restoreToBench(id: string): Promise<ActionResult> {
   await logActivity(supabase, [{ entityType: "talent", entityId: id, action: "saved_to_bench" }], actor);
   revalidateTalent();
   return {};
+}
+
+/**
+ * Settings → People rates: edits only the person's role and hourly cost
+ * (the same shared fields the Talent detail page edits). Other bench details
+ * are untouched because the upsert carries only these columns.
+ */
+export async function setPersonRate(id: string, raw: unknown): Promise<ActionResult> {
+  const dict = await getDictionary();
+  const validated = validatePersonRate(raw, dict.talent.validation, { requireName: false });
+  if (validated.errors) return validated.errors;
+  const d = validated.data;
+
+  const supabase = await createClient();
+  const actor = await currentActor();
+  const { error } = await supabase.from("talent_bench_details").upsert({ talent_candidate_id: id, hourly_cost: d.hourlyCost, cost_currency: d.costCurrency });
+  if (error) return fail(error.message);
+  const { error: e2 } = await supabase.from("talent_candidates").update({ role: d.role }).eq("id", id);
+  if (e2) return fail(e2.message);
+  await logActivity(supabase, [{ entityType: "talent", entityId: id, action: "status_changed", details: { hourlyCost: d.hourlyCost, currency: d.costCurrency, role: d.role } }], actor);
+  revalidateTalent();
+  revalidatePath(getModule("settings").href);
+  revalidatePath(getModule("pricing").href);
+  return {};
+}
+
+/** Settings → People rates → Add person: same pipeline as "Add person" on the bench, then the rate. */
+export async function addPersonWithRate(raw: unknown): Promise<AddPersonResult> {
+  const dict = await getDictionary();
+  const validated = validatePersonRate(raw, dict.talent.validation, { requireName: true });
+  if (validated.errors) return validated.errors;
+  const d = validated.data as PersonRateInput & { fullName: string };
+  const added = await addPersonToBench({ fullName: d.fullName, role: d.role ?? "" });
+  if (added.error || !added.id) return added;
+  const rate = await setPersonRate(added.id, raw);
+  if (rate.error) return { ...rate, id: added.id };
+  return added;
 }
 
 export interface AddPersonResult extends ActionResult {
