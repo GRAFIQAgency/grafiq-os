@@ -142,6 +142,28 @@ Read API for future modules lives in `modules/talent/queries.ts`
 `getTalentCapacityData`). Generic UI primitives shared by both modules live in
 `src/components/shared` (chips, status-badge, detail-section, filter-form).
 
+### The `projects` module (existing, Projects v1)
+
+Delivery centre. Reuses shared entities: client = `company_leads`, person =
+`talent_candidates` (bench) or `auth.users` (internal), notes/activity =
+`internal_notes` / `activity_log` with `entity_type = 'project'`. Tables
+(migration 0008): `projects` (with a frozen financial BASELINE and a unique
+`pricing_estimate_id`), `project_baseline_costs`, `project_members` (cost-rate
+SNAPSHOT), `project_milestones`, `project_tasks`, `project_links`,
+`project_direct_costs`, `project_change_requests`.
+
+- `calculations/financials.ts` — baseline vs current vs forecast (pure, tested).
+  Actual labour = task actual hours × member rate snapshot. Approved change
+  requests raise current revenue / forecast cost, never the baseline.
+- `calculations/health.ts` — rule-based, explainable health using Settings
+  margin thresholds. `calculations/progress.ts` — progress with a stated basis.
+- `services/rates.ts` — suggested member rate: Talent person cost → Settings
+  role default → manual; snapshotted on the member.
+- Read API for Dashboard / Finance / Capacity: `getProjectStats`,
+  `listProjectFinancials`, `listProjectAssignments`, `projectIdsByEstimate`.
+- Dependency direction: projects → pricing/settings/talent/sourcing
+  services & queries (one-way).
+
 ### The `guide` module (existing) — the interactive tutorial
 
 `src/modules/guide/content.ts` is the product's work-process description in

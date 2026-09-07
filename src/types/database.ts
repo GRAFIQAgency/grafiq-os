@@ -326,3 +326,148 @@ export interface TalentBenchDetailsRow {
   max_monthly_hours: number | null;
   preferred_monthly_hours: number | null;
 }
+
+// --- Projects module (supabase/migrations/0008_projects.sql) ---
+
+export type ProjectStatus =
+  | "draft" | "onboarding" | "active" | "waiting_client" | "internal_review"
+  | "completed" | "on_hold" | "cancelled" | "archived";
+export type ProjectPriority = "low" | "normal" | "high" | "critical";
+export type ProjectMemberStatus = "planned" | "active" | "completed" | "removed";
+export type MilestoneStatus = "not_started" | "in_progress" | "waiting" | "completed" | "blocked";
+export type TaskStatus = "todo" | "in_progress" | "blocked" | "internal_review" | "done";
+export type ChangeRequestStatus = "draft" | "sent" | "approved" | "rejected";
+export type ProjectLinkKind = "figma" | "webflow" | "drive" | "client_docs" | "staging" | "production" | "other";
+export type DirectCostCategory = "external_specialist" | "stock" | "software" | "printing" | "photography" | "subcontractor" | "other";
+export type RateSource = "talent" | "role_default" | "manual";
+
+export interface ProjectRow {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+  name: string;
+  client_id: string | null;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  project_type: string;
+  status: ProjectStatus;
+  priority: ProjectPriority;
+  owner_id: string | null;
+  start_date: string | null;
+  deadline: string | null;
+  currency: Currency;
+  baseline_revenue: number;
+  baseline_direct_cost: number;
+  baseline_target_margin: number;
+  baseline_created_at: string;
+  pricing_estimate_id: string | null;
+  manual_progress: number | null;
+  notes: string | null;
+  completed_at: string | null;
+}
+
+export interface ProjectBaselineCostRow {
+  id: string;
+  project_id: string;
+  name: string;
+  kind: PricingCostItemKind;
+  hours: number;
+  hourly_rate: number;
+  fixed_amount: number;
+  total: number;
+  position: number;
+}
+
+export interface ProjectMemberRow {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  project_id: string;
+  talent_candidate_id: string | null;
+  user_id: string | null;
+  display_name: string;
+  project_role: string;
+  status: ProjectMemberStatus;
+  planned_hours: number | null;
+  starts_on: string | null;
+  ends_on: string | null;
+  cost_rate: number | null;
+  currency: Currency | null;
+  rate_source: RateSource;
+  notes: string | null;
+}
+
+export interface ProjectMilestoneRow {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  project_id: string;
+  title: string;
+  description: string | null;
+  due_date: string | null;
+  owner_member_id: string | null;
+  status: MilestoneStatus;
+  position: number;
+  notes: string | null;
+  completed_at: string | null;
+}
+
+export interface ProjectTaskRow {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  project_id: string;
+  milestone_id: string | null;
+  title: string;
+  description: string | null;
+  assignee_member_id: string | null;
+  status: TaskStatus;
+  priority: ProjectPriority;
+  estimated_hours: number | null;
+  actual_hours: number | null;
+  start_date: string | null;
+  due_date: string | null;
+  blocked_reason: string | null;
+  notes: string | null;
+  position: number;
+  completed_at: string | null;
+}
+
+export interface ProjectLinkRow {
+  id: string;
+  created_at: string;
+  project_id: string;
+  label: string;
+  url: string;
+  kind: ProjectLinkKind;
+}
+
+export interface ProjectDirectCostRow {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  project_id: string;
+  label: string;
+  category: DirectCostCategory;
+  estimated_cost: number;
+  actual_cost: number | null;
+  currency: Currency;
+  note: string | null;
+}
+
+export interface ProjectChangeRequestRow {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  project_id: string;
+  title: string;
+  description: string | null;
+  status: ChangeRequestStatus;
+  additional_revenue: number;
+  additional_direct_cost: number;
+  deadline_impact_days: number | null;
+  notes: string | null;
+  approved_at: string | null;
+}

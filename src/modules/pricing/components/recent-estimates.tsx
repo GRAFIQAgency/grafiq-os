@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getModule } from "@/config/modules";
@@ -13,9 +14,11 @@ import { HealthBadge } from "./health-badge";
 interface RecentEstimatesProps {
   items: EstimateListItem[];
   activeId?: string;
+  /** estimate id → project id, for the "Create project / Open project" column (provided by the page). */
+  projectsByEstimate?: Record<string, string>;
 }
 
-export async function RecentEstimates({ items, activeId }: RecentEstimatesProps) {
+export async function RecentEstimates({ items, activeId, projectsByEstimate = {} }: RecentEstimatesProps) {
   const [dict, locale] = await Promise.all([getDictionary(), getLocale()]);
   const t = dict.pricing.recent;
   const basePath = getModule("pricing").href;
@@ -42,6 +45,7 @@ export async function RecentEstimates({ items, activeId }: RecentEstimatesProps)
                   <TableHead className="text-right">{t.margin}</TableHead>
                   <TableHead>{t.status}</TableHead>
                   <TableHead className="text-right">{t.created}</TableHead>
+                  <TableHead className="text-right">{t.project}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -67,6 +71,17 @@ export async function RecentEstimates({ items, activeId }: RecentEstimatesProps)
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground">
                       {formatDate(item.createdAt, locale)}
+                    </TableCell>
+                    <TableCell className="relative z-10 text-right">
+                      {projectsByEstimate[item.id] ? (
+                        <Link href={`${getModule("projects").href}/${projectsByEstimate[item.id]}`} className={buttonVariants({ size: "xs", variant: "ghost" })}>
+                          {t.openProject}
+                        </Link>
+                      ) : (
+                        <Link href={`${getModule("projects").href}/new?estimate=${item.id}`} className={buttonVariants({ size: "xs", variant: "outline" })}>
+                          {t.createProject}
+                        </Link>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

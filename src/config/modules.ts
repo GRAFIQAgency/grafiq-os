@@ -61,7 +61,7 @@ export const modules: readonly ModuleDefinition[] = [
     id: "projects",
     href: "/projects",
     icon: FolderKanban,
-    status: "planned",
+    status: "active",
     group: "modules",
   },
   {

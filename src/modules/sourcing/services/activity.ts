@@ -7,12 +7,18 @@ import type { Actor } from "./actor";
 
 export type ActivityAction =
   | "created" | "merged" | "status_changed" | "saved_to_bench" | "saved_to_crm" | "scored"
-  | "score_overridden" | "note_added" | "tags_changed" | "ratings_changed" | "source_updated" | "reviewed";
+  | "score_overridden" | "note_added" | "tags_changed" | "ratings_changed" | "source_updated" | "reviewed"
+  // Projects module
+  | "project_created" | "member_added" | "member_removed" | "task_completed" | "milestone_completed"
+  | "change_request_approved" | "deadline_changed" | "financial_warning";
+
+/** Entities that share the polymorphic notes/activity tables. */
+export type ActivityEntityType = EntityType | "project";
 
 /** Lightweight audit trail. Failures are logged, never thrown. */
 export async function logActivity(
   supabase: SupabaseClient,
-  entries: { entityType: EntityType; entityId: string; action: ActivityAction; details?: Record<string, unknown> }[],
+  entries: { entityType: ActivityEntityType; entityId: string; action: ActivityAction; details?: Record<string, unknown> }[],
   actor: Actor
 ) {
   if (!entries.length) return;

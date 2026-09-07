@@ -9,9 +9,10 @@ import { useI18n } from "@/lib/i18n/client";
 import { INTL_LOCALES } from "@/lib/i18n/config";
 
 import { addNote } from "../../actions/notes";
-import type { EntityType, InternalNote } from "../../types";
+import type { ActivityEntityType } from "../../services/activity";
+import type { InternalNote } from "../../types";
 
-export function NotesPanel({ entityType, entityId, notes }: { entityType: EntityType; entityId: string; notes: InternalNote[] }) {
+export function NotesPanel({ entityType, entityId, notes }: { entityType: ActivityEntityType; entityId: string; notes: InternalNote[] }) {
   const router = useRouter();
   const { dict, locale } = useI18n();
   const t = dict.sourcing.common;

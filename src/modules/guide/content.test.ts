@@ -50,6 +50,7 @@ describe("guide content stays aligned with the product", () => {
   it("maps pages to chapters and walks steps in order", () => {
     expect(chapterForPath("/sourcing/talent/123")?.id).toBe("talent");
     expect(chapterForPath("/talent/123")?.id).toBe("bench");
+    expect(chapterForPath("/projects/new")?.id).toBe("projects");
     expect(chapterForPath("/sourcing/companies")?.id).toBe("clients");
     expect(chapterForPath("/sourcing/sources")?.id).toBe("sources");
     expect(chapterForPath("/pricing")?.id).toBe("pricing");

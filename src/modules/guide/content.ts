@@ -13,7 +13,7 @@ import { modules, type ModuleId } from "@/config/modules";
  * the tour can spotlight the real control.
  */
 
-export const GUIDE_CHAPTER_IDS = ["start", "setup", "pricing", "talent", "bench", "clients", "sources", "next"] as const;
+export const GUIDE_CHAPTER_IDS = ["start", "setup", "pricing", "talent", "bench", "projects", "clients", "sources", "next"] as const;
 export type GuideChapterId = (typeof GUIDE_CHAPTER_IDS)[number];
 
 export interface GuideChapter {
@@ -40,6 +40,7 @@ export const GUIDE_CHAPTERS: readonly GuideChapter[] = [
   { id: "pricing", moduleId: "pricing", pathPrefix: "/pricing" },
   { id: "talent", moduleId: "sourcing", pathPrefix: "/sourcing/talent" },
   { id: "bench", moduleId: "talent", pathPrefix: "/talent" },
+  { id: "projects", moduleId: "projects", pathPrefix: "/projects" },
   { id: "clients", moduleId: "sourcing", pathPrefix: "/sourcing/companies" },
   { id: "sources", moduleId: "sourcing", pathPrefix: "/sourcing" },
   { id: "next", moduleId: "guide", pathPrefix: "/guide" },
@@ -84,7 +85,18 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
   { id: "bench-archive", chapterId: "bench", moduleId: "talent", href: "/talent", anchor: "talent-list" },
   { id: "bench-add", chapterId: "bench", moduleId: "talent", href: "/talent", anchor: "talent-add-person" },
 
-  // 6. Find clients
+  // 6. Deliver a project
+  { id: "projects-list", chapterId: "projects", moduleId: "projects", href: "/projects", anchor: "projects-list" },
+  { id: "projects-create", chapterId: "projects", moduleId: "projects", href: "/projects/new", anchor: "projects-source" },
+  { id: "projects-client", chapterId: "projects", moduleId: "projects", href: "/projects/new", anchor: "projects-client" },
+  { id: "projects-baseline", chapterId: "projects", moduleId: "projects", href: "/projects/new", anchor: "projects-baseline" },
+  { id: "projects-team", chapterId: "projects", moduleId: "projects", href: "/projects", anchor: "projects-list" },
+  { id: "projects-work", chapterId: "projects", moduleId: "projects", href: "/projects", anchor: "projects-list" },
+  { id: "projects-financials", chapterId: "projects", moduleId: "projects", href: "/projects", anchor: "projects-list" },
+  { id: "projects-changes", chapterId: "projects", moduleId: "projects", href: "/projects", anchor: "projects-list" },
+  { id: "projects-health", chapterId: "projects", moduleId: "projects", href: "/projects", anchor: "projects-list" },
+
+  // 7. Find clients
   { id: "clients-search", chapterId: "clients", moduleId: "sourcing", href: "/sourcing/companies", anchor: "sourcing-search" },
   { id: "clients-signals", chapterId: "clients", moduleId: "sourcing", href: "/sourcing/companies", anchor: "sourcing-review" },
   { id: "clients-crm", chapterId: "clients", moduleId: "sourcing", href: "/sourcing/companies", anchor: "sourcing-review" },

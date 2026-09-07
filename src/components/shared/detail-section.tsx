@@ -15,9 +15,9 @@ export function DetailSection({ title, children, className, action }: { title: s
   );
 }
 
-export function Facts({ items }: { items: { label: string; value: ReactNode }[] }) {
+export function Facts({ items, columns = 2 }: { items: { label: string; value: ReactNode }[]; columns?: 1 | 2 }) {
   return (
-    <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
+    <dl className={cn("grid grid-cols-1 gap-x-6 gap-y-3 text-sm", columns === 2 && "sm:grid-cols-2")}>
       {items.map((item) => (
         <div key={item.label} className="flex items-baseline justify-between gap-3 border-b border-border/60 pb-2">
           <dt className="text-muted-foreground">{item.label}</dt>
