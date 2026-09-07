@@ -53,6 +53,7 @@ describe("guide content stays aligned with the product", () => {
     expect(chapterForPath("/sourcing/sources")?.id).toBe("sources");
     expect(chapterForPath("/pricing")?.id).toBe("pricing");
     expect(nextStep("start-navigate")?.id).toBe("start-dashboard");
+    expect(nextStep("start-help")?.id).toBe("start-mobile");
     expect(nextStep(GUIDE_STEPS[GUIDE_STEPS.length - 1].id)).toBeUndefined();
   });
 });

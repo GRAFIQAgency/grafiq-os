@@ -5,7 +5,7 @@ import { LanguageSwitcher } from "@/components/layout/language-switcher";
 export default function PublicLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <div className="flex h-14 items-center justify-between px-6">
+      <div className="safe-top flex min-h-14 items-center justify-between px-6">
         <BrandMark />
         <LanguageSwitcher />
       </div>

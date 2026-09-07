@@ -141,6 +141,14 @@ Short version (full details in `docs/ARCHITECTURE.md`):
 - **Business logic is pure and tested.** Calculations live in plain functions
   (e.g. `modules/pricing/calculations.ts`) with Vitest tests, never in components.
 
+## Install on a phone (PWA)
+
+GRAFIQ OS is a Progressive Web App: `src/app/manifest.ts` (web manifest),
+`public/sw.js` (service worker: static assets cache-first, pages network-first
+with an `/offline` fallback), icons in `public/icons/` generated from
+`public/brand/grafiq-mark.svg`. On iPhone open the site in Safari → Share →
+Add to Home Screen. The service worker only registers in production builds.
+
 ## Documentation for future sessions
 
 - `docs/ARCHITECTURE.md` — conventions and extension guide (read this first).

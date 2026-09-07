@@ -141,6 +141,16 @@ add both language texts. `content.test.ts` enforces coverage of every active
 module and that step links are real routes. "What's next" lists planned
 modules automatically from the registry.
 
+## PWA / mobile
+
+Installable web app, no separate mobile codebase. `src/app/manifest.ts`,
+`public/sw.js`, `components/layout/pwa-register.tsx` (production only),
+`src/app/offline/page.tsx` (public route). Top bars use the `.safe-top`
+utility so they clear the iPhone status bar in standalone mode. Brand icons:
+`components/shared/grafiq-logo.tsx` (inline SVG), `src/app/icon.svg`,
+`src/app/apple-icon.png`, `public/icons/*` — regenerate from
+`public/brand/grafiq-mark.svg` if the logo changes.
+
 ## Internationalisation (EN / CS)
 
 The UI is bilingual without any i18n library:

@@ -50,6 +50,7 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
   { id: "start-dashboard", chapterId: "start", moduleId: "dashboard", href: "/dashboard", anchor: "dashboard-stats" },
   { id: "start-language", chapterId: "start", moduleId: "dashboard", href: "/dashboard", anchor: "language-switcher" },
   { id: "start-help", chapterId: "start", moduleId: "guide", href: "/dashboard", anchor: "guide-help" },
+  { id: "start-mobile", chapterId: "start", moduleId: "dashboard", href: "/dashboard", anchor: "nav-brand" },
 
   // 2. Set up business defaults (do this once)
   { id: "setup-company", chapterId: "setup", moduleId: "settings", href: "/settings", anchor: "settings-company" },

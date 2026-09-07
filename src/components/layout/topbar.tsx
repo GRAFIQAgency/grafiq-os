@@ -16,7 +16,7 @@ export async function Topbar({ currentUser }: TopbarProps) {
   const dict = await getDictionary();
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:px-6">
+    <header className="safe-top sticky top-0 z-30 flex min-h-14 shrink-0 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:px-6">
       <MobileNav />
       <div className="min-w-0 flex-1">
         <PageTitle />

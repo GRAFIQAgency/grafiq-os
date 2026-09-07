@@ -23,7 +23,7 @@ export function Sidebar() {
         collapsed ? "w-16" : "w-60"
       )}
     >
-      <div className={cn("flex h-14 items-center border-b px-4", collapsed && "justify-center px-0")}>
+      <div className={cn("safe-top flex min-h-14 items-center border-b px-4", collapsed && "justify-center px-0")}>
         <BrandMark compact={collapsed} />
       </div>
 

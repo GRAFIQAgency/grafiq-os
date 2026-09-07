@@ -499,6 +499,10 @@ const en = {
       nothingToImport: "No valid rows found.",
     },
   },
+  pwa: {
+    offlineTitle: "You are offline",
+    offlineBody: "GRAFIQ OS needs a connection. Your data is safe on the server; reconnect and reload.",
+  },
   guide: {
     help: "Help",
     helpTitle: "Help for this page",
@@ -535,6 +539,7 @@ const en = {
       "start-dashboard": { title: "Dashboard cards", body: "The dashboard shows agency-wide numbers. Until the Projects, Sales and Finance modules exist, the cards show example data, marked with a dashed badge." },
       "start-language": { title: "Switch language any time", body: "EN / CS in the top bar switches the whole app, including this guide. The choice is remembered on this device." },
       "start-help": { title: "Help is one click away", body: "The ? button in the top bar opens the guide chapter for the page you are on, with a tour you can start right there." },
+      "start-mobile": { title: "Use it on your phone", body: "GRAFIQ OS installs as an app. On iPhone open it in Safari, tap Share, then Add to Home Screen; on Android or desktop Chrome use Install app. It opens full screen with your login remembered." },
       "setup-company": { title: "Company basics", body: "Company name, default currency and VAT rate. New estimates start in the default currency; VAT is used by future Finance features." },
       "setup-economics": { title: "Margin thresholds", body: "Target, warning and minimum gross margin. Pricing colours every estimate green, amber or red from these three numbers, and flags founder approval below the minimum." },
       "setup-terms": { title: "Payment milestones", body: "Default invoicing split, for example 50 / 30 / 20. The total must be 100 %. Future Finance features split project prices by these milestones." },

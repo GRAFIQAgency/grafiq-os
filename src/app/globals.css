@@ -117,6 +117,14 @@
   --sidebar-ring: oklch(0.5 0 0);
 }
 
+/* PWA: keep top bars below the iPhone status bar when installed to the home screen. */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+main {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 1.5rem);
+}
+
 /* Guide tour spotlight (src/modules/guide) */
 .guide-highlight {
   outline: 2px solid var(--foreground);

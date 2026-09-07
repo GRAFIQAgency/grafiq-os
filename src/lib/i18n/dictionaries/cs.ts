@@ -497,6 +497,10 @@ const cs: Dictionary = {
       nothingToImport: "Nenalezeny žádné platné řádky.",
     },
   },
+  pwa: {
+    offlineTitle: "Jste offline",
+    offlineBody: "GRAFIQ OS potřebuje připojení. Vaše data jsou v bezpečí na serveru; připojte se a načtěte stránku znovu.",
+  },
   guide: {
     help: "Nápověda",
     helpTitle: "Nápověda pro tuto stránku",
@@ -533,6 +537,7 @@ const cs: Dictionary = {
       "start-dashboard": { title: "Karty přehledu", body: "Přehled ukazuje čísla za celou agenturu. Dokud nevzniknou moduly Projekty, Obchod a Finance, karty zobrazují ukázková data označená čárkovaným štítkem." },
       "start-language": { title: "Jazyk přepnete kdykoli", body: "EN / CS v horní liště přepne celou aplikaci včetně tohoto průvodce. Volba se na tomto zařízení pamatuje." },
       "start-help": { title: "Nápověda na jedno kliknutí", body: "Tlačítko ? v horní liště otevře kapitolu průvodce pro stránku, na které jste, s prohlídkou, kterou můžete rovnou spustit." },
+      "start-mobile": { title: "Používejte ho v telefonu", body: "GRAFIQ OS se instaluje jako aplikace. Na iPhonu ho otevřete v Safari, klepněte na Sdílet a pak Přidat na plochu; na Androidu nebo v Chromu použijte Instalovat aplikaci. Otevře se na celou obrazovku s vaším přihlášením." },
       "setup-company": { title: "Základy firmy", body: "Název firmy, výchozí měna a sazba DPH. Nové kalkulace začínají ve výchozí měně; DPH využijí budoucí finanční funkce." },
       "setup-economics": { title: "Hranice marže", body: "Cílová, varovná a minimální hrubá marže. Ceny podle těchto tří čísel obarví každou kalkulaci zeleně, oranžově nebo červeně a pod minimem vyžadují schválení zakladatelem." },
       "setup-terms": { title: "Platební milníky", body: "Výchozí rozdělení fakturace, např. 50 / 30 / 20. Součet musí být 100 %. Budoucí finanční funkce podle nich rozdělí cenu projektu." },
