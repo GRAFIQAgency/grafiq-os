@@ -3,7 +3,7 @@ import type { Dictionary } from "@/lib/i18n/config";
 
 import { COMPANY_STATUSES, INDUSTRIES, SIGNAL_TYPES, SIZE_BUCKETS } from "../../constants";
 import type { CompanyFilters } from "../../types";
-import { FilterActions, FilterField, SelectFilter, TextFilter } from "../shared/filter-form";
+import { FilterActions, FilterField, SelectFilter, TextFilter } from "@/components/shared/filter-form";
 
 export function CompanyFiltersForm({ filters, dict }: { filters: CompanyFilters; dict: Dictionary }) {
   const t = dict.sourcing.companies;

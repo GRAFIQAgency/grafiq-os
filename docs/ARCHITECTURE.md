@@ -30,7 +30,9 @@ extended. It is written for humans and for future AI coding sessions.
 Dependency direction: `app → modules → components/config/lib/types`.
 Modules may import shared components and other modules' **types**, but should
 not import another module's components or actions. If two modules need the
-same logic, move it to `src/lib` or a dedicated shared module.
+same logic, move it to `src/lib` or a dedicated shared module. One documented
+exception: `talent` builds on the shared person entity owned by `sourcing`, so
+it may import sourcing **services** and person-entity components (one-way).
 
 ## The module registry
 
@@ -124,6 +126,21 @@ connector registry with per-source enable/disable, one polymorphic
 `sourcing_source_records` table, deterministic dedupe keys, scoring results kept
 in `ai_evaluations`, and shared entities (`talent_candidates`, `company_leads`)
 that Talent Bench and CRM will reuse instead of copying.
+
+### The `talent` module (existing, Talent Bench v1)
+
+Operational "people inventory" for candidates saved from Sourcing. The person
+stays the shared `talent_candidates` record; Talent adds a 1:1
+`talent_bench_details` row (bench status, engagement, cost, day rate, capacity,
+available-from, commercial notes). Membership = `in_talent_bench`; archiving
+flips it to false and sets `bench_status = 'archived'` — nothing is deleted.
+Dependency direction: talent → sourcing services (`services/bench.ts`
+`markInTalentBench`, ingest, talent-input) and person-entity components
+(notes, ratings, tags, source records); sourcing never imports talent.
+Read API for future modules lives in `modules/talent/queries.ts`
+(`listActiveTalent`, `listAvailableTalent`, `listTalentByRole`,
+`getTalentCapacityData`). Generic UI primitives shared by both modules live in
+`src/components/shared` (chips, status-badge, detail-section, filter-form).
 
 ### The `guide` module (existing) — the interactive tutorial
 

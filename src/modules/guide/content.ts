@@ -13,7 +13,7 @@ import { modules, type ModuleId } from "@/config/modules";
  * the tour can spotlight the real control.
  */
 
-export const GUIDE_CHAPTER_IDS = ["start", "setup", "pricing", "talent", "clients", "sources", "next"] as const;
+export const GUIDE_CHAPTER_IDS = ["start", "setup", "pricing", "talent", "bench", "clients", "sources", "next"] as const;
 export type GuideChapterId = (typeof GUIDE_CHAPTER_IDS)[number];
 
 export interface GuideChapter {
@@ -39,6 +39,7 @@ export const GUIDE_CHAPTERS: readonly GuideChapter[] = [
   { id: "setup", moduleId: "settings", pathPrefix: "/settings" },
   { id: "pricing", moduleId: "pricing", pathPrefix: "/pricing" },
   { id: "talent", moduleId: "sourcing", pathPrefix: "/sourcing/talent" },
+  { id: "bench", moduleId: "talent", pathPrefix: "/talent" },
   { id: "clients", moduleId: "sourcing", pathPrefix: "/sourcing/companies" },
   { id: "sources", moduleId: "sourcing", pathPrefix: "/sourcing" },
   { id: "next", moduleId: "guide", pathPrefix: "/guide" },
@@ -75,7 +76,15 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
   { id: "talent-clipper", chapterId: "talent", moduleId: "sourcing", href: "/sourcing/sources", anchor: "sources-table" },
   { id: "talent-apply", chapterId: "talent", moduleId: "sourcing", href: "/sourcing/sources", anchor: "sources-table" },
 
-  // 5. Find clients
+  // 5. Staff from the Talent Bench
+  { id: "bench-list", chapterId: "bench", moduleId: "talent", href: "/talent", anchor: "talent-list" },
+  { id: "bench-filters", chapterId: "bench", moduleId: "talent", href: "/talent", anchor: "talent-filters" },
+  { id: "bench-availability", chapterId: "bench", moduleId: "talent", href: "/talent", anchor: "talent-list" },
+  { id: "bench-commercial", chapterId: "bench", moduleId: "talent", href: "/talent", anchor: "talent-list" },
+  { id: "bench-archive", chapterId: "bench", moduleId: "talent", href: "/talent", anchor: "talent-list" },
+  { id: "bench-add", chapterId: "bench", moduleId: "talent", href: "/talent", anchor: "talent-add-person" },
+
+  // 6. Find clients
   { id: "clients-search", chapterId: "clients", moduleId: "sourcing", href: "/sourcing/companies", anchor: "sourcing-search" },
   { id: "clients-signals", chapterId: "clients", moduleId: "sourcing", href: "/sourcing/companies", anchor: "sourcing-review" },
   { id: "clients-crm", chapterId: "clients", moduleId: "sourcing", href: "/sourcing/companies", anchor: "sourcing-review" },

@@ -11,10 +11,10 @@ import { useI18n } from "@/lib/i18n/client";
 
 import { HIGH_LEAD_SCORE } from "../../constants";
 import type { CompanyLead, CompanySignal } from "../../types";
-import { Chips } from "../shared/chips";
+import { Chips } from "@/components/shared/chips";
 import type { ReviewCardState } from "../shared/review-list";
 import { ScoreBadge } from "../shared/score-badge";
-import { StatusBadge } from "../shared/status-badge";
+import { StatusBadge } from "@/components/shared/status-badge";
 import { SignalChips } from "./signals-list";
 
 export function CompanyCard({ lead, signals, state }: { lead: CompanyLead; signals: CompanySignal[]; state: ReviewCardState }) {

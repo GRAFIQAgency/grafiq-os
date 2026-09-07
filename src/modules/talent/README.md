@@ -1,18 +1,22 @@
-# Talent module
+# Talent module (Talent Bench v1)
 
-Not implemented yet. This folder is reserved for the Talent module.
+Operational bench of people GRAFIQ has already saved from Sourcing.
+Answers "who do we have available to do this work?".
 
-When building it, follow the layout described in `docs/ARCHITECTURE.md`:
+- The person is the shared `talent_candidates` record owned by Sourcing.
+  Talent never duplicates identity, skills, links, ratings, notes or sources.
+- Bench membership = `talent_candidates.in_talent_bench`. Operational fields
+  live 1:1 in `talent_bench_details` (migration 0007).
+- Dependency direction: talent → sourcing services/components. Sourcing never
+  imports from talent.
 
 ```
-src/modules/talent/
-  components/   UI specific to this module
-  types.ts      Domain types
-  services.ts   Business logic (pure functions, no React)
-  queries.ts    Supabase reads (server-side)
-  actions.ts    Server Actions for writes ("use server")
-  validation.ts Input validation for forms/actions
+types.ts / constants.ts   Bench statuses, engagement types, TalentPerson, filters
+services/bench.ts         Pure rules: join person + details, cost fallback, availability, archive/restore, filters, sorting (tested)
+services/filters.ts       URL params → filters/sort
+validation.ts             Bench details form validation
+queries.ts                listBench, getBenchPerson + read API for future modules:
+                          listActiveTalent, listAvailableTalent, listTalentByRole, getTalentCapacityData
+actions.ts                saveBenchDetails, archiveFromBench, restoreToBench, addPersonToBench (same pipeline as Sourcing manual add)
+components/               talent-filters, talent-table, talent-detail, bench-details-form, bench-status-controls, add-person-sheet
 ```
-
-The route lives at `src/app/(app)/talent/page.tsx` and should only compose
-components from this folder.

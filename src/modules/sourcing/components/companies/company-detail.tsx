@@ -10,13 +10,13 @@ import { rescoreCompany, setCompanyManualScore, setCompanyTags } from "../../act
 import { HIGH_LEAD_SCORE } from "../../constants";
 import type { ActivityEntry, AiEvaluation, CompanyContact, CompanyLead, CompanySignal, InternalNote, SourceRecordSummary } from "../../types";
 import { ActivityList } from "../shared/activity-list";
-import { Chips } from "../shared/chips";
-import { DetailSection, Facts } from "../shared/detail-section";
+import { Chips } from "@/components/shared/chips";
+import { DetailSection, Facts } from "@/components/shared/detail-section";
 import { Freshness } from "../shared/freshness";
 import { NotesPanel } from "../shared/notes-panel";
 import { ScorePanel } from "../shared/score-panel";
 import { SourceRecords } from "../shared/source-records";
-import { StatusBadge } from "../shared/status-badge";
+import { StatusBadge } from "@/components/shared/status-badge";
 import { TagsEditor } from "../shared/tags-editor";
 import { CompanyStatusControls } from "./company-status-controls";
 import { SignalsTable } from "./signals-list";

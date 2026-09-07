@@ -13,10 +13,10 @@ import { interpolate } from "@/lib/i18n/interpolate";
 
 import { HIGH_TALENT_SCORE } from "../../constants";
 import type { TalentCandidate } from "../../types";
-import { Chips } from "../shared/chips";
+import { Chips } from "@/components/shared/chips";
 import type { ReviewCardState } from "../shared/review-list";
 import { ScoreBadge } from "../shared/score-badge";
-import { StatusBadge } from "../shared/status-badge";
+import { StatusBadge } from "@/components/shared/status-badge";
 
 export function TalentCard({ candidate, state }: { candidate: TalentCandidate; state: ReviewCardState }) {
   const { dict } = useI18n();
@@ -50,7 +50,11 @@ export function TalentCard({ candidate, state }: { candidate: TalentCandidate; s
           {candidate.role ? <span className="text-sm text-muted-foreground">{candidate.role}</span> : null}
           {candidate.seniority ? <span className="text-xs text-muted-foreground">· {t.seniorities[candidate.seniority]}</span> : null}
           <StatusBadge status={candidate.status} label={t.statuses[candidate.status]} />
-          {candidate.inTalentBench ? <StatusBadge status="approved" label={r.inBench} /> : null}
+          {candidate.inTalentBench ? (
+            <Link href={`${getModule("talent").href}/${candidate.id}`} onClick={(e) => e.stopPropagation()}>
+              <StatusBadge status="approved" label={r.inBench} className="hover:underline" />
+            </Link>
+          ) : null}
         </div>
         <p className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
           {[candidate.city, candidate.country].filter(Boolean).join(", ") || t.unknown}

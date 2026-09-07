@@ -82,7 +82,7 @@ export const modules: readonly ModuleDefinition[] = [
     id: "talent",
     href: "/talent",
     icon: Users,
-    status: "planned",
+    status: "active",
     group: "modules",
   },
   {

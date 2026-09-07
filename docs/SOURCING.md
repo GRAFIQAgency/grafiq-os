@@ -189,8 +189,12 @@ export CSV). Detail pages use cards, not modals.
 
 ## Talent Bench / CRM integration
 
-- `actions/talent.ts` → `saveTalentToBench(ids)` sets `in_talent_bench`, promotes
-  unreviewed candidates to `shortlisted`, logs `saved_to_bench`.
+- `services/bench.ts` → `markInTalentBench()` is the single code path that puts
+  a person on the bench (sets `in_talent_bench`, promotes unreviewed candidates to
+  `shortlisted`, restores archived bench details, logs `saved_to_bench`). Used by
+  `actions/talent.ts` → `saveTalentToBench(ids)` and by the Talent module's
+  "Add person". The Talent module (`src/modules/talent`) reads the same record and
+  adds 1:1 operational details (`talent_bench_details`, migration 0007).
 - `actions/companies.ts` → `saveCompaniesToCrm(ids)` sets `crm_status = 'prospect'`
   only where it is null, logs `saved_to_crm`. Cards show "Already in CRM" with a
   link to the record when set.

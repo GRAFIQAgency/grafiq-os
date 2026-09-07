@@ -3,7 +3,7 @@ import type { Dictionary } from "@/lib/i18n/config";
 
 import { TALENT_ROLES, TALENT_STATUSES, TECHNOLOGIES } from "../../constants";
 import type { TalentFilters } from "../../types";
-import { FilterActions, FilterField, SelectFilter, TextFilter } from "../shared/filter-form";
+import { FilterActions, FilterField, SelectFilter, TextFilter } from "@/components/shared/filter-form";
 
 export function TalentFiltersForm({ filters, dict }: { filters: TalentFilters; dict: Dictionary }) {
   const t = dict.sourcing.talent;

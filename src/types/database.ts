@@ -305,3 +305,24 @@ export interface ActivityLogRow {
   actor_name: string | null;
   details: Record<string, unknown>;
 }
+
+// --- Talent Bench (supabase/migrations/0007_talent_bench.sql) ---
+
+export type BenchStatus = "active" | "preferred" | "limited" | "unavailable" | "paused" | "archived";
+export type EngagementType = "freelancer" | "contractor" | "part_time" | "employee" | "other";
+
+export interface TalentBenchDetailsRow {
+  talent_candidate_id: string;
+  created_at: string;
+  updated_at: string;
+  bench_status: BenchStatus;
+  engagement_type: EngagementType | null;
+  hourly_cost: number | null;
+  cost_currency: Currency | null;
+  day_rate: number | null;
+  minimum_engagement: string | null;
+  commercial_notes: string | null;
+  available_from: string | null;
+  max_monthly_hours: number | null;
+  preferred_monthly_hours: number | null;
+}

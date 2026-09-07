@@ -10,13 +10,13 @@ import { rescoreTalent, setTalentManualScore, setTalentTags } from "../../action
 import { HIGH_TALENT_SCORE } from "../../constants";
 import type { ActivityEntry, AiEvaluation, InternalNote, RoleProfile, SourceRecordSummary, TalentCandidate } from "../../types";
 import { ActivityList } from "../shared/activity-list";
-import { Chips } from "../shared/chips";
-import { DetailSection, Facts } from "../shared/detail-section";
+import { Chips } from "@/components/shared/chips";
+import { DetailSection, Facts } from "@/components/shared/detail-section";
 import { Freshness } from "../shared/freshness";
 import { NotesPanel } from "../shared/notes-panel";
 import { ScorePanel } from "../shared/score-panel";
 import { SourceRecords } from "../shared/source-records";
-import { StatusBadge } from "../shared/status-badge";
+import { StatusBadge } from "@/components/shared/status-badge";
 import { TagsEditor } from "../shared/tags-editor";
 import { RatingsEditor } from "./ratings-editor";
 import { TalentStatusControls } from "./talent-status-controls";
@@ -57,7 +57,11 @@ export function TalentDetail({ candidate, evaluations, notes, activity, sources,
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge status={c.status} label={t.statuses[c.status]} />
-            {c.inTalentBench ? <StatusBadge status="approved" label={dict.sourcing.review.inBench} /> : null}
+            {c.inTalentBench ? (
+              <Link href={`${getModule("talent").href}/${c.id}`}>
+                <StatusBadge status="approved" label={dict.sourcing.review.inBench} className="hover:underline" />
+              </Link>
+            ) : null}
             <Freshness lastCheckedAt={c.lastCheckedAt} firstDiscoveredAt={c.firstDiscoveredAt} dict={dict} locale={locale} />
           </div>
         </div>

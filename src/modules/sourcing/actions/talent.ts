@@ -1,5 +1,8 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+
+import { getModule } from "@/config/modules";
 import { createClient } from "@/lib/supabase/server";
 import type { TalentCandidateRow } from "@/types/database";
 
@@ -9,6 +12,7 @@ import { getRoleProfile } from "../queries/role-profiles";
 import { scoreTalent } from "../scoring";
 import { currentActor } from "../services/actor";
 import { logActivity } from "../services/activity";
+import { markInTalentBench } from "../services/bench";
 import type { ActionResult, TalentRatings, TalentStatus } from "../types";
 import { cleanIds, cleanScore, cleanTags, failure, revalidateSourcing } from "./shared";
 
@@ -30,19 +34,10 @@ export async function saveTalentToBench(ids: string[]): Promise<ActionResult> {
   if (!list.length) return {};
   const supabase = await createClient();
   const actor = await currentActor();
-  const { data, error } = await supabase
-    .from("talent_candidates")
-    .update({ in_talent_bench: true, bench_added_at: new Date().toISOString() })
-    .in("id", list)
-    .eq("in_talent_bench", false)
-    .select("id, status")
-    .returns<{ id: string; status: TalentStatus }[]>();
-  if (error) return failure(error);
-  // Promote still-unreviewed candidates to shortlisted so the pipeline stays truthful.
-  const toPromote = (data ?? []).filter((r) => ["discovered", "reviewed"].includes(r.status)).map((r) => r.id);
-  if (toPromote.length) await supabase.from("talent_candidates").update({ status: "shortlisted" }).in("id", toPromote);
-  await logActivity(supabase, (data ?? []).map((r) => ({ entityType: "talent" as const, entityId: r.id, action: "saved_to_bench" as const })), actor);
+  const result = await markInTalentBench(supabase, list, actor);
+  if (result.error) return failure({ message: result.error });
   revalidateSourcing();
+  revalidatePath(getModule("talent").href, "layout");
   return {};
 }
 

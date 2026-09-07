@@ -23,14 +23,14 @@ export function TextFilter({ name, defaultValue, placeholder, type = "text" }: {
 
 const ANY = "__any__";
 
-export function SelectFilter({ name, defaultValue, options, anyLabel }: { name: string; defaultValue?: string; options: { value: string; label: string }[]; anyLabel: string }) {
+export function SelectFilter({ name, defaultValue, options, anyLabel, allowAny = true }: { name: string; defaultValue?: string; options: { value: string; label: string }[]; anyLabel: string; allowAny?: boolean }) {
   return (
-    <Select name={name} defaultValue={defaultValue ?? ANY}>
+    <Select name={name} defaultValue={defaultValue ?? (allowAny ? ANY : options[0]?.value)}>
       <SelectTrigger className="h-8 w-full" size="sm">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={ANY}>{anyLabel}</SelectItem>
+        {allowAny ? <SelectItem value={ANY}>{anyLabel}</SelectItem> : null}
         {options.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
       </SelectContent>
     </Select>
