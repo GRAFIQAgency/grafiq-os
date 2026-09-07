@@ -75,7 +75,7 @@ export const modules: readonly ModuleDefinition[] = [
     id: "capacity",
     href: "/capacity",
     icon: CalendarRange,
-    status: "planned",
+    status: "active",
     group: "modules",
   },
   {

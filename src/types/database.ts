@@ -353,6 +353,18 @@ export interface TalentBenchDetailsRow {
   margin_percent: number | null;
 }
 
+// --- Capacity module (supabase/migrations/0011_capacity.sql) ---
+
+export interface ProfileCapacityDetailsRow {
+  profile_id: string;
+  created_at: string;
+  updated_at: string;
+  monthly_capacity_hours: number;
+  preferred_monthly_hours: number | null;
+  capacity_active: boolean;
+  notes: string | null;
+}
+
 // --- Projects module (supabase/migrations/0008_projects.sql) ---
 
 export type ProjectStatus =

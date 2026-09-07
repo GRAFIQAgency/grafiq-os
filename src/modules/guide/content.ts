@@ -13,7 +13,7 @@ import { modules, type ModuleId } from "@/config/modules";
  * the tour can spotlight the real control.
  */
 
-export const GUIDE_CHAPTER_IDS = ["start", "setup", "pricing", "talent", "bench", "projects", "clients", "sales", "sources", "next"] as const;
+export const GUIDE_CHAPTER_IDS = ["start", "setup", "pricing", "talent", "bench", "projects", "capacity", "clients", "sales", "sources", "next"] as const;
 export type GuideChapterId = (typeof GUIDE_CHAPTER_IDS)[number];
 
 export interface GuideChapter {
@@ -41,6 +41,7 @@ export const GUIDE_CHAPTERS: readonly GuideChapter[] = [
   { id: "talent", moduleId: "sourcing", pathPrefix: "/sourcing/talent" },
   { id: "bench", moduleId: "talent", pathPrefix: "/talent" },
   { id: "projects", moduleId: "projects", pathPrefix: "/projects" },
+  { id: "capacity", moduleId: "capacity", pathPrefix: "/capacity" },
   { id: "clients", moduleId: "sourcing", pathPrefix: "/sourcing/companies" },
   { id: "sales", moduleId: "sales", pathPrefix: "/sales" },
   { id: "sources", moduleId: "sourcing", pathPrefix: "/sourcing" },
@@ -98,7 +99,19 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
   { id: "projects-changes", chapterId: "projects", moduleId: "projects", href: "/projects", anchor: "projects-list" },
   { id: "projects-health", chapterId: "projects", moduleId: "projects", href: "/projects", anchor: "projects-list" },
 
-  // 7. Find clients
+  // 7. Plan capacity
+  { id: "capacity-plan", chapterId: "capacity", moduleId: "projects", href: "/projects", anchor: "projects-list" },
+  { id: "capacity-overview", chapterId: "capacity", moduleId: "capacity", href: "/capacity", anchor: "capacity-summary" },
+  { id: "capacity-period", chapterId: "capacity", moduleId: "capacity", href: "/capacity", anchor: "capacity-period" },
+  { id: "capacity-people", chapterId: "capacity", moduleId: "capacity", href: "/capacity", anchor: "capacity-people" },
+  { id: "capacity-person", chapterId: "capacity", moduleId: "capacity", href: "/capacity", anchor: "capacity-people" },
+  { id: "capacity-resolve", chapterId: "capacity", moduleId: "capacity", href: "/capacity", anchor: "capacity-people" },
+  { id: "capacity-internal", chapterId: "capacity", moduleId: "capacity", href: "/capacity", anchor: "capacity-people" },
+  { id: "capacity-projects", chapterId: "capacity", moduleId: "capacity", href: "/capacity", anchor: "capacity-view" },
+  { id: "capacity-matrix", chapterId: "capacity", moduleId: "capacity", href: "/capacity", anchor: "capacity-matrix" },
+  { id: "capacity-whatif", chapterId: "capacity", moduleId: "capacity", href: "/capacity", anchor: "capacity-whatif" },
+
+  // 8. Find clients
   { id: "clients-search", chapterId: "clients", moduleId: "sourcing", href: "/sourcing/companies", anchor: "sourcing-search" },
   { id: "clients-signals", chapterId: "clients", moduleId: "sourcing", href: "/sourcing/companies", anchor: "sourcing-review" },
   { id: "clients-crm", chapterId: "clients", moduleId: "sourcing", href: "/sourcing/companies", anchor: "sourcing-review" },

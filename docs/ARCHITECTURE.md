@@ -201,10 +201,34 @@ Pricing estimate, won/lost timestamps). Contacts stay in the shared
   `listProjectsByClient` for the deal page.
 - Dependency direction: sales → sourcing / pricing / projects (one-way).
 
+### The `capacity` module (existing, Capacity Planner v1)
+
+A derived planning layer: "who has capacity, when, and can we take on more
+work?". It combines two read APIs and stores no calculated data:
+Talent (`getTalentCapacityData`: preferred / maximum monthly hours,
+availability, available-from, bench status) and Projects
+(`listProjectAssignments`: members of projects in delivery with planned
+hours, dates and their tasks). Internal users get the only new table,
+`profile_capacity_details` (1:1 with `profiles`, migration 0011); they are
+never turned into Talent records.
+
+- `calculations/booking.ts` — per assignment `max(planned, Σ task estimates)`;
+  task hours placed by task dates, the remainder by assignment / project dates,
+  split proportionally over Mon–Fri working days (`periods.ts`); hours with no
+  dates are surfaced as *unscheduled*. Pay model never affects hours.
+- `calculations/availability.ts` — period capacity from the monthly number
+  (week = monthly × 12/52), prorated after available-from; unavailable = 0.
+- `calculations/health.ts` — utilization bands from `constants.ts`
+  (75 / 90 / 100 %). `load.ts` — person loads, summary, projects view,
+  forward matrix, warnings. `whatif.ts` — non-persisted staffing check.
+- Read API for Dashboard: `getCapacityOverview()`.
+- Dependency direction: capacity → talent / projects (one-way). Projects'
+  Team tab only links to `/capacity/<key>`.
+
 ### The `guide` module (existing) — the interactive tutorial
 
 `src/modules/guide/content.ts` is the product's work-process description in
-chapters and steps (setup → pricing → talent → bench → projects → clients → sales → sources → what's next).
+chapters and steps (setup → pricing → talent → bench → projects → capacity → clients → sales → sources → what's next).
 It powers three surfaces: the `/guide` page with progress checkboxes, the "?"
 help panel in the top bar (chapter for the current route), and the cross-page
 tour (`?guide=<step-id>` spotlights the element with a matching

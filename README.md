@@ -62,6 +62,7 @@ npm test        # Vitest unit tests (business logic)
    - `0008_projects.sql` — Projects: projects, members, milestones, tasks, links, direct costs, change requests.
    - `0009_sales.sql` — Sales: CRM pipeline stages on `company_leads` + `company_crm_details` (1:1 deal fields).
    - `0010_pay_models.sql` — Pay models: `percent` cost lines in Pricing/Projects, per-person pay model on the Talent Bench.
+   - `0011_capacity.sql` — Capacity: `profile_capacity_details` (monthly capacity of internal users). Everything else in Capacity is derived.
 5. Create users. This is an internal tool with **no public signup**: add team
    members in **Authentication → Users → Add user** (set a password, or send an
    invite). Optionally give them a `full_name` in the user metadata; it becomes
@@ -101,8 +102,9 @@ src/
     talent/               Talent Bench: operational view of people saved from Sourcing
     projects/             Projects: delivery centre with baseline/forecast economics and health
     sales/                Sales: CRM pipeline over the shared company record (deals, contacts, customers)
+    capacity/             Capacity: derived planning layer over Talent + Projects (utilization, matrix, what-if)
     guide/                Interactive tutorial: /guide page, "?" help panel, cross-page tour (must stay 1:1 with the product)
-    capacity/ finance/ qa/ Reserved folders with a README each
+    finance/ qa/          Reserved folders with a README each
   types/
     database.ts           Database row types (hand-written for now)
 supabase/

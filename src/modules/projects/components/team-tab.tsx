@@ -90,7 +90,7 @@ export function TeamTab({ projectId, currency, members, tasks, people, roleCosts
               </Field>
               <Field name="currency" label={t.currency}><NativeSelect name="currency" value={rateCurrency} onChange={setRateCurrency} className="w-24" options={CURRENCIES.map((c) => ({ value: c, label: c }))} /></Field>
             </div>
-            <Field name="plannedHours" label={t.plannedHours} error={fieldErrors.plannedHours}><Input id="plannedHours" name="plannedHours" type="number" min={0} step="any" className="text-right tabular-nums" /></Field>
+            <Field name="plannedHours" label={t.plannedHours} error={fieldErrors.plannedHours} hint={t.plannedHoursHint} className="[&]:scroll-mt-20" ><div data-guide="projects-member-hours"><Input id="plannedHours" name="plannedHours" type="number" min={0} step="any" className="text-right tabular-nums" /></div></Field>
             <div className="grid grid-cols-2 gap-2">
               <Field name="startsOn" label={t.startsOn}><Input id="startsOn" name="startsOn" type="date" /></Field>
               <Field name="endsOn" label={t.endsOn}><Input id="endsOn" name="endsOn" type="date" /></Field>
@@ -112,7 +112,8 @@ export function TeamTab({ projectId, currency, members, tasks, people, roleCosts
                 {members.map((m) => {
                   const mine = tasks.filter((x) => x.assigneeMemberId === m.id);
                   const actual = mine.reduce((s, x) => s + (x.actualHours ?? 0), 0);
-                  return <MemberRow key={m.id} member={m} actualHours={actual} projectId={projectId} onDone={() => router.refresh()} tone={STATUS_TONE[m.status]} labels={{ status: t.statuses[m.status], remove: t.remove, confirm: t.confirmRemove, snapshot: t.snapshot, source: t.rateSources[m.rateSource], hours: interpolate(t.hoursSummary, { actual: formatHours(actual, locale), planned: formatHours(m.plannedHours, locale) }), open: t.openInTalent, rate: formatMoney(m.costRate, m.currency, locale) }} talentHref={m.talentCandidateId ? `${getModule("talent").href}/${m.talentCandidateId}` : null} />;
+                  const capacityHref = `${getModule("capacity").href}/${encodeURIComponent(m.talentCandidateId ? `talent:${m.talentCandidateId}` : `user:${m.userId}`)}`;
+                  return <MemberRow key={m.id} member={m} actualHours={actual} projectId={projectId} onDone={() => router.refresh()} tone={STATUS_TONE[m.status]} labels={{ status: t.statuses[m.status], remove: t.remove, confirm: t.confirmRemove, snapshot: t.snapshot, source: t.rateSources[m.rateSource], hours: interpolate(t.hoursSummary, { actual: formatHours(actual, locale), planned: formatHours(m.plannedHours, locale) }), open: t.openInTalent, rate: formatMoney(m.costRate, m.currency, locale), capacity: t.viewCapacity }} talentHref={m.talentCandidateId ? `${getModule("talent").href}/${m.talentCandidateId}` : null} capacityHref={capacityHref} />;
                 })}
               </tbody>
             </table>
@@ -123,7 +124,7 @@ export function TeamTab({ projectId, currency, members, tasks, people, roleCosts
   );
 }
 
-function MemberRow({ member: m, projectId, actualHours, onDone, tone, labels, talentHref }: { member: ProjectMember; projectId: string; actualHours: number; onDone: () => void; tone: string; labels: Record<string, string>; talentHref: string | null }) {
+function MemberRow({ member: m, projectId, actualHours, onDone, tone, labels, talentHref, capacityHref }: { member: ProjectMember; projectId: string; actualHours: number; onDone: () => void; tone: string; labels: Record<string, string>; talentHref: string | null; capacityHref: string }) {
   const { dict } = useI18n();
   const [pending, start] = useTransition();
   const t = dict.projects.team;
@@ -137,7 +138,10 @@ function MemberRow({ member: m, projectId, actualHours, onDone, tone, labels, ta
         <span className="sr-only"><StatusBadge status={tone} label={labels.status} /></span>
       </td>
       <td className="px-3 py-2 text-right tabular-nums">{labels.rate}<span className="block text-[11px] text-muted-foreground">{labels.snapshot} · {labels.source}</span></td>
-      <td className="px-3 py-2 text-xs">{labels.hours}</td>
+      <td className="px-3 py-2 text-xs">
+        {labels.hours}
+        {m.status !== "removed" ? <Link href={capacityHref} className="block text-[11px] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">{labels.capacity}</Link> : null}
+      </td>
       <td className="px-3 py-2 text-xs text-muted-foreground">{[m.startsOn, m.endsOn].filter(Boolean).join(" – ") || "—"}</td>
       <td className="px-3 py-2 text-right">
         {m.status !== "removed" ? (

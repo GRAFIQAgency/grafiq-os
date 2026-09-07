@@ -274,10 +274,21 @@ export interface ProjectStats {
   averageMargin: number | null;
 }
 
+/** One task of an assignment, as Capacity needs it (hours + dates only). */
+export interface AssignmentTask {
+  id: string;
+  title: string;
+  status: TaskStatus;
+  estimatedHours: number | null;
+  startDate: string | null;
+  dueDate: string | null;
+}
+
 export interface ProjectAssignment {
   projectId: string;
   projectName: string;
   projectStatus: ProjectStatus;
+  projectStartDate: string | null;
   projectDeadline: string | null;
   memberId: string;
   talentCandidateId: string | null;
@@ -290,4 +301,6 @@ export interface ProjectAssignment {
   endsOn: string | null;
   taskEstimatedHours: number;
   taskActualHours: number;
+  /** Tasks assigned to this member (Capacity places their hours by task dates). */
+  tasks: AssignmentTask[];
 }

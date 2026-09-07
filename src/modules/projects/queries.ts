@@ -23,11 +23,23 @@ import type {
   ProjectFilters, ProjectFinancials, ProjectListItem, ProjectMember, ProjectSort, ProjectStats, Task,
 } from "./types";
 
-type ProjectJoined = ProjectRow & { company_leads: { name: string } | null; profiles: { full_name: string | null; email: string } | null };
-const PROJECT_SELECT = "*, company_leads(name), profiles:owner_id(full_name, email)";
+// The client join works through the FK to company_leads. The owner column
+// references auth.users (not profiles), so PostgREST cannot embed the profile:
+// owner names are looked up separately in toProjects().
+type ProjectJoined = ProjectRow & { company_leads: { name: string } | null };
+const PROJECT_SELECT = "*, company_leads(name)";
 
-function toProject(row: ProjectJoined): Project {
-  return rowToProject(row, row.company_leads?.name ?? null, row.profiles?.full_name || row.profiles?.email || null);
+async function ownerNames(rows: ProjectJoined[]): Promise<Map<string, string>> {
+  const ids = [...new Set(rows.map((r) => r.owner_id).filter((x): x is string => Boolean(x)))];
+  if (!ids.length) return new Map();
+  const supabase = await createClient();
+  const { data } = await supabase.from("profiles").select("id, full_name, email").in("id", ids).returns<Pick<ProfileRow, "id" | "full_name" | "email">[]>();
+  return new Map((data ?? []).map((o) => [o.id, o.full_name?.trim() || o.email]));
+}
+
+async function toProjects(rows: ProjectJoined[]): Promise<Project[]> {
+  const owners = await ownerNames(rows);
+  return rows.map((row) => rowToProject(row, row.company_leads?.name ?? null, row.owner_id ? owners.get(row.owner_id) ?? null : null));
 }
 
 interface Related {
@@ -77,7 +89,7 @@ async function fetchAllItems(): Promise<ProjectListItem[]> {
     console.error("[projects] list failed:", error.message);
     return [];
   }
-  const projects = (data ?? []).map(toProject);
+  const projects = await toProjects(data ?? []);
   const [related, thresholds] = await Promise.all([loadRelated(projects.map((p) => p.id)), getMarginThresholds()]);
   return Promise.all(projects.map((p) => computeItem(p, related[p.id], thresholds)));
 }
@@ -90,8 +102,11 @@ export async function listProjects(filters: ProjectFilters, sort: ProjectSort): 
 export async function getProjectDetail(id: string): Promise<ProjectDetail | null> {
   const supabase = await createClient();
   const { data, error } = await supabase.from("projects").select(PROJECT_SELECT).eq("id", id).maybeSingle<ProjectJoined>();
-  if (error || !data) return null;
-  const project = toProject(data);
+  if (error || !data) {
+    if (error) console.error("[projects] getProjectDetail failed:", error.message);
+    return null;
+  }
+  const [project] = await toProjects([data]);
   const [related, thresholds, links, baseline, notes, activity] = await Promise.all([
     loadRelated([id]),
     getMarginThresholds(),
@@ -188,7 +203,7 @@ export async function listProjectsByClient(clientId: string): Promise<Project[]>
     console.error("[projects] listProjectsByClient failed:", error.message);
     return [];
   }
-  return (data ?? []).map(toProject);
+  return toProjects(data ?? []);
 }
 
 export async function getProjectStats(): Promise<ProjectStats> {
@@ -211,10 +226,14 @@ export async function listProjectFinancials(): Promise<{ projectId: string; name
   return (await fetchAllItems()).map((i) => ({ projectId: i.project.id, name: i.project.name, status: i.project.status, financials: i.financials }));
 }
 
-/** One row per project member with planned hours and task hours — what Capacity needs. */
+/**
+ * One row per project member with planned hours, dates and their tasks — the
+ * Projects side of Capacity. Only projects in delivery (ACTIVE_STATUSES) are
+ * returned: draft, on-hold and closed projects never consume capacity.
+ */
 export async function listProjectAssignments(): Promise<ProjectAssignment[]> {
   const supabase = await createClient();
-  const { data } = await supabase.from("projects").select("id, name, status, deadline").in("status", ACTIVE_STATUSES).returns<Pick<ProjectRow, "id" | "name" | "status" | "deadline">[]>();
+  const { data } = await supabase.from("projects").select("id, name, status, start_date, deadline").in("status", ACTIVE_STATUSES).returns<Pick<ProjectRow, "id" | "name" | "status" | "start_date" | "deadline">[]>();
   const projects = data ?? [];
   const related = await loadRelated(projects.map((p) => p.id));
   const out: ProjectAssignment[] = [];
@@ -224,11 +243,12 @@ export async function listProjectAssignments(): Promise<ProjectAssignment[]> {
       if (m.status === "removed") continue;
       const mine = rel.tasks.filter((t) => t.assigneeMemberId === m.id);
       out.push({
-        projectId: p.id, projectName: p.name, projectStatus: p.status, projectDeadline: p.deadline,
+        projectId: p.id, projectName: p.name, projectStatus: p.status, projectStartDate: p.start_date, projectDeadline: p.deadline,
         memberId: m.id, talentCandidateId: m.talentCandidateId, userId: m.userId, displayName: m.displayName, projectRole: m.projectRole,
         memberStatus: m.status, plannedHours: m.plannedHours, startsOn: m.startsOn, endsOn: m.endsOn,
         taskEstimatedHours: mine.reduce((s, t) => s + (t.estimatedHours ?? 0), 0),
         taskActualHours: mine.reduce((s, t) => s + (t.actualHours ?? 0), 0),
+        tasks: mine.map((t) => ({ id: t.id, title: t.title, status: t.status, estimatedHours: t.estimatedHours, startDate: t.startDate, dueDate: t.dueDate })),
       });
     }
   }
