@@ -30,13 +30,22 @@ export default async function SettingsPage() {
         </div>
 
         <BusinessSettingsForm key={persisted ? "db" : "defaults"} initial={settings} persisted={persisted} />
-        <RoleCostsTable key={roles.map((r) => r.id).join(",")} roles={roles} defaultCurrency={settings.defaultCurrency} />
         <PeopleRatesTable
-          key={people.map((p) => `${p.id}:${p.hourlyCost}:${p.role}`).join(",")}
+          key={people.map((p) => `${p.id}:${p.pricingModel}:${p.hourlyCost}:${p.fixedPrice}:${p.marginPercent}:${p.role}`).join(",")}
           people={people}
           roleNames={roles.filter((r) => r.isActive).map((r) => r.name)}
           defaultCurrency={settings.defaultCurrency}
         />
+        {/* Role defaults are optional: only a fallback for people without their own rate. Collapsed so the page stays about people. */}
+        <details className="group rounded-xl border bg-card/40" data-guide="settings-roles">
+          <summary className="cursor-pointer select-none px-5 py-4">
+            <span className="text-sm font-medium">{dict.settings.roles.optionalTitle}</span>
+            <span className="ml-2 text-xs text-muted-foreground">{dict.settings.roles.optionalHint}</span>
+          </summary>
+          <div className="px-2 pb-2">
+            <RoleCostsTable key={roles.map((r) => r.id).join(",")} roles={roles} defaultCurrency={settings.defaultCurrency} />
+          </div>
+        </details>
       </section>
     </div>
   );

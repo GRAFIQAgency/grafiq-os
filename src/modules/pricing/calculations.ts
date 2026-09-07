@@ -4,17 +4,40 @@
  *
  * All margins are in percent (60 means 60 %). Health thresholds come from
  * Business Settings (Settings → Business → Project economics).
+ *
+ * Cost lines come in three kinds:
+ *   hourly  = hours × hourly rate
+ *   fixed   = flat amount per project
+ *   percent = share of the client price (sales commission, PM fee)
  */
 import type { MarginThresholds } from "@/modules/settings/types";
 
 import type { CostItemInput, EstimateInput, HealthStatus, PricingSummary } from "./types";
 
-export function costItemTotal(item: CostItemInput): number {
-  return item.kind === "fixed" ? item.fixedAmount : item.hours * item.hourlyRate;
+/** Cost of one line. Percent lines depend on the client price (`revenue`). */
+export function costItemTotal(item: CostItemInput, revenue = 0): number {
+  switch (item.kind) {
+    case "fixed":
+      return item.fixedAmount;
+    case "percent":
+      return (revenue * item.percent) / 100;
+    default:
+      return item.hours * item.hourlyRate;
+  }
 }
 
-export function totalDirectCosts(items: readonly CostItemInput[]): number {
-  return items.reduce((sum, item) => sum + costItemTotal(item), 0);
+export function totalDirectCosts(items: readonly CostItemInput[], revenue = 0): number {
+  return items.reduce((sum, item) => sum + costItemTotal(item, revenue), 0);
+}
+
+/** Direct costs that do not scale with the price (hourly + fixed lines). */
+export function fixedDirectCosts(items: readonly CostItemInput[]): number {
+  return items.filter((i) => i.kind !== "percent").reduce((sum, item) => sum + costItemTotal(item), 0);
+}
+
+/** Sum of the percent lines, in percent of the client price. */
+export function percentShare(items: readonly CostItemInput[]): number {
+  return items.filter((i) => i.kind === "percent").reduce((sum, item) => sum + item.percent, 0);
 }
 
 export function grossProfit(revenue: number, directCosts: number): number {
@@ -28,14 +51,17 @@ export function grossMargin(revenue: number, directCosts: number): number | null
 }
 
 /**
- * Minimum selling price that reaches the target margin:
- *   price = directCosts / (1 - targetMargin/100)
- * Returns `null` when the target margin is 100 % or more.
+ * Minimum selling price that reaches the target margin. Percent-of-price
+ * costs scale with the price, so they move into the divisor:
+ *   price × (1 − target/100) = fixedCosts + price × share/100
+ *   price = fixedCosts / (1 − target/100 − share/100)
+ * Returns `null` when target margin + percent share is 100 % or more
+ * (no finite price satisfies it).
  */
-export function recommendedSellingPrice(directCosts: number, targetMargin: number): number | null {
-  if (targetMargin >= 100) return null;
-  const divisor = 1 - targetMargin / 100;
-  return directCosts / divisor;
+export function recommendedSellingPrice(fixedCosts: number, targetMargin: number, share = 0): number | null {
+  const divisor = 1 - targetMargin / 100 - share / 100;
+  if (divisor <= 0) return null;
+  return fixedCosts / divisor;
 }
 
 /**
@@ -56,7 +82,7 @@ export function requiresFounderApproval(margin: number | null, thresholds: Margi
 }
 
 export function summarizeEstimate(estimate: EstimateInput, thresholds: MarginThresholds): PricingSummary {
-  const directCosts = totalDirectCosts(estimate.items);
+  const directCosts = totalDirectCosts(estimate.items, estimate.revenue);
   const margin = grossMargin(estimate.revenue, directCosts);
 
   return {
@@ -65,7 +91,7 @@ export function summarizeEstimate(estimate: EstimateInput, thresholds: MarginThr
     grossProfit: grossProfit(estimate.revenue, directCosts),
     grossMargin: margin,
     targetMargin: estimate.targetMargin,
-    recommendedPrice: recommendedSellingPrice(directCosts, estimate.targetMargin),
+    recommendedPrice: recommendedSellingPrice(fixedDirectCosts(estimate.items), estimate.targetMargin, percentShare(estimate.items)),
     health: healthStatus(margin, thresholds),
     requiresApproval: requiresFounderApproval(margin, thresholds),
   };

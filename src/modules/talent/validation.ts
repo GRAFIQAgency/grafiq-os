@@ -1,6 +1,6 @@
 import { CURRENCIES } from "@/config/currencies";
 
-import { BENCH_STATUSES, ENGAGEMENT_TYPES } from "./constants";
+import { BENCH_STATUSES, ENGAGEMENT_TYPES, PRICING_MODELS } from "./constants";
 import type { ActionResult, BenchDetailsInput, PersonRateInput } from "./types";
 
 export interface BenchValidationMessages {
@@ -10,6 +10,7 @@ export interface BenchValidationMessages {
   invalidStatus: string;
   tooLong: string;
   nameRequired: string;
+  percentRange: string;
 }
 
 type Outcome = { data: BenchDetailsInput; errors?: undefined } | { data?: undefined; errors: ActionResult };
@@ -43,6 +44,11 @@ export function validateBenchDetails(raw: unknown, msg: BenchValidationMessages)
   const availableFrom = availableFromRaw ? (/^\d{4}-\d{2}-\d{2}$/.test(availableFromRaw) && !Number.isNaN(Date.parse(availableFromRaw)) ? availableFromRaw : undefined) : null;
   if (availableFrom === undefined) fieldErrors.availableFrom = msg.invalidDate;
 
+  const fixedPrice = optNum(raw.fixedPrice);
+  if (fixedPrice === undefined) fieldErrors.fixedPrice = msg.invalidNumber;
+  const marginPercent = optNum(raw.marginPercent);
+  if (marginPercent === undefined || (marginPercent ?? 0) > 100) fieldErrors.marginPercent = msg.percentRange;
+
   const minimumEngagement = text(raw.minimumEngagement, 120);
   const commercialNotes = text(raw.commercialNotes, 2000);
   if (typeof raw.commercialNotes === "string" && raw.commercialNotes.length > 2000) fieldErrors.commercialNotes = msg.tooLong;
@@ -62,6 +68,9 @@ export function validateBenchDetails(raw: unknown, msg: BenchValidationMessages)
       dayRate: dayRate ?? null,
       minimumEngagement: minimumEngagement || null,
       commercialNotes: commercialNotes || null,
+      pricingModel: oneOf(raw.pricingModel, PRICING_MODELS) ?? "hourly",
+      fixedPrice: fixedPrice ?? null,
+      marginPercent: marginPercent ?? null,
     },
   };
 }
@@ -76,13 +85,20 @@ export function validatePersonRate(raw: unknown, msg: BenchValidationMessages, o
   if (options.requireName && !fullName) fieldErrors.fullName = msg.nameRequired;
   const hourlyCost = optNum(raw.hourlyCost);
   if (hourlyCost === undefined) fieldErrors.hourlyCost = msg.invalidNumber;
+  const fixedPrice = optNum(raw.fixedPrice);
+  if (fixedPrice === undefined) fieldErrors.fixedPrice = msg.invalidNumber;
+  const marginPercent = optNum(raw.marginPercent);
+  if (marginPercent === undefined || (marginPercent ?? 0) > 100) fieldErrors.marginPercent = msg.percentRange;
   if (Object.keys(fieldErrors).length) return { errors: { error: Object.values(fieldErrors)[0], fieldErrors } };
   return {
     data: {
       fullName: fullName || undefined,
       role: text(raw.role, 100) || null,
+      pricingModel: oneOf(raw.pricingModel, PRICING_MODELS) ?? "hourly",
       hourlyCost: hourlyCost ?? null,
       costCurrency: oneOf(raw.costCurrency, CURRENCIES) ?? null,
+      fixedPrice: fixedPrice ?? null,
+      marginPercent: marginPercent ?? null,
     },
   };
 }

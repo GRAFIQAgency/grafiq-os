@@ -13,6 +13,7 @@ export interface CostItemDraft {
   hours: string;
   hourlyRate: string;
   fixedAmount: string;
+  percent: string;
 }
 
 export interface EstimateDraft {
@@ -32,7 +33,7 @@ function newKey() {
 }
 
 export function newCostItemDraft(name = ""): CostItemDraft {
-  return { key: newKey(), name, kind: "hourly", hours: "", hourlyRate: "", fixedAmount: "" };
+  return { key: newKey(), name, kind: "hourly", hours: "", hourlyRate: "", fixedAmount: "", percent: "" };
 }
 
 export function createEmptyDraft(defaults: PricingDefaults): EstimateDraft {
@@ -69,6 +70,7 @@ export function draftFromEstimate(estimate: EstimateInput): EstimateDraft {
       hours: numToText(item.hours),
       hourlyRate: numToText(item.hourlyRate),
       fixedAmount: numToText(item.fixedAmount),
+      percent: numToText(item.percent),
     })),
   };
 }
@@ -85,6 +87,7 @@ export function costItemDraftToInput(item: CostItemDraft): CostItemInput {
     hours: parseNumber(item.hours),
     hourlyRate: parseNumber(item.hourlyRate),
     fixedAmount: parseNumber(item.fixedAmount),
+    percent: parseNumber(item.percent),
   };
 }
 

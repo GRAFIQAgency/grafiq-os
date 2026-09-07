@@ -19,7 +19,7 @@ export function rowToProject(r: ProjectRow, clientName: string | null, ownerName
 }
 
 export function rowToBaselineCost(r: ProjectBaselineCostRow): BaselineCostLine {
-  return { id: r.id, name: r.name, kind: r.kind, hours: Number(r.hours), hourlyRate: Number(r.hourly_rate), fixedAmount: Number(r.fixed_amount), total: Number(r.total) };
+  return { id: r.id, name: r.name, kind: r.kind, hours: Number(r.hours), hourlyRate: Number(r.hourly_rate), fixedAmount: Number(r.fixed_amount), percent: Number(r.percent ?? 0), total: Number(r.total) };
 }
 
 export function rowToMember(r: ProjectMemberRow): ProjectMember {

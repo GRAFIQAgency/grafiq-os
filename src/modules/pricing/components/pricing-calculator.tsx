@@ -124,6 +124,7 @@ export function PricingCalculator({ initialEstimate, defaults, thresholds }: Pri
           <CostItemsTable
             items={draft.items}
             currency={draft.currency}
+            revenue={summary.revenue}
             rolePresets={defaults.rolePresets}
             peoplePresets={defaults.peoplePresets}
             directCosts={summary.directCosts}

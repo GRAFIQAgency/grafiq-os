@@ -33,7 +33,7 @@ export async function createProject(raw: unknown): Promise<CreateProjectResult> 
 
   const supabase = await createClient();
   const actor = await currentActor();
-  let baselineLines: { name: string; kind: "hourly" | "fixed"; hours: number; hourly_rate: number; fixed_amount: number; total: number; position: number }[] = [];
+  let baselineLines: { name: string; kind: "hourly" | "fixed" | "percent"; hours: number; hourly_rate: number; fixed_amount: number; percent: number; total: number; position: number }[] = [];
 
   if (input.estimateId) {
     const { data: existing } = await supabase.from("projects").select("id").eq("pricing_estimate_id", input.estimateId).maybeSingle<{ id: string }>();
@@ -41,9 +41,11 @@ export async function createProject(raw: unknown): Promise<CreateProjectResult> 
     const estimate = await getEstimate(input.estimateId);
     if (!estimate) return { error: dict.projects.errors.estimateNotFound };
     // Snapshot the cost breakdown as it is right now.
+    const revenue = Number(estimate.revenue);
     baselineLines = [...estimate.pricing_cost_items].sort((a, b) => a.position - b.position).map((i, position) => {
-      const hours = Number(i.hours), rate = Number(i.hourly_rate), fixed = Number(i.fixed_amount);
-      return { name: i.name, kind: i.kind, hours, hourly_rate: rate, fixed_amount: fixed, total: i.kind === "fixed" ? fixed : hours * rate, position };
+      const hours = Number(i.hours), rate = Number(i.hourly_rate), fixed = Number(i.fixed_amount), percent = Number(i.percent ?? 0);
+      const total = i.kind === "fixed" ? fixed : i.kind === "percent" ? (revenue * percent) / 100 : hours * rate;
+      return { name: i.name, kind: i.kind, hours, hourly_rate: rate, fixed_amount: fixed, percent, total, position };
     });
   }
 

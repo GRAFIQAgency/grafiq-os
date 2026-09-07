@@ -23,7 +23,10 @@ export interface ProfileRow {
 /** Currencies supported by the app (also enforced by DB check constraints). */
 export type Currency = "CZK" | "EUR" | "USD";
 export type PricingCurrency = Currency;
-export type PricingCostItemKind = "hourly" | "fixed";
+/** hourly = hours × rate, fixed = flat amount, percent = share of the client price. */
+export type PricingCostItemKind = "hourly" | "fixed" | "percent";
+/** How a Talent Bench person is usually paid (Settings → People rates). */
+export type PricingModel = PricingCostItemKind;
 
 export interface PricingEstimateRow {
   id: string;
@@ -48,6 +51,8 @@ export interface PricingCostItemRow {
   hours: number;
   hourly_rate: number;
   fixed_amount: number;
+  /** Percent of the client price (kind = percent). */
+  percent: number;
   position: number;
 }
 
@@ -343,6 +348,9 @@ export interface TalentBenchDetailsRow {
   available_from: string | null;
   max_monthly_hours: number | null;
   preferred_monthly_hours: number | null;
+  pricing_model: PricingModel;
+  fixed_price: number | null;
+  margin_percent: number | null;
 }
 
 // --- Projects module (supabase/migrations/0008_projects.sql) ---
@@ -394,6 +402,7 @@ export interface ProjectBaselineCostRow {
   hours: number;
   hourly_rate: number;
   fixed_amount: number;
+  percent: number;
   total: number;
   position: number;
 }

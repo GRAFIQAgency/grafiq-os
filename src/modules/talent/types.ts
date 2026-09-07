@@ -1,7 +1,7 @@
-import type { BenchStatus, Currency, EngagementType, TalentAvailability, TalentSeniority } from "@/types/database";
+import type { BenchStatus, Currency, EngagementType, PricingModel, TalentAvailability, TalentSeniority } from "@/types/database";
 import type { TalentCandidate, TalentRatings } from "@/modules/sourcing/types";
 
-export type { BenchStatus, EngagementType };
+export type { BenchStatus, EngagementType, PricingModel };
 
 /** Operational fields stored 1:1 with the shared person record. */
 export interface BenchDetails {
@@ -16,6 +16,10 @@ export interface BenchDetails {
   availableFrom: string | null;
   maxMonthlyHours: number | null;
   preferredMonthlyHours: number | null;
+  /** How the person is usually paid + the matching default value. */
+  pricingModel: PricingModel;
+  fixedPrice: number | null;
+  marginPercent: number | null;
   updatedAt: string | null;
 }
 
@@ -64,14 +68,20 @@ export interface BenchDetailsInput {
   dayRate: number | null;
   minimumEngagement: string | null;
   commercialNotes: string | null;
+  pricingModel: PricingModel;
+  fixedPrice: number | null;
+  marginPercent: number | null;
 }
 
-/** Settings → People rates row (role + own hourly cost). */
+/** Settings → People rates row (role + pay model + own rate). */
 export interface PersonRateInput {
   fullName?: string;
   role: string | null;
+  pricingModel: PricingModel;
   hourlyCost: number | null;
   costCurrency: Currency | null;
+  fixedPrice: number | null;
+  marginPercent: number | null;
 }
 
 /** Compact shape for future Projects / Capacity / Pricing modules. */
@@ -90,6 +100,9 @@ export interface TalentCapacityRecord {
   preferredMonthlyHours: number | null;
   benchStatus: BenchStatus;
   engagementType: EngagementType | null;
+  pricingModel: PricingModel;
+  fixedPrice: number | null;
+  marginPercent: number | null;
 }
 
 export interface ActionResult {

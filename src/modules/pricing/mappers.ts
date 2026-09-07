@@ -19,6 +19,7 @@ export function estimateFromRows(row: EstimateWithItems): EstimateInput {
       hours: Number(item.hours),
       hourlyRate: Number(item.hourly_rate),
       fixedAmount: Number(item.fixed_amount),
+      percent: Number(item.percent ?? 0),
     })),
   };
 }
@@ -26,7 +27,7 @@ export function estimateFromRows(row: EstimateWithItems): EstimateInput {
 /** Builds a "Recent Estimates" row, computing margin and health from the items. */
 export function estimateToListItem(row: EstimateWithItems, thresholds: MarginThresholds): EstimateListItem {
   const input = estimateFromRows(row);
-  const margin = grossMargin(input.revenue, totalDirectCosts(input.items));
+  const margin = grossMargin(input.revenue, totalDirectCosts(input.items, input.revenue));
   return {
     id: row.id,
     projectName: row.project_name,

@@ -21,7 +21,10 @@ export async function getPricingDefaults(): Promise<PricingDefaults> {
       id: p.id,
       name: p.fullName,
       role: p.role,
+      pricingModel: p.pricingModel,
       hourlyCost: p.hourlyCost,
+      fixedPrice: p.fixedPrice,
+      marginPercent: p.marginPercent,
       currency: p.costCurrency,
     })),
   };

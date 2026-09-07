@@ -18,6 +18,8 @@ import { CostItemRow } from "./cost-item-row";
 interface CostItemsTableProps {
   items: CostItemDraft[];
   currency: Currency;
+  /** Client price — percent lines are a share of it. */
+  revenue: number;
   /** Active roles from Business Settings; falls back to static names when empty. */
   rolePresets: RolePreset[];
   /** Active Talent Bench people with their rates. */
@@ -32,6 +34,7 @@ interface CostItemsTableProps {
 export function CostItemsTable({
   items,
   currency,
+  revenue,
   rolePresets,
   peoplePresets,
   directCosts,
@@ -44,7 +47,7 @@ export function CostItemsTable({
   const { dict, locale } = useI18n();
   const t = dict.pricing.costs;
   const options = rolePresets.length > 0 || peoplePresets.length > 0
-    ? presetOptions(peoplePresets, rolePresets, currency, { roleDefault: t.roleDefault, perHour: t.perHourShort, noRate: t.noRate })
+    ? presetOptions(peoplePresets, rolePresets, currency, { roleDefault: t.roleDefault, perHour: t.perHourShort, noRate: t.noRate, fixedPerProject: t.fixed, ofPrice: t.ofPrice })
     : FALLBACK_ROLE_PRESETS.map((name) => ({ value: name, label: "" }));
 
   return (
@@ -86,6 +89,7 @@ export function CostItemsTable({
                     item={item}
                     index={index}
                     currency={currency}
+                    revenue={revenue}
                     presetsListId={presetsListId}
                     rolePresets={rolePresets}
                     peoplePresets={peoplePresets}

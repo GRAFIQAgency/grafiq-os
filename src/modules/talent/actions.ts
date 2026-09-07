@@ -51,6 +51,9 @@ export async function saveBenchDetails(id: string, raw: unknown): Promise<Action
     available_from: d.availableFrom,
     max_monthly_hours: d.maxMonthlyHours,
     preferred_monthly_hours: d.preferredMonthlyHours,
+    pricing_model: d.pricingModel,
+    fixed_price: d.fixedPrice,
+    margin_percent: d.marginPercent,
   });
   if (error) return fail(error.message);
 
@@ -107,11 +110,13 @@ export async function setPersonRate(id: string, raw: unknown): Promise<ActionRes
 
   const supabase = await createClient();
   const actor = await currentActor();
-  const { error } = await supabase.from("talent_bench_details").upsert({ talent_candidate_id: id, hourly_cost: d.hourlyCost, cost_currency: d.costCurrency });
+  const { error } = await supabase.from("talent_bench_details").upsert({
+    talent_candidate_id: id, pricing_model: d.pricingModel, hourly_cost: d.hourlyCost, cost_currency: d.costCurrency, fixed_price: d.fixedPrice, margin_percent: d.marginPercent,
+  });
   if (error) return fail(error.message);
   const { error: e2 } = await supabase.from("talent_candidates").update({ role: d.role }).eq("id", id);
   if (e2) return fail(e2.message);
-  await logActivity(supabase, [{ entityType: "talent", entityId: id, action: "status_changed", details: { hourlyCost: d.hourlyCost, currency: d.costCurrency, role: d.role } }], actor);
+  await logActivity(supabase, [{ entityType: "talent", entityId: id, action: "status_changed", details: { payModel: d.pricingModel, hourlyCost: d.hourlyCost, fixedPrice: d.fixedPrice, marginPercent: d.marginPercent, currency: d.costCurrency, role: d.role } }], actor);
   revalidateTalent();
   revalidatePath(getModule("settings").href);
   revalidatePath(getModule("pricing").href);

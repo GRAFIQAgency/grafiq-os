@@ -19,6 +19,7 @@ function toItemRows(estimateId: string, estimate: EstimateInput) {
     hours: item.hours,
     hourly_rate: item.hourlyRate,
     fixed_amount: item.fixedAmount,
+    percent: item.percent,
     position,
   }));
 }

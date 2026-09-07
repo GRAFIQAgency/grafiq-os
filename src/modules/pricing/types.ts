@@ -3,6 +3,7 @@ import type {
   PricingCostItemRow,
   PricingCurrency,
   PricingEstimateRow,
+  PricingModel,
 } from "@/types/database";
 
 export type Currency = PricingCurrency;
@@ -15,6 +16,8 @@ export interface CostItemInput {
   hours: number;
   hourlyRate: number;
   fixedAmount: number;
+  /** Share of the client price in percent (kind = percent). */
+  percent: number;
 }
 
 /** A complete estimate with parsed numbers. `id` is set when editing a saved one. */
@@ -77,7 +80,11 @@ export interface PersonPreset {
   id: string;
   name: string;
   role: string | null;
+  /** How the person is usually paid (Settings → People rates). */
+  pricingModel: PricingModel;
   hourlyCost: number | null;
+  fixedPrice: number | null;
+  marginPercent: number | null;
   currency: Currency | null;
 }
 

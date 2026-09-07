@@ -12,7 +12,7 @@ export function defaultDetails(candidateId: string): BenchDetails {
   return {
     talentCandidateId: candidateId, benchStatus: "active", engagementType: null, hourlyCost: null, costCurrency: null,
     dayRate: null, minimumEngagement: null, commercialNotes: null, availableFrom: null, maxMonthlyHours: null,
-    preferredMonthlyHours: null, updatedAt: null,
+    preferredMonthlyHours: null, pricingModel: "hourly", fixedPrice: null, marginPercent: null, updatedAt: null,
   };
 }
 
@@ -22,7 +22,9 @@ export function rowToDetails(r: TalentBenchDetailsRow): BenchDetails {
     hourlyCost: r.hourly_cost == null ? null : Number(r.hourly_cost), costCurrency: r.cost_currency,
     dayRate: r.day_rate == null ? null : Number(r.day_rate), minimumEngagement: r.minimum_engagement,
     commercialNotes: r.commercial_notes, availableFrom: r.available_from, maxMonthlyHours: r.max_monthly_hours,
-    preferredMonthlyHours: r.preferred_monthly_hours, updatedAt: r.updated_at,
+    preferredMonthlyHours: r.preferred_monthly_hours, pricingModel: r.pricing_model ?? "hourly",
+    fixedPrice: r.fixed_price == null ? null : Number(r.fixed_price), marginPercent: r.margin_percent == null ? null : Number(r.margin_percent),
+    updatedAt: r.updated_at,
   };
 }
 
@@ -119,5 +121,6 @@ export function toCapacityRecord(person: TalentPerson): TalentCapacityRecord {
     seniority: c.seniority, hourlyCost: person.hourlyCost, costCurrency: person.costCurrency, costIsPersonSpecific: person.costIsPersonSpecific,
     availability: c.availability, availableFrom: d.availableFrom, maxMonthlyHours: d.maxMonthlyHours,
     preferredMonthlyHours: d.preferredMonthlyHours, benchStatus: d.benchStatus, engagementType: person.engagementType,
+    pricingModel: d.pricingModel, fixedPrice: d.fixedPrice, marginPercent: d.marginPercent,
   };
 }

@@ -155,7 +155,8 @@ export async function getEstimatePrefill(estimateId: string) {
   const estimate = await getEstimate(estimateId);
   if (!estimate) return null;
   const items = [...estimate.pricing_cost_items].sort((a, b) => a.position - b.position);
-  const directCost = items.reduce((s, i) => s + (i.kind === "fixed" ? Number(i.fixed_amount) : Number(i.hours) * Number(i.hourly_rate)), 0);
+  const revenue = Number(estimate.revenue);
+  const directCost = items.reduce((s, i) => s + (i.kind === "fixed" ? Number(i.fixed_amount) : i.kind === "percent" ? (revenue * Number(i.percent ?? 0)) / 100 : Number(i.hours) * Number(i.hourly_rate)), 0);
   return {
     id: estimate.id,
     name: estimate.project_name,

@@ -139,7 +139,7 @@ export function RoleCostsTable({ roles, defaultCurrency }: RoleCostsTableProps) 
   }
 
   return (
-    <Card className="gap-4" data-guide="settings-roles">
+    <Card className="gap-4 border-0 bg-transparent shadow-none">
       <CardHeader>
         <CardTitle>{t.title}</CardTitle>
         <CardDescription>{t.description}</CardDescription>

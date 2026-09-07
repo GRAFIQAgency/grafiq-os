@@ -21,6 +21,7 @@ export interface EstimateValidationMessages {
   itemHours: string;
   itemRate: string;
   itemAmount: string;
+  itemPercent: string;
 }
 
 const MAX_NAME = 200;
@@ -72,19 +73,22 @@ export function validateEstimateInput(
   rawItems.forEach((item, index) => {
     if (!isRecord(item)) return;
     const name = asText(item.name);
-    const kind = item.kind === "fixed" ? "fixed" : item.kind === "hourly" ? "hourly" : null;
+    const kind = item.kind === "fixed" ? "fixed" : item.kind === "hourly" ? "hourly" : item.kind === "percent" ? "percent" : null;
     const hours = asNonNegativeNumber(item.hours ?? 0);
     const hourlyRate = asNonNegativeNumber(item.hourlyRate ?? 0);
     const fixedAmount = asNonNegativeNumber(item.fixedAmount ?? 0);
+    const percentRaw = asNonNegativeNumber(item.percent ?? 0);
+    const percent = percentRaw !== null && percentRaw <= 100 ? percentRaw : null;
 
     if (!name) fieldErrors[`items.${index}.name`] = msg.itemName;
     if (!kind) fieldErrors[`items.${index}.kind`] = msg.itemKind;
     if (hours === null) fieldErrors[`items.${index}.hours`] = msg.itemHours;
     if (hourlyRate === null) fieldErrors[`items.${index}.hourlyRate`] = msg.itemRate;
     if (fixedAmount === null) fieldErrors[`items.${index}.fixedAmount`] = msg.itemAmount;
+    if (percent === null) fieldErrors[`items.${index}.percent`] = msg.itemPercent;
 
-    if (name && kind && hours !== null && hourlyRate !== null && fixedAmount !== null) {
-      items.push({ name, kind, hours, hourlyRate, fixedAmount });
+    if (name && kind && hours !== null && hourlyRate !== null && fixedAmount !== null && percent !== null) {
+      items.push({ name, kind, hours, hourlyRate, fixedAmount, percent });
     }
   });
 

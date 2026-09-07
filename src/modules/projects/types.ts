@@ -46,6 +46,7 @@ export interface BaselineCostLine {
   hours: number;
   hourlyRate: number;
   fixedAmount: number;
+  percent: number;
   total: number;
 }
 

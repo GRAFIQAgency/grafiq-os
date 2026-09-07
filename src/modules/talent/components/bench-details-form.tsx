@@ -14,7 +14,7 @@ import { useI18n } from "@/lib/i18n/client";
 import { interpolate } from "@/lib/i18n/interpolate";
 
 import { saveBenchDetails } from "../actions";
-import { BENCH_STATUSES, ENGAGEMENT_TYPES } from "../constants";
+import { BENCH_STATUSES, ENGAGEMENT_TYPES, PRICING_MODELS } from "../constants";
 import type { TalentPerson } from "../types";
 
 /** Availability + Commercial sections: one form, one Save. */
@@ -27,6 +27,7 @@ export function BenchDetailsForm({ person }: { person: TalentPerson }) {
   const [pending, start] = useTransition();
   const c = person.candidate;
   const d = person.details;
+  const [pricingModel, setPricingModel] = useState(d.pricingModel);
 
   const selectCls = "h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm dark:bg-input/30";
   const field = (name: string, label: string, input: React.ReactNode, hint?: string) => (
@@ -84,6 +85,15 @@ export function BenchDetailsForm({ person }: { person: TalentPerson }) {
               {ENGAGEMENT_TYPES.map((e) => <option key={e} value={e}>{dict.talent.engagements[e]}</option>)}
             </select>
           ))}
+          {field("pricingModel", t.pricingModel, (
+            <select id="pricingModel" name="pricingModel" value={pricingModel} onChange={(e) => setPricingModel(e.target.value as typeof pricingModel)} className={selectCls}>
+              {PRICING_MODELS.map((m) => <option key={m} value={m}>{dict.talent.people.models[m]}</option>)}
+            </select>
+          ), t.pricingModelHint)}
+          {pricingModel === "fixed" ? field("fixedPrice", t.fixedPrice, <Input id="fixedPrice" name="fixedPrice" type="number" min={0} step="any" defaultValue={d.fixedPrice ?? ""} className="text-right tabular-nums" aria-invalid={Boolean(fieldErrors.fixedPrice)} />, t.fixedPriceHint) : null}
+          {pricingModel === "percent" ? field("marginPercent", t.marginPercent, <Input id="marginPercent" name="marginPercent" type="number" min={0} max={100} step="any" defaultValue={d.marginPercent ?? ""} className="text-right tabular-nums" aria-invalid={Boolean(fieldErrors.marginPercent)} />, t.marginPercentHint) : null}
+          {pricingModel !== "fixed" ? <input type="hidden" name="fixedPrice" value={d.fixedPrice ?? ""} /> : null}
+          {pricingModel !== "percent" ? <input type="hidden" name="marginPercent" value={d.marginPercent ?? ""} /> : null}
           <div className="grid grid-cols-[1fr_auto] gap-2">
             {field("hourlyCost", t.hourlyCost, <Input id="hourlyCost" name="hourlyCost" type="number" min={0} step="any" defaultValue={d.hourlyCost ?? ""} className="text-right tabular-nums" aria-invalid={Boolean(fieldErrors.hourlyCost)} />,
               d.hourlyCost == null ? (sourcingRate ? interpolate(t.sourcingRate, { rate: sourcingRate }) : t.fallbackHint) : undefined)}

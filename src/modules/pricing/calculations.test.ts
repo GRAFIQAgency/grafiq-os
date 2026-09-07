@@ -4,7 +4,9 @@ import type { MarginThresholds } from "@/modules/settings/types";
 
 import {
   costItemTotal,
+  fixedDirectCosts,
   grossMargin,
+  percentShare,
   grossProfit,
   healthStatus,
   recommendedSellingPrice,
@@ -23,14 +25,25 @@ const hourly = (hours: number, hourlyRate: number): CostItemInput => ({
   hours,
   hourlyRate,
   fixedAmount: 0,
+  percent: 0,
 });
 
 const fixed = (fixedAmount: number): CostItemInput => ({
-  name: "Sales commission",
+  name: "3D Designer",
   kind: "fixed",
   hours: 0,
   hourlyRate: 0,
   fixedAmount,
+  percent: 0,
+});
+
+const percent = (share: number): CostItemInput => ({
+  name: "Sales commission",
+  kind: "percent",
+  hours: 0,
+  hourlyRate: 0,
+  fixedAmount: 0,
+  percent: share,
 });
 
 describe("costItemTotal", () => {
@@ -40,6 +53,37 @@ describe("costItemTotal", () => {
 
   it("uses the fixed amount for fixed items and ignores hours", () => {
     expect(costItemTotal({ ...fixed(5000), hours: 99, hourlyRate: 99 })).toBe(5000);
+  });
+
+  it("takes a share of the client price for percent items", () => {
+    expect(costItemTotal(percent(10), 300000)).toBe(30000);
+    expect(costItemTotal(percent(10))).toBe(0);
+  });
+});
+
+describe("percent lines", () => {
+  it("splits fixed costs from the percent share", () => {
+    const items = [hourly(10, 1500), fixed(5000), percent(10), percent(5)];
+    expect(fixedDirectCosts(items)).toBe(20000);
+    expect(percentShare(items)).toBe(15);
+    expect(totalDirectCosts(items, 200000)).toBe(50000);
+  });
+
+  it("recommended price accounts for percent-of-price costs", () => {
+    // price × (1 − 0.6) = 120 000 + price × 0.1  →  price = 120 000 / 0.3 = 400 000
+    expect(recommendedSellingPrice(120000, 60, 10)).toBeCloseTo(400000);
+    expect(recommendedSellingPrice(120000, 60, 40)).toBeNull();
+  });
+
+  it("summarises an estimate with a 10 % sales commission", () => {
+    const summary = summarizeEstimate({
+      projectName: "Site", clientName: "", currency: "CZK", revenue: 400000, targetMargin: 60,
+      items: [hourly(80, 1500), percent(10)],
+    }, thresholds);
+    expect(summary.directCosts).toBe(160000);
+    expect(summary.grossMargin).toBeCloseTo(60);
+    expect(summary.recommendedPrice).toBeCloseTo(400000);
+    expect(summary.health).toBe("healthy");
   });
 });
 

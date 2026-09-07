@@ -1,17 +1,25 @@
 import type { Currency, PersonPreset, RolePreset } from "./types";
+import type { PricingModel } from "@/types/database";
 
 /**
  * Cost-line presets: a line can be a specific person (Talent Bench, their own
- * rate) or a role default (Business Settings). Pure helpers, tested.
+ * pay model and rate) or a role default (Business Settings, hourly). Pure
+ * helpers, tested.
  */
 
 export interface PresetMatch {
   kind: "person" | "role";
   /** Text put into the cost-line name. */
   name: string;
+  role: string | null;
+  /** How the line should be paid. */
+  payModel: PricingModel;
   /** Hourly cost in the estimate currency; null when unknown or in another currency. */
   hourlyCost: number | null;
-  role: string | null;
+  /** Typical fixed price per project (payModel = fixed); null when not set or in another currency. */
+  fixedPrice: number | null;
+  /** Share of the client price (payModel = percent). */
+  percent: number | null;
 }
 
 const norm = (s: string) => s.trim().toLowerCase();
@@ -22,12 +30,20 @@ export function resolvePreset(name: string, people: PersonPreset[], roles: RoleP
   if (!key) return null;
   const person = people.find((p) => norm(p.name) === key);
   if (person) {
-    const own = person.hourlyCost != null && person.currency === currency ? person.hourlyCost : null;
+    const sameCurrency = person.currency === currency;
+    const own = person.hourlyCost != null && sameCurrency ? person.hourlyCost : null;
     const roleDefault = person.role ? roles.find((r) => norm(r.name) === norm(person.role!) && r.currency === currency)?.hourlyCost ?? null : null;
-    return { kind: "person", name: person.name, hourlyCost: own ?? roleDefault, role: person.role };
+    return {
+      kind: "person", name: person.name, role: person.role, payModel: person.pricingModel,
+      hourlyCost: own ?? roleDefault,
+      fixedPrice: person.fixedPrice != null && sameCurrency ? person.fixedPrice : null,
+      percent: person.marginPercent,
+    };
   }
   const role = roles.find((r) => norm(r.name) === key);
-  if (role) return { kind: "role", name: role.name, hourlyCost: role.currency === currency ? role.hourlyCost : null, role: role.name };
+  if (role) {
+    return { kind: "role", name: role.name, role: role.name, payModel: "hourly", hourlyCost: role.currency === currency ? role.hourlyCost : null, fixedPrice: null, percent: null };
+  }
   return null;
 }
 
@@ -36,20 +52,36 @@ export interface PresetOption {
   label: string;
 }
 
-/** Datalist entries: people first (name + role + rate), then role defaults. */
-export function presetOptions(
-  people: PersonPreset[],
-  roles: RolePreset[],
-  currency: Currency,
-  labels: { roleDefault: string; perHour: string; noRate: string }
-): PresetOption[] {
-  const money = (v: number | null, c: Currency) => (v == null ? labels.noRate : `${v} ${c}${labels.perHour}`);
+export interface PresetLabels {
+  roleDefault: string;
+  perHour: string;
+  noRate: string;
+  fixedPerProject: string;
+  ofPrice: string;
+}
+
+function describe(match: PresetMatch, currency: Currency, labels: PresetLabels): string {
+  switch (match.payModel) {
+    case "fixed":
+      return match.fixedPrice != null ? `${labels.fixedPerProject} · ${match.fixedPrice} ${currency}` : labels.fixedPerProject;
+    case "percent":
+      return match.percent != null ? `${match.percent} % ${labels.ofPrice}` : labels.ofPrice;
+    default:
+      return match.hourlyCost != null ? `${match.hourlyCost} ${currency}${labels.perHour}` : labels.noRate;
+  }
+}
+
+/** Datalist entries: people first (grouped by role, with pay model + rate), then role defaults. */
+export function presetOptions(people: PersonPreset[], roles: RolePreset[], currency: Currency, labels: PresetLabels): PresetOption[] {
   const peopleOptions = [...people]
     .sort((a, b) => (a.role ?? "").localeCompare(b.role ?? "") || a.name.localeCompare(b.name))
     .map((p) => {
-      const rate = resolvePreset(p.name, people, roles, currency)?.hourlyCost ?? null;
-      return { value: p.name, label: [p.role, money(rate, currency)].filter(Boolean).join(" · ") };
+      const match = resolvePreset(p.name, people, roles, currency);
+      return { value: p.name, label: [p.role, match ? describe(match, currency, labels) : null].filter(Boolean).join(" · ") };
     });
-  const roleOptions = roles.map((r) => ({ value: r.name, label: `${labels.roleDefault} · ${money(r.currency === currency ? r.hourlyCost : null, currency)}` }));
+  const roleOptions = roles.map((r) => ({
+    value: r.name,
+    label: `${labels.roleDefault} · ${r.currency === currency ? `${r.hourlyCost} ${currency}${labels.perHour}` : labels.noRate}`,
+  }));
   return [...peopleOptions, ...roleOptions];
 }
