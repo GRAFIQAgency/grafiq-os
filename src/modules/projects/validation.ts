@@ -15,6 +15,7 @@ export interface ProjectValidationMessages {
   roleRequired: string;
   tooLong: string;
   margin: string;
+  percentRange: string;
 }
 
 type Outcome<T> = { data: T; errors?: undefined } | { data?: undefined; errors: ActionResult };
@@ -113,6 +114,9 @@ export interface MemberInput {
   currency: Currency | null;
   rateSource: RateSource;
   notes: string | null;
+  payModel: "hourly" | "fixed" | "percent";
+  fixedCost: number | null;
+  percent: number | null;
 }
 
 export function validateMember(raw: unknown, msg: ProjectValidationMessages): Outcome<MemberInput> {
@@ -133,6 +137,11 @@ export function validateMember(raw: unknown, msg: ProjectValidationMessages): Ou
   if (costRate === undefined) e.costRate = msg.invalidNumber;
   if (startsOn === undefined) e.startsOn = msg.invalidDate;
   if (endsOn === undefined) e.endsOn = msg.invalidDate;
+  const payModel = oneOf(raw.payModel, ["hourly", "fixed", "percent"] as const) ?? "hourly";
+  const fixedCost = optNum(raw.fixedCost);
+  const percent = optNum(raw.percent);
+  if (fixedCost === undefined) e.fixedCost = msg.invalidNumber;
+  if (percent === undefined || (percent ?? 0) > 100) e.percent = msg.percentRange;
   if (Object.keys(e).length) return { errors: { error: Object.values(e)[0], fieldErrors: e } };
   return {
     data: {
@@ -142,6 +151,9 @@ export function validateMember(raw: unknown, msg: ProjectValidationMessages): Ou
       costRate: costRate ?? null, currency: oneOf(raw.currency, CURRENCIES) ?? null,
       rateSource: oneOf(raw.rateSource, ["talent", "role_default", "manual"] as const) ?? "manual",
       notes: text(raw.notes, 2000) || null,
+      payModel,
+      fixedCost: payModel === "fixed" ? fixedCost ?? null : null,
+      percent: payModel === "percent" ? percent ?? null : null,
     },
   };
 }

@@ -70,6 +70,8 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
   { id: "pricing-summary", chapterId: "pricing", moduleId: "pricing", href: "/pricing", anchor: "pricing-summary" },
   { id: "pricing-save", chapterId: "pricing", moduleId: "pricing", href: "/pricing", anchor: "pricing-save" },
   { id: "pricing-history", chapterId: "pricing", moduleId: "pricing", href: "/pricing", anchor: "pricing-recent" },
+  { id: "pricing-proposal", chapterId: "pricing", moduleId: "pricing", href: "/pricing", anchor: "pricing-proposal" },
+  { id: "pricing-share", chapterId: "pricing", moduleId: "pricing", href: "/pricing", anchor: "pricing-proposal" },
 
   // 4. Find talent
   { id: "talent-filters", chapterId: "talent", moduleId: "sourcing", href: "/sourcing/talent", anchor: "sourcing-filters" },

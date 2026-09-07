@@ -157,8 +157,8 @@ export const getProjectPickers = cache(async (): Promise<ProjectPickers> => {
     owners: (owners.data ?? []).map((o) => ({ id: o.id, label: o.full_name || o.email, hint: o.full_name ? o.email : undefined })),
     estimates: estimates.map((e) => ({ id: e.id, label: e.projectName, hint: e.clientName ?? undefined, used: used.has(e.id) })),
     people: [
-      ...talent.map((t) => ({ id: t.id, kind: "talent" as const, label: t.fullName, hint: t.role ?? undefined, role: t.role, hourlyCost: t.hourlyCost, currency: t.costCurrency, costIsPersonSpecific: t.costIsPersonSpecific })),
-      ...(owners.data ?? []).map((o) => ({ id: o.id, kind: "user" as const, label: o.full_name || o.email, hint: o.email, role: null, hourlyCost: null, currency: null, costIsPersonSpecific: false })),
+      ...talent.map((t) => ({ id: t.id, kind: "talent" as const, label: t.fullName, hint: t.role ?? undefined, role: t.role, hourlyCost: t.hourlyCost, currency: t.costCurrency, costIsPersonSpecific: t.costIsPersonSpecific, pricingModel: t.pricingModel, fixedPrice: t.fixedPrice, marginPercent: t.marginPercent })),
+      ...(owners.data ?? []).map((o) => ({ id: o.id, kind: "user" as const, label: o.full_name || o.email, hint: o.email, role: null, hourlyCost: null, currency: null, costIsPersonSpecific: false, pricingModel: null, fixedPrice: null, marginPercent: null })),
     ],
     roleCosts,
     defaults: { currency: settings.defaultCurrency, targetMargin: settings.targetMargin },

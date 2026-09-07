@@ -5,6 +5,7 @@ import { PricingCalculator } from "@/modules/pricing/components/pricing-calculat
 import { RecentEstimates } from "@/modules/pricing/components/recent-estimates";
 import { estimateFromRows } from "@/modules/pricing/mappers";
 import { getEstimate, getPricingDefaults, listRecentEstimates } from "@/modules/pricing/queries";
+import { proposalIdsByEstimate } from "@/modules/pricing/proposals/queries";
 import { projectIdsByEstimate } from "@/modules/projects/queries";
 import { getMarginThresholds } from "@/modules/settings/queries";
 
@@ -22,7 +23,8 @@ export default async function PricingPage({ searchParams }: PageProps<"/pricing"
     getMarginThresholds(),
   ]);
   const initialEstimate = saved ? estimateFromRows(saved) : undefined;
-  const projectsByEstimate = await projectIdsByEstimate(recent.map((r) => r.id));
+  const ids = recent.map((r) => r.id);
+  const [projectsByEstimate, proposalsByEstimate] = await Promise.all([projectIdsByEstimate(ids), proposalIdsByEstimate(ids)]);
 
   return (
     <div className="space-y-8">
@@ -33,8 +35,9 @@ export default async function PricingPage({ searchParams }: PageProps<"/pricing"
         initialEstimate={initialEstimate}
         defaults={defaults}
         thresholds={thresholds}
+        proposalId={initialEstimate?.id ? proposalsByEstimate[initialEstimate.id] ?? null : null}
       />
-      <RecentEstimates items={recent} activeId={initialEstimate?.id} projectsByEstimate={projectsByEstimate} />
+      <RecentEstimates items={recent} activeId={initialEstimate?.id} projectsByEstimate={projectsByEstimate} proposalsByEstimate={proposalsByEstimate} />
     </div>
   );
 }

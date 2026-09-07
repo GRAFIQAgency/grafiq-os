@@ -9,6 +9,7 @@ import { getDictionary, getLocale } from "@/lib/i18n/server";
 
 import { formatDate, formatMoney, formatPercent } from "../format";
 import type { EstimateListItem } from "../types";
+import { GenerateProposalButton } from "./generate-proposal-button";
 import { HealthBadge } from "./health-badge";
 
 interface RecentEstimatesProps {
@@ -16,9 +17,11 @@ interface RecentEstimatesProps {
   activeId?: string;
   /** estimate id → project id, for the "Create project / Open project" column (provided by the page). */
   projectsByEstimate?: Record<string, string>;
+  /** estimate id → pricing plan id (provided by the page). */
+  proposalsByEstimate?: Record<string, string>;
 }
 
-export async function RecentEstimates({ items, activeId, projectsByEstimate = {} }: RecentEstimatesProps) {
+export async function RecentEstimates({ items, activeId, projectsByEstimate = {}, proposalsByEstimate = {} }: RecentEstimatesProps) {
   const [dict, locale] = await Promise.all([getDictionary(), getLocale()]);
   const t = dict.pricing.recent;
   const basePath = getModule("pricing").href;
@@ -45,6 +48,7 @@ export async function RecentEstimates({ items, activeId, projectsByEstimate = {}
                   <TableHead className="text-right">{t.margin}</TableHead>
                   <TableHead>{t.status}</TableHead>
                   <TableHead className="text-right">{t.created}</TableHead>
+                  <TableHead className="text-right">{t.proposal}</TableHead>
                   <TableHead className="text-right">{t.project}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -71,6 +75,9 @@ export async function RecentEstimates({ items, activeId, projectsByEstimate = {}
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground">
                       {formatDate(item.createdAt, locale)}
+                    </TableCell>
+                    <TableCell className="relative z-10 text-right">
+                      <GenerateProposalButton estimateId={item.id} proposalId={proposalsByEstimate[item.id]} size="xs" variant="ghost" />
                     </TableCell>
                     <TableCell className="relative z-10 text-right">
                       {projectsByEstimate[item.id] ? (

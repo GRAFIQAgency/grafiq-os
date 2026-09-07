@@ -27,6 +27,7 @@ export function rowToMember(r: ProjectMemberRow): ProjectMember {
     id: r.id, projectId: r.project_id, talentCandidateId: r.talent_candidate_id, userId: r.user_id, displayName: r.display_name,
     projectRole: r.project_role, status: r.status, plannedHours: num(r.planned_hours), startsOn: r.starts_on, endsOn: r.ends_on,
     costRate: num(r.cost_rate), currency: r.currency, rateSource: r.rate_source, notes: r.notes,
+    payModel: r.pay_model ?? "hourly", fixedCost: num(r.fixed_cost), percent: num(r.percent),
   };
 }
 

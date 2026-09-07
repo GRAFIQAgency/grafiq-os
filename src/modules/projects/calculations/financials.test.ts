@@ -3,10 +3,11 @@ import { describe, expect, it } from "vitest";
 import { actualLabourCost, computeFinancials, forecastLabourCost, grossMargin, type FinancialInputs } from "./financials";
 
 const project = { currency: "CZK" as const, baselineRevenue: 300000, baselineDirectCost: 120000 };
+const hourly = (m: Omit<FinancialInputs["members"][number], "payModel" | "fixedCost" | "percent">): FinancialInputs["members"][number] => ({ ...m, payModel: "hourly", fixedCost: null, percent: null });
 const members: FinancialInputs["members"] = [
-  { id: "m1", status: "active", plannedHours: 40, costRate: 1000 },
-  { id: "m2", status: "active", plannedHours: null, costRate: 800 },
-  { id: "m3", status: "active", plannedHours: 10, costRate: null }, // no rate snapshot
+  hourly({ id: "m1", status: "active", plannedHours: 40, costRate: 1000 }),
+  hourly({ id: "m2", status: "active", plannedHours: null, costRate: 800 }),
+  hourly({ id: "m3", status: "active", plannedHours: 10, costRate: null }), // no rate snapshot
 ];
 
 describe("grossMargin", () => {
@@ -37,7 +38,36 @@ describe("forecast labour cost", () => {
       { assigneeMemberId: "m2", estimatedHours: 30, actualHours: 5 },  // no plan → estimated
     ];
     expect(forecastLabourCost(members, tasks)).toBe(50 * 1000 + 30 * 800);
-    expect(forecastLabourCost([{ id: "m1", status: "removed", plannedHours: 40, costRate: 1000 }], tasks)).toBe(0);
+    expect(forecastLabourCost([hourly({ id: "m1", status: "removed", plannedHours: 40, costRate: 1000 })], tasks)).toBe(0);
+  });
+});
+
+describe("pay models on a project", () => {
+  const fixed: FinancialInputs["members"][number] = { id: "f1", status: "active", plannedHours: 30, costRate: 1000, payModel: "fixed", fixedCost: 12000, percent: null };
+  const percent: FinancialInputs["members"][number] = { id: "p1", status: "active", plannedHours: 10, costRate: null, payModel: "percent", fixedCost: null, percent: 10 };
+
+  it("a fixed-paid member costs the agreed fee regardless of hours; hourly rate is ignored", () => {
+    const tasks = [{ assigneeMemberId: "f1", estimatedHours: 30, actualHours: 45 }];
+    expect(forecastLabourCost([fixed], tasks)).toBe(12000);
+    expect(actualLabourCost([fixed], tasks).cost).toBe(12000); // work started → fee is current cost
+    expect(actualLabourCost([fixed], tasks).unpricedHours).toBe(0); // covered by the fee
+    expect(actualLabourCost([fixed], []).cost).toBe(0); // nothing started yet
+    expect(actualLabourCost([{ ...fixed, status: "completed" }], []).cost).toBe(12000);
+  });
+
+  it("a percent-paid member costs a share of the CURRENT revenue", () => {
+    expect(forecastLabourCost([percent], [], 300000)).toBe(30000);
+    expect(forecastLabourCost([percent], [], 345000)).toBe(34500);
+    const f = computeFinancials({ project, members: [percent], tasks: [], costs: [], changeRequests: [{ status: "approved", additionalRevenue: 45000, additionalDirectCost: 0 }] });
+    expect(f.forecast.labourCost).toBe(34500);
+    expect(f.current.actualLabourCost).toBe(0);
+  });
+
+  it("mixes pay models in one team", () => {
+    const tasks = [{ assigneeMemberId: "m1", estimatedHours: 10, actualHours: 10 }, { assigneeMemberId: "f1", estimatedHours: 5, actualHours: 5 }];
+    const f = computeFinancials({ project, members: [members[0], fixed, percent], tasks, costs: [], changeRequests: [] });
+    expect(f.current.actualLabourCost).toBe(10 * 1000 + 12000);
+    expect(f.forecast.labourCost).toBe(40 * 1000 + 12000 + 30000);
   });
 });
 

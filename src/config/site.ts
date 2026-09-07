@@ -6,5 +6,5 @@ export const siteConfig = {
   defaultRoute: "/dashboard",
   loginRoute: "/login",
   /** Pages that work without a session (besides login). */
-  publicRoutes: ["/apply", "/offline"],
+  publicRoutes: ["/apply", "/offline", "/p"],
 } as const;

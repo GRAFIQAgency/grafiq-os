@@ -1,6 +1,6 @@
 import type { RoleCost } from "@/modules/settings/types";
 
-import type { PersonOption, RateSuggestion } from "../types";
+import type { PayModelSuggestion, PersonOption, RateSuggestion } from "../types";
 
 /**
  * Suggested cost rate when assigning someone:
@@ -18,4 +18,18 @@ export function suggestRate(person: PersonOption | null, projectRole: string | n
   if (roleCost) return { rate: roleCost.hourlyCost, currency: roleCost.currency, source: "role_default" };
   if (person && person.hourlyCost != null) return { rate: person.hourlyCost, currency: person.currency, source: "talent" };
   return { rate: null, currency: null, source: "manual" };
+}
+
+/**
+ * Suggested pay model for a new assignment: the person's Talent default
+ * (Settings → People rates). The project can still switch it — a freelancer may
+ * be hourly on one project and fixed on another. Internal users default to hourly.
+ */
+export function suggestPayModel(person: PersonOption | null): PayModelSuggestion {
+  if (!person || !person.pricingModel) return { payModel: "hourly", fixedCost: null, percent: null };
+  return {
+    payModel: person.pricingModel,
+    fixedCost: person.pricingModel === "fixed" ? person.fixedPrice : null,
+    percent: person.pricingModel === "percent" ? person.marginPercent : null,
+  };
 }

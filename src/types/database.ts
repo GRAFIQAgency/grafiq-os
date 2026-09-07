@@ -353,6 +353,41 @@ export interface TalentBenchDetailsRow {
   margin_percent: number | null;
 }
 
+// --- Pricing proposals (supabase/migrations/0012_member_pay_models_and_proposals.sql) ---
+
+export type ProposalStatus = "draft" | "shared";
+export type ProposalItemKind = "hourly" | "fixed";
+
+export interface PricingProposalItemJson {
+  id: string;
+  title: string;
+  description: string;
+  kind: ProposalItemKind;
+  hours: number;
+  rate: number;
+  amount: number;
+}
+
+export interface PricingProposalRow {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+  estimate_id: string | null;
+  share_token: string;
+  title: string;
+  client_name: string | null;
+  intro: string | null;
+  currency: PricingCurrency;
+  vat_rate: number;
+  items: PricingProposalItemJson[];
+  notes: string | null;
+  valid_until: string | null;
+  status: ProposalStatus;
+  shared_at: string | null;
+  generated_by: "claude" | "template" | null;
+}
+
 // --- Capacity module (supabase/migrations/0011_capacity.sql) ---
 
 export interface ProfileCapacityDetailsRow {
@@ -436,6 +471,10 @@ export interface ProjectMemberRow {
   currency: Currency | null;
   rate_source: RateSource;
   notes: string | null;
+  /** hourly = cost_rate × hours; fixed = fixed_cost; percent = percent of project revenue. */
+  pay_model: PricingModel;
+  fixed_cost: number | null;
+  percent: number | null;
 }
 
 export interface ProjectMilestoneRow {

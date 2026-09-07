@@ -3,8 +3,7 @@ import { describe, expect, it } from "vitest";
 import { validateChangeRequest, validateMember, validateProject, type ProjectValidationMessages } from "./validation";
 
 const msg: ProjectValidationMessages = {
-  nameRequired: "name", titleRequired: "title", invalidNumber: "num", invalidDate: "date", invalidUrl: "url", currency: "cur", personRequired: "person", roleRequired: "role", tooLong: "long", margin: "margin",
-};
+  nameRequired: "name", titleRequired: "title", invalidNumber: "num", invalidDate: "date", invalidUrl: "url", currency: "cur", personRequired: "person", roleRequired: "role", tooLong: "long", margin: "margin", percentRange: "pct" };
 
 describe("validateProject", () => {
   it("applies Settings defaults and keeps the estimate id", () => {

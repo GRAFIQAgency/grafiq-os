@@ -112,6 +112,14 @@ The reference implementation of a "real" module. Notable choices:
   to reset client state when the id changes.
 - Reads (`queries.ts`) fail soft with a server-side log so the page still
   renders if the migration has not been applied yet.
+- **Pricing plans** (`proposals/`, migration 0012): a client-facing document
+  generated from a saved estimate — by Claude when `ANTHROPIC_API_KEY` is set
+  (`generate.ts`), otherwise by the deterministic `template.ts` (cost lines
+  marked up to the client price, or standard phases). Edited in
+  `/pricing/proposals/[id]` (`proposal-editor.tsx`), stored as JSON items in
+  `pricing_proposals`, and shared read-only at the public route `/p/<token>`
+  (unguessable `share_token`, served through the service-role client; no
+  anonymous RLS policy). Share buttons only build WhatsApp / mailto links.
 
 ### The `settings` module (existing, Business Settings v1)
 
@@ -174,7 +182,11 @@ SNAPSHOT), `project_milestones`, `project_tasks`, `project_links`,
 - `calculations/health.ts` — rule-based, explainable health using Settings
   margin thresholds. `calculations/progress.ts` — progress with a stated basis.
 - `services/rates.ts` — suggested member rate: Talent person cost → Settings
-  role default → manual; snapshotted on the member.
+  role default → manual; snapshotted on the member. `suggestPayModel` proposes
+  the person's Talent pay model; the project can override it per member
+  (`pay_model` / `fixed_cost` / `percent`, migration 0012). Financials price
+  hourly members by hours × rate, fixed members by the agreed fee and percent
+  members by a share of current revenue. Capacity ignores pay models.
 - Read API for Dashboard / Finance / Capacity: `getProjectStats`,
   `listProjectFinancials`, `listProjectAssignments`, `projectIdsByEstimate`.
 - Dependency direction: projects → pricing/settings/talent/sourcing

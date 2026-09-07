@@ -22,6 +22,7 @@ import {
 import type { EstimateInput, PricingDefaults } from "../types";
 import { CostItemsTable } from "./cost-items-table";
 import { FinancialSummary } from "./financial-summary";
+import { GenerateProposalButton } from "./generate-proposal-button";
 import { ProjectInfoForm } from "./project-info-form";
 
 interface PricingCalculatorProps {
@@ -31,11 +32,13 @@ interface PricingCalculatorProps {
   defaults: PricingDefaults;
   /** Health thresholds from Business Settings. */
   thresholds: MarginThresholds;
+  /** Existing pricing plan for the loaded estimate, if any. */
+  proposalId?: string | null;
 }
 
 type SaveState = { status: "idle" } | { status: "saved" } | { status: "error"; message: string };
 
-export function PricingCalculator({ initialEstimate, defaults, thresholds }: PricingCalculatorProps) {
+export function PricingCalculator({ initialEstimate, defaults, thresholds, proposalId = null }: PricingCalculatorProps) {
   const router = useRouter();
   const { dict } = useI18n();
   const t = dict.pricing.toolbar;
@@ -95,7 +98,8 @@ export function PricingCalculator({ initialEstimate, defaults, thresholds }: Pri
           {saveState.status === "error" ? <span className="text-destructive">{saveState.message}</span> : null}
           {saveState.status === "idle" && draft.id ? t.editingSaved : null}
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <GenerateProposalButton estimateId={draft.id ?? null} proposalId={proposalId} />
           <Button type="button" variant="ghost" size="sm" onClick={reset} disabled={isSaving}>
             <RotateCcw data-icon="inline-start" />
             {t.reset}

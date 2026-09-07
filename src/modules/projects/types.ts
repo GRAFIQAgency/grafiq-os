@@ -1,12 +1,12 @@
 import type {
-  ChangeRequestStatus, Currency, DirectCostCategory, MilestoneStatus, PricingCostItemKind, ProjectLinkKind,
+  ChangeRequestStatus, Currency, DirectCostCategory, MilestoneStatus, PricingCostItemKind, PricingModel, ProjectLinkKind,
   ProjectMemberStatus, ProjectPriority, ProjectStatus, RateSource, TaskStatus,
 } from "@/types/database";
 import type { MarginThresholds } from "@/modules/settings/types";
 import type { ActivityEntry, InternalNote } from "@/modules/sourcing/types";
 
 export type {
-  ChangeRequestStatus, DirectCostCategory, MilestoneStatus, ProjectLinkKind, ProjectMemberStatus,
+  ChangeRequestStatus, DirectCostCategory, MilestoneStatus, PricingModel, ProjectLinkKind, ProjectMemberStatus,
   ProjectPriority, ProjectStatus, RateSource, TaskStatus,
 };
 
@@ -66,6 +66,12 @@ export interface ProjectMember {
   currency: Currency | null;
   rateSource: RateSource;
   notes: string | null;
+  /** How this person is paid ON THIS PROJECT (may differ from their Talent default). */
+  payModel: PricingModel;
+  /** Agreed fixed cost for the whole project (payModel = fixed). */
+  fixedCost: number | null;
+  /** Share of the project revenue in percent (payModel = percent). */
+  percent: number | null;
 }
 
 export interface Milestone {
@@ -249,12 +255,23 @@ export interface PersonOption extends PickerOption {
   hourlyCost: number | null;
   currency: Currency | null;
   costIsPersonSpecific: boolean;
+  /** Talent default pay model + values (null for internal users). */
+  pricingModel: PricingModel | null;
+  fixedPrice: number | null;
+  marginPercent: number | null;
 }
 
 export interface RateSuggestion {
   rate: number | null;
   currency: Currency | null;
   source: RateSource;
+}
+
+/** Suggested pay model for a new assignment: the person's Talent default. */
+export interface PayModelSuggestion {
+  payModel: PricingModel;
+  fixedCost: number | null;
+  percent: number | null;
 }
 
 export interface ActionResult {
