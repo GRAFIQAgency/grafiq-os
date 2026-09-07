@@ -66,7 +66,7 @@ export function CostItemRow({
       </TableCell>
       <TableCell>
         <Select value={item.kind} onValueChange={(kind) => onChange({ kind: kind as CostItemKind })}>
-          <SelectTrigger aria-label={interpolate(t.costType, { n })} className="w-28">
+          <SelectTrigger aria-label={interpolate(t.costType, { n })} className="w-40">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -77,7 +77,7 @@ export function CostItemRow({
       </TableCell>
       <TableCell>
         {isFixed ? (
-          <span className="block text-center text-muted-foreground/50">—</span>
+          <span className="block text-center text-xs text-muted-foreground/60" title={t.noHoursHint}>—</span>
         ) : (
           <Input
             type="number"
@@ -101,9 +101,9 @@ export function CostItemRow({
             step="any"
             value={item.fixedAmount}
             onChange={(e) => onChange({ fixedAmount: e.target.value })}
-            placeholder="0"
+            placeholder={t.perProjectPlaceholder}
             aria-label={interpolate(t.costAmount, { n })}
-            className="w-32 text-right tabular-nums"
+            className="w-36 text-right tabular-nums"
           />
         ) : (
           <Input
@@ -113,9 +113,9 @@ export function CostItemRow({
             step="any"
             value={item.hourlyRate}
             onChange={(e) => onChange({ hourlyRate: e.target.value })}
-            placeholder="0"
+            placeholder={t.perHourPlaceholder}
             aria-label={interpolate(t.costRate, { n })}
-            className="w-32 text-right tabular-nums"
+            className="w-36 text-right tabular-nums"
           />
         )}
       </TableCell>

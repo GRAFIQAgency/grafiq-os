@@ -45,7 +45,7 @@ export function CostItemsTable({
     <Card className="gap-4" data-guide="pricing-costs">
       <CardHeader>
         <CardTitle>{t.title}</CardTitle>
-        <CardDescription>{t.description}</CardDescription>
+        <CardDescription>{t.description} {t.typeHint}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <datalist id={presetsListId}>

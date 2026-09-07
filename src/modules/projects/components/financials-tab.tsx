@@ -65,7 +65,7 @@ export function FinancialsTab({ detail, dict, locale }: { detail: ProjectDetail;
                 {detail.baselineCosts.map((c) => (
                   <tr key={c.id} className="border-b border-border/60">
                     <td className="py-1.5">{c.name}</td>
-                    <td className="py-1.5 text-xs text-muted-foreground">{c.kind === "hourly" ? `${formatHours(c.hours, locale)} × ${money(c.hourlyRate)}` : dict.sourcing.talent.employments ? "" : ""}</td>
+                    <td className="py-1.5 text-xs text-muted-foreground">{c.kind === "hourly" ? `${formatHours(c.hours, locale)} × ${money(c.hourlyRate)}` : dict.pricing.costs.fixed}</td>
                     <td className="py-1.5 text-right tabular-nums">{money(c.total)}</td>
                   </tr>
                 ))}
