@@ -48,7 +48,7 @@ export async function deleteMilestone(milestoneId: string): Promise<ActionResult
   return {};
 }
 
-export async function saveTask(projectId: string, raw: unknown, taskId?: string): Promise<ActionResult> {
+export async function saveTask(projectId: string, raw: unknown, taskId?: string): Promise<ActionResult & { id?: string }> {
   const dict = await getDictionary();
   const v = validateTask(raw, dict.projects.validation);
   if (v.errors) return v.errors;
@@ -66,8 +66,10 @@ export async function saveTask(projectId: string, raw: unknown, taskId?: string)
     if (t.status === "done" && before?.status !== "done") await logActivity(supabase, [{ entityType: "project", entityId: projectId, action: "task_completed", details: { title: t.title } }], actor);
   } else {
     const { data: last } = await supabase.from("project_tasks").select("position").eq("project_id", projectId).order("position", { ascending: false }).limit(1).maybeSingle<{ position: number }>();
-    const { error } = await supabase.from("project_tasks").insert({ ...row, project_id: projectId, position: (last?.position ?? -1) + 1, completed_at: t.status === "done" ? new Date().toISOString() : null });
+    const { data: created, error } = await supabase.from("project_tasks").insert({ ...row, project_id: projectId, position: (last?.position ?? -1) + 1, completed_at: t.status === "done" ? new Date().toISOString() : null }).select("id").single<{ id: string }>();
     if (error) return fail(error.message);
+    revalidateProjects();
+    return { id: created?.id };
   }
   revalidateProjects();
   return {};

@@ -110,7 +110,7 @@ export const modules: readonly ModuleDefinition[] = [
     id: "qa",
     href: "/qa",
     icon: ShieldCheck,
-    status: "planned",
+    status: "active",
     group: "modules",
   },
   {

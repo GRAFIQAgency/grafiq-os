@@ -250,10 +250,42 @@ never turned into Talent records.
 - Dependency direction: capacity → talent / projects (one-way). Projects'
   Team tab only links to `/capacity/<key>`.
 
+### The `qa` module (existing, Delivery Quality v1)
+
+The delivery quality gate. Reusable **templates** (`qa_templates` +
+`qa_template_items`, migration 0015; five GRAFIQ templates seeded by
+`seed_key`) are copied into a **project checklist** (`qa_checklists` +
+`qa_checklist_items`) as a frozen snapshot — later template edits never change
+running QA. Every checklist belongs to a project; the QA tab of the project
+detail and the `/qa` control centre read the same rows.
+
+- `calculations/checklist.ts` — pure rules: item states (`pending` / `pass` /
+  `fail` / `na` / `blocked`, N/A only when the item allows it), progress,
+  `approvalCheck` (all required pass or allowed N/A, zero fail / blocked),
+  derived status (`not_started` → `in_progress` → `needs_fixes` /
+  `ready_for_review`), explicit `approve`, and `nextChecklistState`, which
+  drops an approval as soon as any item leaves a valid state.
+- `calculations/gate.ts` — `completionGate`: every checklist flagged
+  `required_for_completion` must be approved. Projects' `setProjectStatus`
+  calls it before allowing `completed`.
+- `calculations/recommend.ts` + `constants.ts` — central project-type →
+  template mapping (`TEMPLATE_SEED_BY_PROJECT_TYPE`, generic fallback).
+- `calculations/stats.ts` — overview grouping (needs attention / ready for
+  review / in progress / not started / approved), filters, `getQaStats()`
+  and `listQaAttentionItems()` for Dashboard.
+- Fix tasks: a failed or blocked item can create a normal project task
+  (`QA: <item>`) through Projects' `saveTask`; the task id is stored on the
+  item. A finished task never passes the check — the reviewer re-checks.
+- QA events go to the existing project activity log (`qa_*` actions).
+- Dependency direction: qa → projects (types, `saveTask`, project queries).
+  Projects never imports QA components; the project route composes
+  `ProjectQaSignal` / `ProjectQaTab` into `ProjectDetailView` slots, and the
+  status action imports only the pure gate + one query.
+
 ### The `guide` module (existing) — the interactive tutorial
 
 `src/modules/guide/content.ts` is the product's work-process description in
-chapters and steps (setup → pricing → talent → bench → projects → capacity → clients → sales → sources → what's next).
+chapters and steps (setup → pricing → talent → bench → projects → capacity → qa → clients → sales → sources → what's next).
 It powers three surfaces: the `/guide` page with progress checkboxes, the "?"
 help panel in the top bar (chapter for the current route), and the cross-page
 tour (`?guide=<step-id>` spotlights the element with a matching

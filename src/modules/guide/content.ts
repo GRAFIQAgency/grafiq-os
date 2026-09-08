@@ -13,7 +13,7 @@ import { modules, type ModuleId } from "@/config/modules";
  * the tour can spotlight the real control.
  */
 
-export const GUIDE_CHAPTER_IDS = ["start", "setup", "pricing", "talent", "bench", "projects", "capacity", "clients", "sales", "sources", "next"] as const;
+export const GUIDE_CHAPTER_IDS = ["start", "setup", "pricing", "talent", "bench", "projects", "capacity", "qa", "clients", "sales", "sources", "next"] as const;
 export type GuideChapterId = (typeof GUIDE_CHAPTER_IDS)[number];
 
 export interface GuideChapter {
@@ -42,6 +42,7 @@ export const GUIDE_CHAPTERS: readonly GuideChapter[] = [
   { id: "bench", moduleId: "talent", pathPrefix: "/talent" },
   { id: "projects", moduleId: "projects", pathPrefix: "/projects" },
   { id: "capacity", moduleId: "capacity", pathPrefix: "/capacity" },
+  { id: "qa", moduleId: "qa", pathPrefix: "/qa" },
   { id: "clients", moduleId: "sourcing", pathPrefix: "/sourcing/companies" },
   { id: "sales", moduleId: "sales", pathPrefix: "/sales" },
   { id: "sources", moduleId: "sourcing", pathPrefix: "/sourcing" },
@@ -113,12 +114,23 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
   { id: "capacity-matrix", chapterId: "capacity", moduleId: "capacity", href: "/capacity", anchor: "capacity-matrix" },
   { id: "capacity-whatif", chapterId: "capacity", moduleId: "capacity", href: "/capacity", anchor: "capacity-whatif" },
 
-  // 8. Find clients
+  // 8. Control delivery quality
+  { id: "qa-start", chapterId: "qa", moduleId: "projects", href: "/projects", anchor: "projects-list" },
+  { id: "qa-checklist", chapterId: "qa", moduleId: "qa", href: "/qa", anchor: "qa-list" },
+  { id: "qa-fail", chapterId: "qa", moduleId: "qa", href: "/qa", anchor: "qa-list" },
+  { id: "qa-approve", chapterId: "qa", moduleId: "qa", href: "/qa", anchor: "qa-list" },
+  { id: "qa-complete", chapterId: "qa", moduleId: "projects", href: "/projects", anchor: "projects-list" },
+  { id: "qa-sampling", chapterId: "qa", moduleId: "qa", href: "/qa", anchor: "qa-list" },
+  { id: "qa-overview", chapterId: "qa", moduleId: "qa", href: "/qa", anchor: "qa-stats" },
+  { id: "qa-filters", chapterId: "qa", moduleId: "qa", href: "/qa", anchor: "qa-filters" },
+  { id: "qa-templates", chapterId: "qa", moduleId: "qa", href: "/qa", anchor: "qa-tabs" },
+
+  // 9. Find clients
   { id: "clients-search", chapterId: "clients", moduleId: "sourcing", href: "/sourcing/companies", anchor: "sourcing-search" },
   { id: "clients-signals", chapterId: "clients", moduleId: "sourcing", href: "/sourcing/companies", anchor: "sourcing-review" },
   { id: "clients-crm", chapterId: "clients", moduleId: "sourcing", href: "/sourcing/companies", anchor: "sourcing-review" },
 
-  // 8. Win the deal
+  // 10. Win the deal
   { id: "sales-list", chapterId: "sales", moduleId: "sales", href: "/sales", anchor: "sales-list" },
   { id: "sales-board", chapterId: "sales", moduleId: "sales", href: "/sales", anchor: "sales-view" },
   { id: "sales-stage", chapterId: "sales", moduleId: "sales", href: "/sales", anchor: "sales-list" },
@@ -128,7 +140,7 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
   { id: "sales-won", chapterId: "sales", moduleId: "sales", href: "/sales", anchor: "sales-list" },
   { id: "sales-add", chapterId: "sales", moduleId: "sales", href: "/sales", anchor: "sales-add-company" },
 
-  // 9. Sources and saved searches
+  // 11. Sources and saved searches
   { id: "sources-manage", chapterId: "sources", moduleId: "sourcing", href: "/sourcing/sources", anchor: "sources-table" },
   { id: "sources-csv", chapterId: "sources", moduleId: "sourcing", href: "/sourcing/sources", anchor: "sources-csv" },
   { id: "sources-saved", chapterId: "sources", moduleId: "sourcing", href: "/sourcing/searches", anchor: "searches-table" },

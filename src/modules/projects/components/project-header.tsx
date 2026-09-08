@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { useI18n } from "@/lib/i18n/client";
@@ -15,10 +15,12 @@ export function ProjectStatusSelect({ id, status }: { id: string; status: Projec
   const router = useRouter();
   const { dict } = useI18n();
   const [pending, start] = useTransition();
+  const [error, setError] = useState<string | null>(null);
   return (
     <div data-guide="projects-status" className={pending ? "opacity-60" : undefined}>
-      <NativeSelect value={status} onChange={(v) => start(async () => { await setProjectStatus(id, v as ProjectStatus); router.refresh(); })}
+      <NativeSelect value={status} onChange={(v) => start(async () => { const r = await setProjectStatus(id, v as ProjectStatus); setError(r.error ?? null); router.refresh(); })}
         options={PROJECT_STATUSES.map((s) => ({ value: s, label: dict.projects.statuses[s] }))} className="w-44" />
+      {error ? <p className="mt-1 max-w-64 text-xs text-destructive">{error}</p> : null}
     </div>
   );
 }

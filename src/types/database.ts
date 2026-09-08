@@ -404,6 +404,77 @@ export interface PricingProposalRow {
   generated_by: "claude" | "template" | null;
 }
 
+// --- QA module (supabase/migrations/0015_qa.sql) ---
+
+export type QaChecklistStatus = "not_started" | "in_progress" | "needs_fixes" | "ready_for_review" | "approved";
+export type QaItemStatus = "pending" | "pass" | "fail" | "na" | "blocked";
+
+export interface QaTemplateRow {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+  name: string;
+  description: string | null;
+  project_type: string | null;
+  is_active: boolean;
+  position: number;
+  seed_key: string | null;
+}
+
+export interface QaTemplateItemRow {
+  id: string;
+  template_id: string;
+  category: string;
+  title: string;
+  description: string | null;
+  is_required: boolean;
+  allow_na: boolean;
+  position: number;
+}
+
+export interface QaChecklistRow {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+  project_id: string;
+  template_id: string | null;
+  template_name: string;
+  title: string;
+  status: QaChecklistStatus;
+  reviewer_id: string | null;
+  due_date: string | null;
+  required_for_completion: boolean;
+  delivery_quantity: number | null;
+  sample_quantity: number | null;
+  sampling_note: string | null;
+  started_at: string | null;
+  approved_at: string | null;
+  approved_by: string | null;
+}
+
+export interface QaChecklistItemRow {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  checklist_id: string;
+  template_item_id: string | null;
+  category: string;
+  title: string;
+  description: string | null;
+  is_required: boolean;
+  allow_na: boolean;
+  position: number;
+  status: QaItemStatus;
+  note: string | null;
+  evidence_url: string | null;
+  assignee_member_id: string | null;
+  fix_task_id: string | null;
+  checked_at: string | null;
+  checked_by: string | null;
+}
+
 // --- Capacity module (supabase/migrations/0011_capacity.sql) ---
 
 export interface ProfileCapacityDetailsRow {

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
@@ -17,7 +18,8 @@ import { ProjectTabs, type ProjectTab } from "./project-tabs";
 import { TeamTab } from "./team-tab";
 import { WorkTab } from "./work-tab";
 
-export function ProjectDetailView({ detail, tab, view, pickers, dict, locale }: { detail: ProjectDetail; tab: ProjectTab; view: "list" | "board"; pickers: ProjectPickers; dict: Dictionary; locale: Locale }) {
+/** `qaSignal`, `qaCount` and `qaTab` are slots filled by the route from the QA module (Projects does not import QA). */
+export function ProjectDetailView({ detail, tab, view, pickers, dict, locale, qaSignal, qaCount, qaTab }: { detail: ProjectDetail; tab: ProjectTab; view: "list" | "board"; pickers: ProjectPickers; dict: Dictionary; locale: Locale; qaSignal?: ReactNode; qaCount?: number; qaTab?: ReactNode }) {
   const p = detail.project;
   const href = `${getModule("projects").href}/${p.id}`;
   const types = dict.projects.types as Record<string, string>;
@@ -34,17 +36,19 @@ export function ProjectDetailView({ detail, tab, view, pickers, dict, locale }: 
             <HealthBadge health={detail.health.status} dict={dict} />
             <PriorityBadge priority={p.priority} dict={dict} />
             <span className="text-xs text-muted-foreground">{dict.projects.overview.deadline}: {formatDate(p.deadline, locale)}</span>
+            {qaSignal}
             <span className="flex w-28 items-center gap-1.5"><ProgressBar percent={detail.progress.percent} className="flex-1" /><span className="text-xs tabular-nums">{detail.progress.percent} %</span></span>
           </div>
         </div>
         <ProjectStatusSelect id={p.id} status={p.status} />
       </div>
 
-      <ProjectTabs href={href} counts={{ work: detail.tasks.filter((t) => t.status !== "done").length, team: team.length, financials: detail.changeRequests.filter((c) => c.status === "sent").length }} />
+      <ProjectTabs href={href} counts={{ work: detail.tasks.filter((t) => t.status !== "done").length, team: team.length, qa: qaCount, financials: detail.changeRequests.filter((c) => c.status === "sent").length }} />
 
       {tab === "overview" ? <OverviewTab detail={detail} dict={dict} locale={locale} owners={pickers.owners} clients={pickers.clients} /> : null}
       {tab === "work" ? <WorkTab projectId={p.id} milestones={detail.milestones} tasks={detail.tasks} members={detail.members} view={view} href={href} /> : null}
       {tab === "team" ? <TeamTab projectId={p.id} currency={p.currency} members={detail.members} tasks={detail.tasks} people={pickers.people} roleCosts={pickers.roleCosts} /> : null}
+      {tab === "qa" ? qaTab : null}
       {tab === "financials" ? <FinancialsTab detail={detail} dict={dict} locale={locale} /> : null}
       {tab === "activity" ? <ActivityTab detail={detail} dict={dict} locale={locale} /> : null}
     </div>

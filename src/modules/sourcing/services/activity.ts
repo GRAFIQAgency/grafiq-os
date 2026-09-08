@@ -12,7 +12,10 @@ export type ActivityAction =
   | "project_created" | "member_added" | "member_removed" | "task_completed" | "milestone_completed"
   | "change_request_approved" | "deadline_changed" | "financial_warning"
   // Sales module (entity_type = company)
-  | "deal_stage_changed" | "deal_won" | "deal_lost" | "deal_updated" | "contact_added" | "contact_removed";
+  | "deal_stage_changed" | "deal_won" | "deal_lost" | "deal_updated" | "contact_added" | "contact_removed"
+  // QA module (entity_type = project)
+  | "qa_checklist_created" | "qa_started" | "qa_item_failed" | "qa_fix_task_created" | "qa_ready_for_review"
+  | "qa_approved" | "qa_approval_revoked" | "qa_checklist_deleted";
 
 /** Entities that share the polymorphic notes/activity tables. */
 export type ActivityEntityType = EntityType | "project";

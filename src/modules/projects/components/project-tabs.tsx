@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/client";
 
-const TABS = ["overview", "work", "team", "financials", "activity"] as const;
+const TABS = ["overview", "work", "team", "qa", "financials", "activity"] as const;
 export type ProjectTab = (typeof TABS)[number];
 
 export function ProjectTabs({ href, counts }: { href: string; counts: Partial<Record<ProjectTab, number>> }) {

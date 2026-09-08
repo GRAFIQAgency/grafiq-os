@@ -66,6 +66,7 @@ npm test        # Vitest unit tests (business logic)
    - `0012_member_pay_models_and_proposals.sql` — per-project pay model on `project_members` + `pricing_proposals` (client-facing pricing plans shared by link).
    - `0013_unit_pricing.sql` — per-unit pricing: `unit` cost lines and per-unit client price in Pricing, unit pay for people and project members, unit baseline on projects.
    - `0014_shared_proposals.sql` — `get_shared_proposal(token)` function so public pricing-plan links work without the service-role key.
+   - `0015_qa.sql` — QA: `qa_templates` + `qa_template_items` (reusable checklists, 5 built-in GRAFIQ templates seeded), `qa_checklists` + `qa_checklist_items` (frozen per-project copies with results, fix-task links, approval).
 5. Create users. This is an internal tool with **no public signup**: add team
    members in **Authentication → Users → Add user** (set a password, or send an
    invite). Optionally give them a `full_name` in the user metadata; it becomes
@@ -106,8 +107,9 @@ src/
     projects/             Projects: delivery centre with baseline/forecast economics and health
     sales/                Sales: CRM pipeline over the shared company record (deals, contacts, customers)
     capacity/             Capacity: derived planning layer over Talent + Projects (utilization, matrix, what-if)
+    qa/                   QA: delivery quality control — templates, frozen project checklists, fix tasks, approval, completion gate
     guide/                Interactive tutorial: /guide page, "?" help panel, cross-page tour (must stay 1:1 with the product)
-    finance/ qa/          Reserved folders with a README each
+    finance/              Reserved folder with a README
   types/
     database.ts           Database row types (hand-written for now)
 supabase/

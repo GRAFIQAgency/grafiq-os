@@ -1,5 +1,6 @@
 "use server";
 
+import { interpolate } from "@/lib/i18n/interpolate";
 import { getDictionary } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import { getEstimate } from "@/modules/pricing/queries";
@@ -8,6 +9,8 @@ import { manualConnector } from "@/modules/sourcing/connectors/manual";
 import { currentActor } from "@/modules/sourcing/services/actor";
 import { logActivity } from "@/modules/sourcing/services/activity";
 import { ingestCompanies } from "@/modules/sourcing/services/ingest";
+import { completionGate } from "@/modules/qa/calculations/gate";
+import { listRequiredChecklistStates } from "@/modules/qa/queries";
 import type { ProjectRow } from "@/types/database";
 
 import { PROJECT_STATUSES } from "../constants";
@@ -101,6 +104,14 @@ export async function setProjectStatus(id: string, status: ProjectStatus): Promi
   if (!PROJECT_STATUSES.includes(status)) return {};
   const supabase = await createClient();
   const actor = await currentActor();
+  // QA gate: a project with required QA checklists can only complete once they are all approved.
+  if (status === "completed") {
+    const gate = completionGate(await listRequiredChecklistStates(id));
+    if (!gate.allowed) {
+      const dict = await getDictionary();
+      return { error: interpolate(dict.projects.errors.qaBlocked, { n: gate.blocking.length, names: gate.blocking.map((c) => c.title).join(", ") }) };
+    }
+  }
   const { error } = await supabase.from("projects").update({ status, completed_at: status === "completed" ? new Date().toISOString() : null }).eq("id", id);
   if (error) return fail(error.message);
   await logActivity(supabase, [{ entityType: "project", entityId: id, action: "status_changed", details: { status } }], actor);
