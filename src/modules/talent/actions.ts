@@ -54,6 +54,8 @@ export async function saveBenchDetails(id: string, raw: unknown): Promise<Action
     pricing_model: d.pricingModel,
     fixed_price: d.fixedPrice,
     margin_percent: d.marginPercent,
+    unit_price: d.unitPrice,
+    unit_label: d.unitLabel,
   });
   if (error) return fail(error.message);
 
@@ -112,6 +114,7 @@ export async function setPersonRate(id: string, raw: unknown): Promise<ActionRes
   const actor = await currentActor();
   const { error } = await supabase.from("talent_bench_details").upsert({
     talent_candidate_id: id, pricing_model: d.pricingModel, hourly_cost: d.hourlyCost, cost_currency: d.costCurrency, fixed_price: d.fixedPrice, margin_percent: d.marginPercent,
+    unit_price: d.unitPrice, unit_label: d.unitLabel,
   });
   if (error) return fail(error.message);
   const { error: e2 } = await supabase.from("talent_candidates").update({ role: d.role }).eq("id", id);

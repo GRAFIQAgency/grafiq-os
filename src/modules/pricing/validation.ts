@@ -22,6 +22,8 @@ export interface EstimateValidationMessages {
   itemRate: string;
   itemAmount: string;
   itemPercent: string;
+  itemQuantity: string;
+  unitFields: string;
 }
 
 const MAX_NAME = 200;
@@ -68,12 +70,22 @@ export function validateEstimateInput(
   const targetMargin = asNonNegativeNumber(raw.targetMargin);
   if (targetMargin === null || targetMargin >= 100) fieldErrors.targetMargin = msg.targetMargin;
 
+  const pricingBasis = raw.pricingBasis === "per_unit" ? "per_unit" : "total";
+  const unitCount = pricingBasis === "per_unit" ? asNonNegativeNumber(raw.unitCount ?? 0) : null;
+  const unitPrice = pricingBasis === "per_unit" ? asNonNegativeNumber(raw.unitPrice ?? 0) : null;
+  if (pricingBasis === "per_unit" && (unitCount === null || unitPrice === null)) fieldErrors.unitCount = msg.unitFields;
+  const unitLabel = asText(raw.unitLabel).slice(0, 30) || null;
+
   const rawItems = Array.isArray(raw.items) ? raw.items : [];
   const items: CostItemInput[] = [];
   rawItems.forEach((item, index) => {
     if (!isRecord(item)) return;
     const name = asText(item.name);
-    const kind = item.kind === "fixed" ? "fixed" : item.kind === "hourly" ? "hourly" : item.kind === "percent" ? "percent" : null;
+    const kind = item.kind === "fixed" ? "fixed" : item.kind === "hourly" ? "hourly" : item.kind === "percent" ? "percent" : item.kind === "unit" ? "unit" : null;
+    const quantity = asNonNegativeNumber(item.quantity ?? 0);
+    const unitCost = asNonNegativeNumber(item.unitCost ?? 0);
+    if (quantity === null) fieldErrors[`items.${index}.quantity`] = msg.itemQuantity;
+    if (unitCost === null) fieldErrors[`items.${index}.unitCost`] = msg.itemAmount;
     const hours = asNonNegativeNumber(item.hours ?? 0);
     const hourlyRate = asNonNegativeNumber(item.hourlyRate ?? 0);
     const fixedAmount = asNonNegativeNumber(item.fixedAmount ?? 0);
@@ -87,8 +99,8 @@ export function validateEstimateInput(
     if (fixedAmount === null) fieldErrors[`items.${index}.fixedAmount`] = msg.itemAmount;
     if (percent === null) fieldErrors[`items.${index}.percent`] = msg.itemPercent;
 
-    if (name && kind && hours !== null && hourlyRate !== null && fixedAmount !== null && percent !== null) {
-      items.push({ name, kind, hours, hourlyRate, fixedAmount, percent });
+    if (name && kind && hours !== null && hourlyRate !== null && fixedAmount !== null && percent !== null && quantity !== null && unitCost !== null) {
+      items.push({ name, kind, hours, hourlyRate, fixedAmount, percent, quantity, unitCost, unitLabel: asText(item.unitLabel).slice(0, 30) || null });
     }
   });
 
@@ -104,9 +116,13 @@ export function validateEstimateInput(
       projectName,
       clientName,
       currency: currency as EstimateInput["currency"],
-      revenue: revenue as number,
+      revenue: pricingBasis === "per_unit" ? (unitCount as number) * (unitPrice as number) : (revenue as number),
       targetMargin: targetMargin as number,
       items,
+      pricingBasis,
+      unitCount,
+      unitPrice,
+      unitLabel,
     },
   };
 }

@@ -18,7 +18,7 @@ import { PRIORITIES, PROJECT_TYPES } from "../constants";
 import type { ProjectPickers } from "../queries";
 import { Field, NativeSelect } from "./form-primitives";
 
-interface Prefill { id: string; name: string; clientName: string | null; currency: string; revenue: number; directCost: number; targetMargin: number }
+interface Prefill { id: string; name: string; clientName: string | null; currency: string; revenue: number; directCost: number; targetMargin: number; unitCount?: number | null; unitPrice?: number | null; unitLabel?: string | null }
 
 export function NewProjectForm({ pickers, prefill, initialClientId = null }: { pickers: ProjectPickers; prefill: Prefill | null; initialClientId?: string | null }) {
   const router = useRouter();
@@ -136,6 +136,14 @@ export function NewProjectForm({ pickers, prefill, initialClientId = null }: { p
             <Field name="baselineRevenue" label={t.revenue} error={fieldErrors.baselineRevenue}><Input id="baselineRevenue" name="baselineRevenue" type="number" min={0} step="any" defaultValue={prefill?.revenue ?? ""} className="text-right tabular-nums" /></Field>
             <Field name="baselineDirectCost" label={t.directCost} error={fieldErrors.baselineDirectCost}><Input id="baselineDirectCost" name="baselineDirectCost" type="number" min={0} step="any" defaultValue={prefill?.directCost ?? ""} className="text-right tabular-nums" /></Field>
             <Field name="baselineTargetMargin" label={t.targetMargin} error={fieldErrors.baselineTargetMargin}><Input id="baselineTargetMargin" name="baselineTargetMargin" type="number" min={0} max={99.99} step="any" defaultValue={prefill?.targetMargin ?? pickers.defaults.targetMargin} className="text-right tabular-nums" /></Field>
+            {prefill?.unitCount && prefill.unitPrice ? (
+              <>
+                <input type="hidden" name="baselineUnitCount" value={prefill.unitCount} />
+                <input type="hidden" name="baselineUnitPrice" value={prefill.unitPrice} />
+                <input type="hidden" name="unitLabel" value={prefill.unitLabel ?? ""} />
+                <p className="text-xs text-muted-foreground sm:col-span-4">{interpolate(t.unitNote, { count: prefill.unitCount, unit: prefill.unitLabel ?? t.unitShort, price: prefill.unitPrice, currency: prefill.currency })}</p>
+              </>
+            ) : null}
             <p className="text-xs text-muted-foreground sm:col-span-4">{t.baselineNote}</p>
           </div>
 

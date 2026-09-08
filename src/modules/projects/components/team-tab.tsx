@@ -23,7 +23,7 @@ import type { PersonOption, PricingModel, ProjectMember, Task } from "../types";
 import { Field, NativeSelect } from "./form-primitives";
 
 const STATUS_TONE = { planned: "discovered", active: "approved", completed: "reviewed", removed: "archived" } as const;
-const PAY_MODELS: PricingModel[] = ["hourly", "fixed", "percent"];
+const PAY_MODELS: PricingModel[] = ["hourly", "fixed", "percent", "unit"];
 
 export function TeamTab({ projectId, currency, members, tasks, people, roleCosts }: { projectId: string; currency: string; members: ProjectMember[]; tasks: Task[]; people: PersonOption[]; roleCosts: RoleCost[] }) {
   const router = useRouter();
@@ -38,6 +38,8 @@ export function TeamTab({ projectId, currency, members, tasks, people, roleCosts
   const [payModel, setPayModel] = useState<PricingModel>("hourly");
   const [fixedCost, setFixedCost] = useState("");
   const [percent, setPercent] = useState("");
+  const [unitCost, setUnitCost] = useState("");
+  const [unitLabel, setUnitLabel] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -63,6 +65,8 @@ export function TeamTab({ projectId, currency, members, tasks, people, roleCosts
       setPayModel(pm.payModel);
       setFixedCost(pm.fixedCost == null ? "" : String(pm.fixedCost));
       setPercent(pm.percent == null ? "" : String(pm.percent));
+      setUnitCost(pm.unitCost == null ? "" : String(pm.unitCost));
+      setUnitLabel(pm.unitLabel ?? "");
     }
   }
 
@@ -81,10 +85,10 @@ export function TeamTab({ projectId, currency, members, tasks, people, roleCosts
             const form = e.currentTarget;
             const data = Object.fromEntries(new FormData(form).entries());
             start(async () => {
-              const r = await addMember(projectId, { ...data, person, rateSource, payModel, fixedCost, percent });
+              const r = await addMember(projectId, { ...data, person, rateSource, payModel, fixedCost, percent, unitCost });
               setFieldErrors(r.fieldErrors ?? {});
               setMessage(r.error ?? null);
-              if (!r.error) { form.reset(); setPerson(""); setRole(""); setRate(""); setPayModel("hourly"); setFixedCost(""); setPercent(""); setOpen(false); router.refresh(); }
+              if (!r.error) { form.reset(); setPerson(""); setRole(""); setRate(""); setPayModel("hourly"); setFixedCost(""); setPercent(""); setUnitCost(""); setUnitLabel(""); setOpen(false); router.refresh(); }
             });
           }}>
             <Field name="person" label={t.person} error={fieldErrors.person} className="xl:col-span-2">
@@ -112,6 +116,16 @@ export function TeamTab({ projectId, currency, members, tasks, people, roleCosts
                   <Input id="fixedCost" name="fixedCostDisplay" type="number" min={0} step="any" value={fixedCost} onChange={(e) => setFixedCost(e.target.value)} className="text-right tabular-nums" />
                 </Field>
                 <Field name="currency" label={t.currency}><NativeSelect name="currency" value={rateCurrency} onChange={setRateCurrency} className="w-24" options={CURRENCIES.map((c) => ({ value: c, label: c }))} /></Field>
+              </div>
+            ) : payModel === "unit" ? (
+              <div className="grid grid-cols-[1fr_auto_auto] gap-2 xl:col-span-2">
+                <Field name="unitCost" label={t.unitCost} error={fieldErrors.unitCost} hint={t.unitCostHint}>
+                  <Input id="unitCost" name="unitCostDisplay" type="number" min={0} step="any" value={unitCost} onChange={(e) => setUnitCost(e.target.value)} className="text-right tabular-nums" />
+                </Field>
+                <Field name="currency" label={t.currency}><NativeSelect name="currency" value={rateCurrency} onChange={setRateCurrency} className="w-24" options={CURRENCIES.map((c) => ({ value: c, label: c }))} /></Field>
+                <Field name="plannedUnits" label={interpolate(t.plannedUnits, { unit: unitLabel || t.unitShort })} error={fieldErrors.plannedUnits}>
+                  <Input id="plannedUnits" name="plannedUnits" type="number" min={0} step="any" className="w-28 text-right tabular-nums" />
+                </Field>
               </div>
             ) : (
               <Field name="percent" label={t.percentOfPrice} error={fieldErrors.percent} hint={t.percentHint} className="xl:col-span-2">
@@ -147,7 +161,9 @@ export function TeamTab({ projectId, currency, members, tasks, people, roleCosts
                     ? `${formatMoney(m.fixedCost ?? 0, m.currency, locale)} · ${t.payModels.fixed}`
                     : m.payModel === "percent"
                       ? `${m.percent ?? 0} % · ${t.payModels.percent}`
-                      : `${formatMoney(m.costRate, m.currency, locale)} / h`;
+                      : m.payModel === "unit"
+                        ? `${formatMoney(m.unitCost ?? 0, m.currency, locale)} / ${t.unitShort} · ${interpolate(t.unitsSummary, { delivered: m.deliveredUnits, planned: m.plannedUnits ?? "—" })}`
+                        : `${formatMoney(m.costRate, m.currency, locale)} / h`;
                   return <MemberRow key={m.id} member={m} projectId={projectId} onDone={() => router.refresh()} tone={STATUS_TONE[m.status]} labels={{ status: t.statuses[m.status], remove: t.remove, confirm: t.confirmRemove, snapshot: t.snapshot, source: t.rateSources[m.rateSource], hours: interpolate(t.hoursSummary, { actual: formatHours(actual, locale), planned: formatHours(m.plannedHours, locale) }), open: t.openInTalent, pay, capacity: t.viewCapacity }} talentHref={m.talentCandidateId ? `${getModule("talent").href}/${m.talentCandidateId}` : null} capacityHref={capacityHref} />;
                 })}
               </tbody>
@@ -173,10 +189,17 @@ function MemberRow({ member: m, projectId, onDone, tone, labels, talentHref, cap
         <span className="sr-only"><StatusBadge status={tone} label={labels.status} /></span>
       </td>
       <td className="px-3 py-2 text-right tabular-nums">
-        <NativeSelect value={m.payModel} onChange={(v) => start(async () => { await updateMember(m.id, { ...base, status: m.status, payModel: v, fixedCost: m.fixedCost ?? "", percent: m.percent ?? "" }); onDone(); })} className="ml-auto w-40" options={PAY_MODELS.map((x) => ({ value: x, label: t.payModels[x] }))} />
+        <NativeSelect value={m.payModel} onChange={(v) => start(async () => { await updateMember(m.id, { ...base, status: m.status, payModel: v, fixedCost: m.fixedCost ?? "", percent: m.percent ?? "", unitCost: m.unitCost ?? "", plannedUnits: m.plannedUnits ?? "" }); onDone(); })} className="ml-auto w-40" options={PAY_MODELS.map((x) => ({ value: x, label: t.payModels[x] }))} />
         <span className="block text-[11px] text-muted-foreground">{labels.pay}</span>
         {m.payModel === "hourly" ? <span className="block text-[11px] text-muted-foreground">{labels.snapshot} · {labels.source}</span> : null}
-        {m.payModel !== "hourly" && m.status !== "removed" ? (
+        {m.payModel === "unit" && m.status !== "removed" ? (
+          <form className="mt-1 flex flex-wrap justify-end gap-1" onSubmit={(e) => { e.preventDefault(); const f = new FormData(e.currentTarget); start(async () => { await updateMember(m.id, { ...base, status: m.status, payModel: "unit", unitCost: String(f.get("unitCost") ?? ""), plannedUnits: String(f.get("plannedUnits") ?? ""), deliveredUnits: String(f.get("deliveredUnits") ?? "") }); onDone(); }); }}>
+            <Input name="unitCost" type="number" min={0} step="any" defaultValue={m.unitCost ?? ""} className="h-7 w-24 text-right tabular-nums" aria-label={t.unitCost} title={t.unitCost} />
+            <Input name="plannedUnits" type="number" min={0} step="any" defaultValue={m.plannedUnits ?? ""} className="h-7 w-20 text-right tabular-nums" aria-label={t.plannedUnitsShort} title={t.plannedUnitsShort} />
+            <Input name="deliveredUnits" type="number" min={0} step="any" defaultValue={m.deliveredUnits} className="h-7 w-20 text-right tabular-nums" aria-label={t.deliveredUnits} title={t.deliveredUnits} />
+            <Button type="submit" size="xs" variant="ghost" disabled={pending}>{t.updateFee}</Button>
+          </form>
+        ) : m.payModel !== "hourly" && m.status !== "removed" ? (
           <form className="mt-1 flex justify-end gap-1" onSubmit={(e) => { e.preventDefault(); const v = String(new FormData(e.currentTarget).get("value") ?? ""); start(async () => { await updateMember(m.id, { ...base, status: m.status, payModel: m.payModel, fixedCost: m.payModel === "fixed" ? v : "", percent: m.payModel === "percent" ? v : "" }); onDone(); }); }}>
             <Input name="value" type="number" min={0} step="any" defaultValue={m.payModel === "fixed" ? m.fixedCost ?? "" : m.percent ?? ""} className="h-7 w-28 text-right tabular-nums" aria-label={m.payModel === "fixed" ? t.fixedCost : t.percentOfPrice} />
             <Button type="submit" size="xs" variant="ghost" disabled={pending}>{t.updateFee}</Button>

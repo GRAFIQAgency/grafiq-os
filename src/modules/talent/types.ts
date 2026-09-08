@@ -20,6 +20,9 @@ export interface BenchDetails {
   pricingModel: PricingModel;
   fixedPrice: number | null;
   marginPercent: number | null;
+  /** Pay per delivered unit (pricingModel = unit), e.g. 500 CZK per 3D model. */
+  unitPrice: number | null;
+  unitLabel: string | null;
   updatedAt: string | null;
 }
 
@@ -71,6 +74,8 @@ export interface BenchDetailsInput {
   pricingModel: PricingModel;
   fixedPrice: number | null;
   marginPercent: number | null;
+  unitPrice: number | null;
+  unitLabel: string | null;
 }
 
 /** Settings → People rates row (role + pay model + own rate). */
@@ -82,6 +87,8 @@ export interface PersonRateInput {
   costCurrency: Currency | null;
   fixedPrice: number | null;
   marginPercent: number | null;
+  unitPrice: number | null;
+  unitLabel: string | null;
 }
 
 /** Compact shape for future Projects / Capacity / Pricing modules. */
@@ -103,6 +110,8 @@ export interface TalentCapacityRecord {
   pricingModel: PricingModel;
   fixedPrice: number | null;
   marginPercent: number | null;
+  unitPrice: number | null;
+  unitLabel: string | null;
 }
 
 export interface ActionResult {

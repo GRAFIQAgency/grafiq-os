@@ -82,6 +82,15 @@ export function FinancialSummary({ summary, currency, thresholds }: FinancialSum
             valueClassName="font-semibold"
             hint={t.recommendedHint}
           />
+          {summary.perUnit ? (
+            <>
+              <Separator />
+              <SummaryRow label={interpolate(t.perUnitTitle, { n: summary.perUnit.count, unit: summary.perUnit.label ?? t.unit })} value="" />
+              <SummaryRow label={t.unitPrice} value={money(summary.perUnit.price)} />
+              <SummaryRow label={t.unitCost} value={money(summary.perUnit.cost)} />
+              <SummaryRow label={t.unitProfit} value={money(summary.perUnit.profit)} valueClassName={cn("font-semibold", summary.perUnit.profit < 0 && "text-red-400")} />
+            </>
+          ) : null}
         </dl>
 
         <div className="flex items-center justify-between rounded-md border px-3 py-2.5 text-sm">

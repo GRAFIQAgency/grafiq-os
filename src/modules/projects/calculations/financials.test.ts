@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { actualLabourCost, computeFinancials, forecastLabourCost, grossMargin, type FinancialInputs } from "./financials";
 
 const project = { currency: "CZK" as const, baselineRevenue: 300000, baselineDirectCost: 120000 };
-const hourly = (m: Omit<FinancialInputs["members"][number], "payModel" | "fixedCost" | "percent">): FinancialInputs["members"][number] => ({ ...m, payModel: "hourly", fixedCost: null, percent: null });
+const hourly = (m: Omit<FinancialInputs["members"][number], "payModel" | "fixedCost" | "percent" | "unitCost" | "plannedUnits" | "deliveredUnits">): FinancialInputs["members"][number] => ({ ...m, payModel: "hourly", fixedCost: null, percent: null, unitCost: null, plannedUnits: null, deliveredUnits: 0 });
 const members: FinancialInputs["members"] = [
   hourly({ id: "m1", status: "active", plannedHours: 40, costRate: 1000 }),
   hourly({ id: "m2", status: "active", plannedHours: null, costRate: 800 }),
@@ -43,8 +43,16 @@ describe("forecast labour cost", () => {
 });
 
 describe("pay models on a project", () => {
-  const fixed: FinancialInputs["members"][number] = { id: "f1", status: "active", plannedHours: 30, costRate: 1000, payModel: "fixed", fixedCost: 12000, percent: null };
-  const percent: FinancialInputs["members"][number] = { id: "p1", status: "active", plannedHours: 10, costRate: null, payModel: "percent", fixedCost: null, percent: 10 };
+  const fixed: FinancialInputs["members"][number] = { id: "f1", status: "active", plannedHours: 30, costRate: 1000, payModel: "fixed", fixedCost: 12000, percent: null, unitCost: null, plannedUnits: null, deliveredUnits: 0 };
+  const percent: FinancialInputs["members"][number] = { id: "p1", status: "active", plannedHours: 10, costRate: null, payModel: "percent", fixedCost: null, percent: 10, unitCost: null, plannedUnits: null, deliveredUnits: 0 };
+  const unit: FinancialInputs["members"][number] = { id: "u1", status: "active", plannedHours: 600, costRate: null, payModel: "unit", fixedCost: null, percent: null, unitCost: 500, plannedUnits: 300, deliveredUnits: 120 };
+
+  it("a unit-paid member costs delivered units now and max(delivered, planned) units in the forecast", () => {
+    expect(actualLabourCost([unit], []).cost).toBe(120 * 500);
+    expect(forecastLabourCost([unit], [])).toBe(300 * 500);
+    expect(forecastLabourCost([{ ...unit, deliveredUnits: 340 }], [])).toBe(340 * 500);
+    expect(actualLabourCost([unit], [{ assigneeMemberId: "u1", estimatedHours: 10, actualHours: 8 }]).unpricedHours).toBe(0);
+  });
 
   it("a fixed-paid member costs the agreed fee regardless of hours; hourly rate is ignored", () => {
     const tasks = [{ assigneeMemberId: "f1", estimatedHours: 30, actualHours: 45 }];

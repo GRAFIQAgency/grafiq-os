@@ -19,6 +19,7 @@ import type { CostItemInput, EstimateInput } from "./types";
 /** Thresholds as configured in Business Settings. */
 const thresholds: MarginThresholds = { target: 60, warning: 50, minimum: 40 };
 
+const unitFields = { quantity: 0, unitCost: 0, unitLabel: null as string | null };
 const hourly = (hours: number, hourlyRate: number): CostItemInput => ({
   name: "Designer",
   kind: "hourly",
@@ -26,6 +27,19 @@ const hourly = (hours: number, hourlyRate: number): CostItemInput => ({
   hourlyRate,
   fixedAmount: 0,
   percent: 0,
+  ...unitFields,
+});
+
+const unit = (quantity: number, unitCost: number): CostItemInput => ({
+  name: "3D artist",
+  kind: "unit",
+  hours: 0,
+  hourlyRate: 0,
+  fixedAmount: 0,
+  percent: 0,
+  quantity,
+  unitCost,
+  unitLabel: "model",
 });
 
 const fixed = (fixedAmount: number): CostItemInput => ({
@@ -35,6 +49,7 @@ const fixed = (fixedAmount: number): CostItemInput => ({
   hourlyRate: 0,
   fixedAmount,
   percent: 0,
+  ...unitFields,
 });
 
 const percent = (share: number): CostItemInput => ({
@@ -44,7 +59,10 @@ const percent = (share: number): CostItemInput => ({
   hourlyRate: 0,
   fixedAmount: 0,
   percent: share,
+  ...unitFields,
 });
+
+const TOTAL = { pricingBasis: "total" as const, unitCount: null, unitPrice: null, unitLabel: null };
 
 describe("costItemTotal", () => {
   it("multiplies hours by rate for hourly items", () => {
@@ -58,6 +76,30 @@ describe("costItemTotal", () => {
   it("takes a share of the client price for percent items", () => {
     expect(costItemTotal(percent(10), 300000)).toBe(30000);
     expect(costItemTotal(percent(10))).toBe(0);
+  });
+
+  it("multiplies quantity by unit cost for unit items", () => {
+    expect(costItemTotal(unit(300, 500))).toBe(150000);
+  });
+});
+
+describe("per-unit pricing", () => {
+  it("derives the client price from unit count × unit price and reports per-unit numbers", () => {
+    const summary = summarizeEstimate({
+      projectName: "300 product renders", clientName: "", currency: "CZK", revenue: 0, targetMargin: 40,
+      items: [unit(300, 500), fixed(30000)],
+      pricingBasis: "per_unit", unitCount: 300, unitPrice: 900, unitLabel: "model",
+    }, thresholds);
+    expect(summary.revenue).toBe(270000);
+    expect(summary.directCosts).toBe(180000);
+    expect(summary.perUnit).toEqual({ count: 300, price: 900, cost: 600, profit: 300, label: "model" });
+    expect(summary.grossMargin).toBeCloseTo(33.33, 1);
+  });
+
+  it("ignores unit fields when priced as a total", () => {
+    const summary = summarizeEstimate({ projectName: "x", clientName: "", currency: "CZK", revenue: 100000, targetMargin: 40, items: [], pricingBasis: "total", unitCount: 300, unitPrice: 900, unitLabel: null }, thresholds);
+    expect(summary.revenue).toBe(100000);
+    expect(summary.perUnit).toBeNull();
   });
 });
 
@@ -78,7 +120,7 @@ describe("percent lines", () => {
   it("summarises an estimate with a 10 % sales commission", () => {
     const summary = summarizeEstimate({
       projectName: "Site", clientName: "", currency: "CZK", revenue: 400000, targetMargin: 60,
-      items: [hourly(80, 1500), percent(10)],
+      items: [hourly(80, 1500), percent(10)], ...TOTAL,
     }, thresholds);
     expect(summary.directCosts).toBe(160000);
     expect(summary.grossMargin).toBeCloseTo(60);
@@ -184,6 +226,7 @@ describe("summarizeEstimate", () => {
     revenue: 300000,
     targetMargin: 60,
     items: [hourly(40, 1500), hourly(30, 2000), fixed(0)],
+      ...TOTAL,
   };
 
   it("produces a consistent summary", () => {

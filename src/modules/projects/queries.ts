@@ -157,8 +157,8 @@ export const getProjectPickers = cache(async (): Promise<ProjectPickers> => {
     owners: (owners.data ?? []).map((o) => ({ id: o.id, label: o.full_name || o.email, hint: o.full_name ? o.email : undefined })),
     estimates: estimates.map((e) => ({ id: e.id, label: e.projectName, hint: e.clientName ?? undefined, used: used.has(e.id) })),
     people: [
-      ...talent.map((t) => ({ id: t.id, kind: "talent" as const, label: t.fullName, hint: t.role ?? undefined, role: t.role, hourlyCost: t.hourlyCost, currency: t.costCurrency, costIsPersonSpecific: t.costIsPersonSpecific, pricingModel: t.pricingModel, fixedPrice: t.fixedPrice, marginPercent: t.marginPercent })),
-      ...(owners.data ?? []).map((o) => ({ id: o.id, kind: "user" as const, label: o.full_name || o.email, hint: o.email, role: null, hourlyCost: null, currency: null, costIsPersonSpecific: false, pricingModel: null, fixedPrice: null, marginPercent: null })),
+      ...talent.map((t) => ({ id: t.id, kind: "talent" as const, label: t.fullName, hint: t.role ?? undefined, role: t.role, hourlyCost: t.hourlyCost, currency: t.costCurrency, costIsPersonSpecific: t.costIsPersonSpecific, pricingModel: t.pricingModel, fixedPrice: t.fixedPrice, marginPercent: t.marginPercent, unitPrice: t.unitPrice, unitLabel: t.unitLabel })),
+      ...(owners.data ?? []).map((o) => ({ id: o.id, kind: "user" as const, label: o.full_name || o.email, hint: o.email, role: null, hourlyCost: null, currency: null, costIsPersonSpecific: false, pricingModel: null, fixedPrice: null, marginPercent: null, unitPrice: null, unitLabel: null })),
     ],
     roleCosts,
     defaults: { currency: settings.defaultCurrency, targetMargin: settings.targetMargin },
@@ -171,7 +171,8 @@ export async function getEstimatePrefill(estimateId: string) {
   if (!estimate) return null;
   const items = [...estimate.pricing_cost_items].sort((a, b) => a.position - b.position);
   const revenue = Number(estimate.revenue);
-  const directCost = items.reduce((s, i) => s + (i.kind === "fixed" ? Number(i.fixed_amount) : i.kind === "percent" ? (revenue * Number(i.percent ?? 0)) / 100 : Number(i.hours) * Number(i.hourly_rate)), 0);
+  const directCost = items.reduce((s, i) => s + (i.kind === "fixed" ? Number(i.fixed_amount) : i.kind === "percent" ? (revenue * Number(i.percent ?? 0)) / 100 : i.kind === "unit" ? Number(i.quantity ?? 0) * Number(i.unit_cost ?? 0) : Number(i.hours) * Number(i.hourly_rate)), 0);
+  const perUnit = estimate.pricing_basis === "per_unit";
   return {
     id: estimate.id,
     name: estimate.project_name,
@@ -180,6 +181,9 @@ export async function getEstimatePrefill(estimateId: string) {
     revenue: Number(estimate.revenue),
     directCost,
     targetMargin: Number(estimate.target_margin),
+    unitCount: perUnit && estimate.unit_count != null ? Number(estimate.unit_count) : null,
+    unitPrice: perUnit && estimate.unit_price != null ? Number(estimate.unit_price) : null,
+    unitLabel: estimate.unit_label ?? null,
   };
 }
 

@@ -47,7 +47,7 @@ export function CostItemsTable({
   const { dict, locale } = useI18n();
   const t = dict.pricing.costs;
   const options = rolePresets.length > 0 || peoplePresets.length > 0
-    ? presetOptions(peoplePresets, rolePresets, currency, { roleDefault: t.roleDefault, perHour: t.perHourShort, noRate: t.noRate, fixedPerProject: t.fixed, ofPrice: t.ofPrice })
+    ? presetOptions(peoplePresets, rolePresets, currency, { roleDefault: t.roleDefault, perHour: t.perHourShort, noRate: t.noRate, fixedPerProject: t.fixed, ofPrice: t.ofPrice, perUnit: t.unitShort })
     : FALLBACK_ROLE_PRESETS.map((name) => ({ value: name, label: "" }));
 
   return (
@@ -69,7 +69,7 @@ export function CostItemsTable({
               <TableRow className="hover:bg-transparent">
                 <TableHead>{t.role}</TableHead>
                 <TableHead>{t.type}</TableHead>
-                <TableHead className="text-right">{t.hours}</TableHead>
+                <TableHead className="text-right">{t.hoursOrQuantity}</TableHead>
                 <TableHead className="text-right">{t.rateOrAmount}</TableHead>
                 <TableHead className="text-right">{t.total}</TableHead>
                 <TableHead />

@@ -47,7 +47,7 @@ export async function createProposalFromEstimate(estimateId: string, brief?: str
     phases: (["discovery", "design", "development", "launch"] as const).map((k) => ({ title: t.template.phases[k].title, description: t.template.phases[k].description, share: t.template.phases[k].share })),
   };
   const { generatedBy, proposal } = await generateProposal(
-    { projectName: estimate.projectName, clientName: estimate.clientName || null, currency: estimate.currency, revenue: estimate.revenue, targetMargin: estimate.targetMargin, items: estimate.items, brief: typeof brief === "string" ? brief.trim().slice(0, 2000) || undefined : undefined },
+    { projectName: estimate.projectName, clientName: estimate.clientName || null, currency: estimate.currency, revenue: estimate.revenue, targetMargin: estimate.targetMargin, items: estimate.items, unitCount: estimate.unitCount, unitPrice: estimate.unitPrice, unitLabel: estimate.unitLabel, brief: typeof brief === "string" ? brief.trim().slice(0, 2000) || undefined : undefined },
     locale,
     labels
   );

@@ -95,11 +95,15 @@ The reference implementation of a "real" module. Notable choices:
   `modules/talent/queries.ts` (`listActiveTalent`) and `presets.ts` resolves a
   typed/picked name to the person's pay model and own rate, or the role
   default (never mixing currencies);
-- Cost lines have three kinds: `hourly` (hours × rate), `fixed` (flat) and
-  `percent` (share of the client price, e.g. sales commission). Percent lines
-  scale with the price, so `recommendedSellingPrice` moves their share into
-  the divisor: `price = fixedCosts / (1 − target − share)`. Projects snapshot
-  the same three kinds into `project_baseline_costs`;
+- Cost lines have four kinds: `hourly` (hours × rate), `fixed` (flat),
+  `percent` (share of the client price, e.g. sales commission) and `unit`
+  (quantity × cost per unit, e.g. 300 3D models). Percent lines scale with
+  the price, so `recommendedSellingPrice` moves their share into the divisor:
+  `price = fixedCosts / (1 − target − share)`. The client price itself is
+  either a typed total or derived per unit (`pricing_basis = per_unit`:
+  `unit_count × unit_price`, with cost / profit per unit in the summary).
+  Projects snapshot the same kinds into `project_baseline_costs` and keep the
+  sold unit count / unit price on the project;
   the page passes them into the calculator as props.
 - The client component `components/pricing-calculator.tsx` owns form state
   as strings (`draft.ts`) and derives the summary with `useMemo`. Everything
@@ -184,9 +188,12 @@ SNAPSHOT), `project_milestones`, `project_tasks`, `project_links`,
 - `services/rates.ts` — suggested member rate: Talent person cost → Settings
   role default → manual; snapshotted on the member. `suggestPayModel` proposes
   the person's Talent pay model; the project can override it per member
-  (`pay_model` / `fixed_cost` / `percent`, migration 0012). Financials price
-  hourly members by hours × rate, fixed members by the agreed fee and percent
-  members by a share of current revenue. Capacity ignores pay models.
+  (`pay_model` / `fixed_cost` / `percent`, migration 0012; `unit` with
+  `unit_cost` / `planned_units` / `delivered_units`, migration 0013).
+  Financials price hourly members by hours × rate, fixed members by the
+  agreed fee, percent members by a share of current revenue and unit members
+  by delivered units now / max(delivered, planned) units in the forecast.
+  Capacity ignores pay models.
 - Read API for Dashboard / Finance / Capacity: `getProjectStats`,
   `listProjectFinancials`, `listProjectAssignments`, `projectIdsByEstimate`.
 - Dependency direction: projects → pricing/settings/talent/sourcing

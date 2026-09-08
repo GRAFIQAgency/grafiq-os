@@ -7,6 +7,9 @@ export type { ProposalItemKind, ProposalStatus };
 /** One line of the client-facing pricing plan. */
 export interface ProposalItem extends PricingProposalItemJson {
   kind: ProposalItemKind;
+  quantity: number;
+  unitPrice: number;
+  unitLabel: string | null;
 }
 
 export interface Proposal {
@@ -54,6 +57,10 @@ export interface ProposalSource {
   revenue: number;
   targetMargin: number;
   items: CostItemInput[];
+  /** Per-unit estimates: count × unit price (the plan can show a unit line). */
+  unitCount?: number | null;
+  unitPrice?: number | null;
+  unitLabel?: string | null;
   /** Optional free-text brief from the user. */
   brief?: string;
 }

@@ -39,7 +39,7 @@ export function ProposalDocument({ proposal, companyName, dict, locale }: { prop
                   <p className="font-medium"><span className="mr-2 text-muted-foreground tabular-nums">{i + 1}.</span>{it.title}</p>
                   {it.description ? <p className="mt-1 max-w-prose text-xs leading-relaxed text-muted-foreground">{it.description}</p> : null}
                 </td>
-                <td className="text-right text-xs whitespace-nowrap text-muted-foreground tabular-nums">{it.kind === "hourly" ? `${it.hours} h × ${money(it.rate)}` : t.fixed}</td>
+                <td className="text-right text-xs whitespace-nowrap text-muted-foreground tabular-nums">{it.kind === "hourly" ? `${it.hours} h × ${money(it.rate)}` : it.kind === "unit" ? `${it.quantity} ${it.unitLabel ?? t.unit} × ${money(it.unitPrice)}` : t.fixed}</td>
                 <td className="text-right font-medium whitespace-nowrap tabular-nums">{money(itemAmount(it))}</td>
               </tr>
             ))}

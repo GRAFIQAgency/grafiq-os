@@ -12,7 +12,7 @@ export function defaultDetails(candidateId: string): BenchDetails {
   return {
     talentCandidateId: candidateId, benchStatus: "active", engagementType: null, hourlyCost: null, costCurrency: null,
     dayRate: null, minimumEngagement: null, commercialNotes: null, availableFrom: null, maxMonthlyHours: null,
-    preferredMonthlyHours: null, pricingModel: "hourly", fixedPrice: null, marginPercent: null, updatedAt: null,
+    preferredMonthlyHours: null, pricingModel: "hourly", fixedPrice: null, marginPercent: null, unitPrice: null, unitLabel: null, updatedAt: null,
   };
 }
 
@@ -24,6 +24,7 @@ export function rowToDetails(r: TalentBenchDetailsRow): BenchDetails {
     commercialNotes: r.commercial_notes, availableFrom: r.available_from, maxMonthlyHours: r.max_monthly_hours,
     preferredMonthlyHours: r.preferred_monthly_hours, pricingModel: r.pricing_model ?? "hourly",
     fixedPrice: r.fixed_price == null ? null : Number(r.fixed_price), marginPercent: r.margin_percent == null ? null : Number(r.margin_percent),
+    unitPrice: r.unit_price == null ? null : Number(r.unit_price), unitLabel: r.unit_label ?? null,
     updatedAt: r.updated_at,
   };
 }
@@ -121,6 +122,6 @@ export function toCapacityRecord(person: TalentPerson): TalentCapacityRecord {
     seniority: c.seniority, hourlyCost: person.hourlyCost, costCurrency: person.costCurrency, costIsPersonSpecific: person.costIsPersonSpecific,
     availability: c.availability, availableFrom: d.availableFrom, maxMonthlyHours: d.maxMonthlyHours,
     preferredMonthlyHours: d.preferredMonthlyHours, benchStatus: d.benchStatus, engagementType: person.engagementType,
-    pricingModel: d.pricingModel, fixedPrice: d.fixedPrice, marginPercent: d.marginPercent,
+    pricingModel: d.pricingModel, fixedPrice: d.fixedPrice, marginPercent: d.marginPercent, unitPrice: d.unitPrice, unitLabel: d.unitLabel,
   };
 }

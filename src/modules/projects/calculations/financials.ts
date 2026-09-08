@@ -12,7 +12,8 @@
  *   fixed   → the agreed fixed cost for the whole project (forecast always; current once work has
  *             started, i.e. hours were logged or the member is completed)
  *   percent → percent of CURRENT revenue (same timing rule as fixed)
- * Hours logged by fixed / percent members are covered by the fee, so they are never "unpriced".
+ *   unit    → delivered units × unit cost now; max(delivered, planned) units × unit cost in the forecast
+ * Hours logged by fixed / percent / unit members are covered by the fee, so they are never "unpriced".
  */
 import type { ChangeRequest, DirectCost, MoneyBlock, Project, ProjectFinancials, ProjectMember, Task } from "../types";
 
@@ -26,7 +27,7 @@ export function moneyBlock(revenue: number, directCost: number): MoneyBlock {
 
 export interface FinancialInputs {
   project: Pick<Project, "currency" | "baselineRevenue" | "baselineDirectCost">;
-  members: Pick<ProjectMember, "id" | "status" | "plannedHours" | "costRate" | "payModel" | "fixedCost" | "percent">[];
+  members: Pick<ProjectMember, "id" | "status" | "plannedHours" | "costRate" | "payModel" | "fixedCost" | "percent" | "unitCost" | "plannedUnits" | "deliveredUnits">[];
   tasks: Pick<Task, "assigneeMemberId" | "estimatedHours" | "actualHours">[];
   costs: Pick<DirectCost, "estimatedCost" | "actualCost">[];
   changeRequests: Pick<ChangeRequest, "status" | "additionalRevenue" | "additionalDirectCost">[];
@@ -35,11 +36,19 @@ export interface FinancialInputs {
 type Member = FinancialInputs["members"][number];
 type TaskLike = FinancialInputs["tasks"][number];
 
-/** Fee of a fixed / percent member; null for hourly members. */
+/** Forecast fee of a fixed / percent / unit member; null for hourly members. */
 export function memberFee(m: Member, currentRevenue: number): number | null {
   if (m.payModel === "fixed") return m.fixedCost ?? 0;
   if (m.payModel === "percent") return (currentRevenue * (m.percent ?? 0)) / 100;
+  if (m.payModel === "unit") return Math.max(m.deliveredUnits, m.plannedUnits ?? 0) * (m.unitCost ?? 0);
   return null;
+}
+
+/** Fee already incurred: unit members pay per delivered unit; fixed / percent once work has started. */
+export function memberCurrentFee(m: Member, currentRevenue: number, started: boolean): number | null {
+  if (m.payModel === "unit") return m.deliveredUnits * (m.unitCost ?? 0);
+  const fee = memberFee(m, currentRevenue);
+  return fee == null ? null : started ? fee : 0;
 }
 
 const hoursOf = (tasks: TaskLike[], memberId: string, key: "actualHours" | "estimatedHours") =>
@@ -67,10 +76,10 @@ export function actualLabourCost(members: Member[], tasks: TaskLike[], currentRe
     else cost += hours * m.costRate;
   }
   for (const m of members) {
-    const fee = memberFee(m, currentRevenue);
-    if (fee == null || m.status === "removed") continue;
+    if (m.status === "removed") continue;
     const started = m.status === "completed" || hoursOf(tasks, m.id, "actualHours") > 0;
-    if (started) cost += fee;
+    const fee = memberCurrentFee(m, currentRevenue, started);
+    if (fee != null) cost += fee;
   }
   return { cost, unpricedHours };
 }

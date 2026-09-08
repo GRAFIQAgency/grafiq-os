@@ -15,9 +15,9 @@ export function isAiProposalEnabled(): boolean {
 }
 
 const SYSTEM = `You write client-facing pricing plans for GRAFIQ, a premium creative/digital agency (web, branding, 3D, motion, marketing).
-Return ONLY a JSON object: {"title": string, "intro": string, "items": [{"title": string, "description": string, "kind": "hourly"|"fixed", "hours": number, "rate": number, "amount": number}], "notes": string}
+Return ONLY a JSON object: {"title": string, "intro": string, "items": [{"title": string, "description": string, "kind": "hourly"|"fixed"|"unit", "hours": number, "rate": number, "quantity": number, "unitPrice": number, "unitLabel": string, "amount": number}], "notes": string}
 Rules: write in the requested language; 4–8 items that describe deliverables and phases the client understands (no internal cost jargon);
-each item has a one-sentence description of what the client gets; "fixed" items carry the price in "amount", "hourly" items carry "hours" and a sell "rate";
+each item has a one-sentence description of what the client gets; "fixed" items carry the price in "amount", "hourly" items carry "hours" and a sell "rate", "unit" items carry "quantity", "unitPrice" and a short "unitLabel" (e.g. pcs) — use "unit" when the project is priced per piece;
 the items must add up to the given client price (excluding VAT); never mention margins, costs or freelancers; be concrete and calm, no hype.`;
 
 function extractJson(text: string): Record<string, unknown> | null {
@@ -39,23 +39,26 @@ function toItems(raw: unknown): ProposalItem[] {
     const o = r as Record<string, unknown>;
     const title = typeof o.title === "string" ? o.title.trim().slice(0, 200) : "";
     if (!title) continue;
-    const kind = o.kind === "hourly" ? "hourly" : "fixed";
+    const kind = o.kind === "hourly" ? "hourly" : o.kind === "unit" ? "unit" : "fixed";
     const hours = kind === "hourly" ? Math.max(0, Number(o.hours) || 0) : 0;
     const rate = kind === "hourly" ? Math.max(0, Number(o.rate) || 0) : 0;
-    const amount = kind === "hourly" ? round2(hours * rate) : Math.max(0, Number(o.amount) || 0);
-    items.push({ id: newItemId(), title, description: typeof o.description === "string" ? o.description.trim().slice(0, 600) : "", kind, hours, rate, amount });
+    const quantity = kind === "unit" ? Math.max(0, Number(o.quantity) || 0) : 0;
+    const unitPrice = kind === "unit" ? Math.max(0, Number(o.unitPrice) || 0) : 0;
+    const amount = kind === "hourly" ? round2(hours * rate) : kind === "unit" ? round2(quantity * unitPrice) : Math.max(0, Number(o.amount) || 0);
+    items.push({ id: newItemId(), title, description: typeof o.description === "string" ? o.description.trim().slice(0, 600) : "", kind, hours, rate, quantity, unitPrice, unitLabel: typeof o.unitLabel === "string" ? o.unitLabel.trim().slice(0, 30) || null : null, amount });
   }
   return items;
 }
 
 async function askClaude(source: ProposalSource, locale: Locale): Promise<GeneratedProposal> {
   const client = new Anthropic();
-  const lines = source.items.map((i) => `- ${i.name}: ${i.kind === "hourly" ? `${i.hours} h` : i.kind === "percent" ? `${i.percent} % of price` : "fixed"}`).join("\n");
+  const lines = source.items.map((i) => `- ${i.name}: ${i.kind === "hourly" ? `${i.hours} h` : i.kind === "percent" ? `${i.percent} % of price` : i.kind === "unit" ? `${i.quantity} ${i.unitLabel ?? "units"}` : "fixed"}`).join("\n");
   const prompt = [
     `Language: ${locale === "cs" ? "Czech" : "English"}`,
     `Project: ${source.projectName}`,
     source.clientName ? `Client: ${source.clientName}` : null,
     `Client price excluding VAT: ${source.revenue} ${source.currency}`,
+    source.unitCount && source.unitPrice ? `Priced per unit: ${source.unitCount} ${source.unitLabel ?? "units"} × ${source.unitPrice} ${source.currency}` : null,
     lines ? `Internal work breakdown (for structure only, do not expose costs):\n${lines}` : null,
     source.brief ? `Brief from the agency:\n${source.brief}` : null,
   ].filter(Boolean).join("\n\n");

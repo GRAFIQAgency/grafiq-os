@@ -118,6 +118,10 @@ export function PricingCalculator({ initialEstimate, defaults, thresholds, propo
           currency: draft.currency,
           revenue: draft.revenue,
           targetMargin: draft.targetMargin,
+          pricingBasis: draft.pricingBasis,
+          unitCount: draft.unitCount,
+          unitPrice: draft.unitPrice,
+          unitLabel: draft.unitLabel,
         }}
         onChange={update}
         fieldErrors={fieldErrors}

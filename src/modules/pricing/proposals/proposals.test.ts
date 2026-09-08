@@ -15,7 +15,7 @@ const labels: TemplateLabels = {
     { title: "Launch", description: "d", share: 15 },
   ],
 };
-const item = (over: Partial<ProposalItem> & { id: string }): ProposalItem => ({ title: "x", description: "", kind: "fixed", hours: 0, rate: 0, amount: 0, ...over });
+const item = (over: Partial<ProposalItem> & { id: string }): ProposalItem => ({ title: "x", description: "", kind: "fixed", hours: 0, rate: 0, amount: 0, quantity: 0, unitPrice: 0, unitLabel: null, ...over });
 
 describe("proposal totals", () => {
   it("adds hourly and fixed lines and applies VAT", () => {
@@ -23,6 +23,7 @@ describe("proposal totals", () => {
     expect(itemAmount(items[0])).toBe(15000);
     expect(proposalTotals(items, 21)).toEqual({ subtotal: 40000, vat: 8400, total: 48400 });
     expect(proposalTotals(items, 0).total).toBe(40000);
+    expect(itemAmount(item({ id: "u", kind: "unit", quantity: 300, unitPrice: 900 }))).toBe(270000);
   });
 
   it("fits fixed lines to a target and puts rounding on the last fixed line", () => {
@@ -37,7 +38,7 @@ describe("proposal totals", () => {
 });
 
 describe("template proposal", () => {
-  const cost = (over: Partial<CostItemInput> & { name: string }): CostItemInput => ({ kind: "hourly", hours: 0, hourlyRate: 0, fixedAmount: 0, percent: 0, ...over });
+  const cost = (over: Partial<CostItemInput> & { name: string }): CostItemInput => ({ kind: "hourly", hours: 0, hourlyRate: 0, fixedAmount: 0, percent: 0, quantity: 0, unitCost: 0, unitLabel: null, ...over });
 
   it("marks cost lines up so the plan adds up to the client price", () => {
     const p = templateProposal({
@@ -50,6 +51,17 @@ describe("template proposal", () => {
     const total = proposalTotals(p.items, 0).subtotal;
     expect(total).toBe(200000);
     expect(p.title).toBe("Site");
+  });
+
+  it("keeps unit cost lines as unit lines with a sell price per unit", () => {
+    const p = templateProposal({ projectName: "300 renders", clientName: null, currency: "CZK", revenue: 270000, targetMargin: 40, items: [cost({ name: "3D artist", kind: "unit", quantity: 300, unitCost: 500, unitLabel: "model" })] }, labels);
+    expect(p.items[0]).toMatchObject({ kind: "unit", quantity: 300, unitPrice: 900, unitLabel: "model", amount: 270000 });
+  });
+
+  it("uses one unit line for per-unit estimates without cost lines", () => {
+    const p = templateProposal({ projectName: "300 renders", clientName: null, currency: "CZK", revenue: 270000, targetMargin: 40, items: [], unitCount: 300, unitPrice: 900, unitLabel: "ks" }, labels);
+    expect(p.items).toHaveLength(1);
+    expect(p.items[0]).toMatchObject({ kind: "unit", quantity: 300, unitPrice: 900, amount: 270000 });
   });
 
   it("falls back to standard phases without cost lines", () => {
@@ -68,6 +80,8 @@ describe("validateProposal", () => {
     expect(r.data?.items[0]).toMatchObject({ id: "a", kind: "hourly", hours: 10, rate: 80, amount: 800 });
     expect(r.data?.items[1]).toMatchObject({ kind: "fixed", hours: 0, rate: 0, amount: 500 });
     expect(r.data?.vatRate).toBe(21);
+    const u = validateProposal({ title: "u", vatRate: "0", items: [{ title: "Renders", kind: "unit", quantity: "300", unitPrice: "900", unitLabel: "ks" }] }, msg);
+    expect(u.data?.items[0]).toMatchObject({ kind: "unit", quantity: 300, unitPrice: 900, unitLabel: "ks", amount: 270000 });
   });
 
   it("reports missing titles, bad VAT and bad dates", () => {

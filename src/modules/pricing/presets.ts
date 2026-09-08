@@ -20,6 +20,9 @@ export interface PresetMatch {
   fixedPrice: number | null;
   /** Share of the client price (payModel = percent). */
   percent: number | null;
+  /** Cost per unit (payModel = unit). */
+  unitCost: number | null;
+  unitLabel: string | null;
 }
 
 const norm = (s: string) => s.trim().toLowerCase();
@@ -38,11 +41,13 @@ export function resolvePreset(name: string, people: PersonPreset[], roles: RoleP
       hourlyCost: own ?? roleDefault,
       fixedPrice: person.fixedPrice != null && sameCurrency ? person.fixedPrice : null,
       percent: person.marginPercent,
+      unitCost: person.unitPrice != null && sameCurrency ? person.unitPrice : null,
+      unitLabel: person.unitLabel,
     };
   }
   const role = roles.find((r) => norm(r.name) === key);
   if (role) {
-    return { kind: "role", name: role.name, role: role.name, payModel: "hourly", hourlyCost: role.currency === currency ? role.hourlyCost : null, fixedPrice: null, percent: null };
+    return { kind: "role", name: role.name, role: role.name, payModel: "hourly", hourlyCost: role.currency === currency ? role.hourlyCost : null, fixedPrice: null, percent: null, unitCost: null, unitLabel: null };
   }
   return null;
 }
@@ -58,6 +63,7 @@ export interface PresetLabels {
   noRate: string;
   fixedPerProject: string;
   ofPrice: string;
+  perUnit: string;
 }
 
 function describe(match: PresetMatch, currency: Currency, labels: PresetLabels): string {
@@ -66,6 +72,8 @@ function describe(match: PresetMatch, currency: Currency, labels: PresetLabels):
       return match.fixedPrice != null ? `${labels.fixedPerProject} · ${match.fixedPrice} ${currency}` : labels.fixedPerProject;
     case "percent":
       return match.percent != null ? `${match.percent} % ${labels.ofPrice}` : labels.ofPrice;
+    case "unit":
+      return match.unitCost != null ? `${match.unitCost} ${currency} / ${match.unitLabel || labels.perUnit}` : labels.perUnit;
     default:
       return match.hourlyCost != null ? `${match.hourlyCost} ${currency}${labels.perHour}` : labels.noRate;
   }

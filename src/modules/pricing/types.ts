@@ -1,4 +1,5 @@
 import type {
+  PricingBasis,
   PricingCostItemKind,
   PricingCostItemRow,
   PricingCurrency,
@@ -8,6 +9,7 @@ import type {
 
 export type Currency = PricingCurrency;
 export type CostItemKind = PricingCostItemKind;
+export type { PricingBasis };
 
 /** A cost line with parsed numbers — what calculations and actions consume. */
 export interface CostItemInput {
@@ -18,6 +20,10 @@ export interface CostItemInput {
   fixedAmount: number;
   /** Share of the client price in percent (kind = percent). */
   percent: number;
+  /** kind = unit: quantity × unitCost. */
+  quantity: number;
+  unitCost: number;
+  unitLabel: string | null;
 }
 
 /** A complete estimate with parsed numbers. `id` is set when editing a saved one. */
@@ -26,11 +32,16 @@ export interface EstimateInput {
   projectName: string;
   clientName: string;
   currency: Currency;
-  /** Client price excluding VAT. */
+  /** Client price excluding VAT (the total; for per-unit pricing = unitCount × unitPrice). */
   revenue: number;
   /** Target gross margin in percent (0–99.99). */
   targetMargin: number;
   items: CostItemInput[];
+  /** total = revenue typed directly; per_unit = revenue derived from unitCount × unitPrice. */
+  pricingBasis: PricingBasis;
+  unitCount: number | null;
+  unitPrice: number | null;
+  unitLabel: string | null;
 }
 
 export type HealthStatus = "healthy" | "warning" | "bad";
@@ -47,6 +58,8 @@ export interface PricingSummary {
   health: HealthStatus;
   /** True when the margin is below the configured minimum (founder approval). */
   requiresApproval: boolean;
+  /** Per-unit view when the estimate is priced per unit. */
+  perUnit: { count: number; price: number; cost: number; profit: number; label: string | null } | null;
 }
 
 /** Saved estimate with its cost items, as returned by queries. */
@@ -85,6 +98,8 @@ export interface PersonPreset {
   hourlyCost: number | null;
   fixedPrice: number | null;
   marginPercent: number | null;
+  unitPrice: number | null;
+  unitLabel: string | null;
   currency: Currency | null;
 }
 

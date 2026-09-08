@@ -9,7 +9,7 @@ export function rowToProposal(r: PricingProposalRow): Proposal {
   return {
     id: r.id, createdAt: r.created_at, updatedAt: r.updated_at, estimateId: r.estimate_id, shareToken: r.share_token, title: r.title,
     clientName: r.client_name, intro: r.intro, currency: r.currency, vatRate: Number(r.vat_rate),
-    items: (Array.isArray(r.items) ? r.items : []).map((i) => normalizeItem({ ...i, kind: i.kind === "hourly" ? "hourly" : "fixed", hours: Number(i.hours) || 0, rate: Number(i.rate) || 0, amount: Number(i.amount) || 0 })),
+    items: (Array.isArray(r.items) ? r.items : []).map((i) => normalizeItem({ ...i, kind: i.kind === "hourly" ? "hourly" : i.kind === "unit" ? "unit" : "fixed", hours: Number(i.hours) || 0, rate: Number(i.rate) || 0, amount: Number(i.amount) || 0, quantity: Number(i.quantity) || 0, unitPrice: Number(i.unitPrice) || 0, unitLabel: i.unitLabel ?? null })),
     notes: r.notes, validUntil: r.valid_until, status: r.status, sharedAt: r.shared_at, generatedBy: r.generated_by,
   };
 }

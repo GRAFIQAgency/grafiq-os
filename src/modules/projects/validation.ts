@@ -57,6 +57,9 @@ export interface ProjectInput {
   baselineRevenue: number;
   baselineDirectCost: number;
   baselineTargetMargin: number;
+  baselineUnitCount: number | null;
+  baselineUnitPrice: number | null;
+  unitLabel: string | null;
   notes: string | null;
   estimateId: string | null;
 }
@@ -77,6 +80,9 @@ export function validateProject(raw: unknown, msg: ProjectValidationMessages, de
   if (directCost === undefined) e.baselineDirectCost = msg.invalidNumber;
   if (margin === undefined || (margin ?? 0) >= 100) e.baselineTargetMargin = msg.margin;
   const currency = oneOf(raw.currency, CURRENCIES) ?? defaults.currency;
+  const baselineUnitCount = optNum(raw.baselineUnitCount);
+  const baselineUnitPrice = optNum(raw.baselineUnitPrice);
+  if (baselineUnitCount === undefined || baselineUnitPrice === undefined) e.baselineUnitCount = msg.invalidNumber;
   if (typeof raw.notes === "string" && raw.notes.length > 5000) e.notes = msg.tooLong;
   if (Object.keys(e).length) return { errors: { error: Object.values(e)[0], fieldErrors: e } };
   return {
@@ -96,6 +102,9 @@ export function validateProject(raw: unknown, msg: ProjectValidationMessages, de
       baselineRevenue: revenue ?? 0,
       baselineDirectCost: directCost ?? 0,
       baselineTargetMargin: margin ?? defaults.targetMargin,
+      baselineUnitCount: baselineUnitCount ?? null,
+      baselineUnitPrice: baselineUnitPrice ?? null,
+      unitLabel: text(raw.unitLabel, 30) || null,
       notes: text(raw.notes, 5000) || null,
       estimateId: optId(raw.estimateId),
     },
@@ -114,9 +123,12 @@ export interface MemberInput {
   currency: Currency | null;
   rateSource: RateSource;
   notes: string | null;
-  payModel: "hourly" | "fixed" | "percent";
+  payModel: "hourly" | "fixed" | "percent" | "unit";
   fixedCost: number | null;
   percent: number | null;
+  unitCost: number | null;
+  plannedUnits: number | null;
+  deliveredUnits: number;
 }
 
 export function validateMember(raw: unknown, msg: ProjectValidationMessages): Outcome<MemberInput> {
@@ -137,11 +149,15 @@ export function validateMember(raw: unknown, msg: ProjectValidationMessages): Ou
   if (costRate === undefined) e.costRate = msg.invalidNumber;
   if (startsOn === undefined) e.startsOn = msg.invalidDate;
   if (endsOn === undefined) e.endsOn = msg.invalidDate;
-  const payModel = oneOf(raw.payModel, ["hourly", "fixed", "percent"] as const) ?? "hourly";
+  const payModel = oneOf(raw.payModel, ["hourly", "fixed", "percent", "unit"] as const) ?? "hourly";
   const fixedCost = optNum(raw.fixedCost);
   const percent = optNum(raw.percent);
+  const unitCost = optNum(raw.unitCost);
+  const plannedUnits = optNum(raw.plannedUnits);
+  const deliveredUnits = optNum(raw.deliveredUnits);
   if (fixedCost === undefined) e.fixedCost = msg.invalidNumber;
   if (percent === undefined || (percent ?? 0) > 100) e.percent = msg.percentRange;
+  if (unitCost === undefined || plannedUnits === undefined || deliveredUnits === undefined) e.unitCost = msg.invalidNumber;
   if (Object.keys(e).length) return { errors: { error: Object.values(e)[0], fieldErrors: e } };
   return {
     data: {
@@ -154,6 +170,9 @@ export function validateMember(raw: unknown, msg: ProjectValidationMessages): Ou
       payModel,
       fixedCost: payModel === "fixed" ? fixedCost ?? null : null,
       percent: payModel === "percent" ? percent ?? null : null,
+      unitCost: payModel === "unit" ? unitCost ?? null : null,
+      plannedUnits: payModel === "unit" ? plannedUnits ?? null : null,
+      deliveredUnits: payModel === "unit" ? deliveredUnits ?? 0 : 0,
     },
   };
 }

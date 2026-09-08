@@ -10,7 +10,7 @@ function item(over: Partial<ProjectListItem["project"]> & { margin?: number; hea
   const project: ProjectListItem["project"] = {
     id: "x", createdAt: "2026-09-01", updatedAt: "", name: "Web", clientId: "c1", clientName: "ACME", contactName: null, contactEmail: null, contactPhone: null,
     projectType: "website", status: "active", priority: "normal", ownerId: "u1", ownerName: "Alex", startDate: null, deadline: "2026-10-01", currency: "CZK",
-    baselineRevenue: revenue, baselineDirectCost: revenue * (1 - (margin ?? 60) / 100), baselineTargetMargin: 60, baselineCreatedAt: "", pricingEstimateId: null,
+    baselineRevenue: revenue, baselineDirectCost: revenue * (1 - (margin ?? 60) / 100), baselineTargetMargin: 60, baselineCreatedAt: "", pricingEstimateId: null, baselineUnitCount: null, baselineUnitPrice: null, unitLabel: null,
     manualProgress: null, notes: null, completedAt: null, ...p,
   };
   const financials = computeFinancials({ project, members: [], tasks: [], costs: [], changeRequests: [] });

@@ -5,10 +5,13 @@
  * All margins are in percent (60 means 60 %). Health thresholds come from
  * Business Settings (Settings → Business → Project economics).
  *
- * Cost lines come in three kinds:
+ * Cost lines come in four kinds:
  *   hourly  = hours × hourly rate
  *   fixed   = flat amount per project
  *   percent = share of the client price (sales commission, PM fee)
+ *   unit    = quantity × cost per unit (e.g. 300 3D models × 500 CZK)
+ * The client price is either typed as a total or derived per unit
+ * (unit count × unit price), e.g. 300 pieces × 600 CZK.
  */
 import type { MarginThresholds } from "@/modules/settings/types";
 
@@ -21,9 +24,17 @@ export function costItemTotal(item: CostItemInput, revenue = 0): number {
       return item.fixedAmount;
     case "percent":
       return (revenue * item.percent) / 100;
+    case "unit":
+      return item.quantity * item.unitCost;
     default:
       return item.hours * item.hourlyRate;
   }
+}
+
+/** Client price of an estimate: typed total, or unit count × unit price. */
+export function effectiveRevenue(estimate: Pick<EstimateInput, "revenue" | "pricingBasis" | "unitCount" | "unitPrice">): number {
+  if (estimate.pricingBasis === "per_unit") return (estimate.unitCount ?? 0) * (estimate.unitPrice ?? 0);
+  return estimate.revenue;
 }
 
 export function totalDirectCosts(items: readonly CostItemInput[], revenue = 0): number {
@@ -82,17 +93,22 @@ export function requiresFounderApproval(margin: number | null, thresholds: Margi
 }
 
 export function summarizeEstimate(estimate: EstimateInput, thresholds: MarginThresholds): PricingSummary {
-  const directCosts = totalDirectCosts(estimate.items, estimate.revenue);
-  const margin = grossMargin(estimate.revenue, directCosts);
+  const revenue = effectiveRevenue(estimate);
+  const directCosts = totalDirectCosts(estimate.items, revenue);
+  const margin = grossMargin(revenue, directCosts);
+  const count = estimate.pricingBasis === "per_unit" ? estimate.unitCount ?? 0 : 0;
 
   return {
-    revenue: estimate.revenue,
+    revenue,
     directCosts,
-    grossProfit: grossProfit(estimate.revenue, directCosts),
+    grossProfit: grossProfit(revenue, directCosts),
     grossMargin: margin,
     targetMargin: estimate.targetMargin,
     recommendedPrice: recommendedSellingPrice(fixedDirectCosts(estimate.items), estimate.targetMargin, percentShare(estimate.items)),
     health: healthStatus(margin, thresholds),
     requiresApproval: requiresFounderApproval(margin, thresholds),
+    perUnit: estimate.pricingBasis === "per_unit" && count > 0
+      ? { count, price: estimate.unitPrice ?? 0, cost: directCosts / count, profit: (revenue - directCosts) / count, label: estimate.unitLabel }
+      : null,
   };
 }

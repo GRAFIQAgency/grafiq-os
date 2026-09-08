@@ -38,15 +38,22 @@ export function validateProposal(raw: unknown, msg: ProposalValidationMessages):
     if (!isRecord(r)) return;
     const itemTitle = text(r.title, 200);
     if (!itemTitle) fieldErrors[`items.${index}.title`] = msg.itemTitleRequired;
-    const kind = r.kind === "hourly" ? "hourly" : "fixed";
+    const kind = r.kind === "hourly" ? "hourly" : r.kind === "unit" ? "unit" : "fixed";
     const hours = num(r.hours);
     const rate = num(r.rate);
     const amount = num(r.amount);
+    const quantity = num(r.quantity);
+    const unitPrice = num(r.unitPrice);
     if (hours === undefined) fieldErrors[`items.${index}.hours`] = msg.invalidNumber;
     if (rate === undefined) fieldErrors[`items.${index}.rate`] = msg.invalidNumber;
     if (amount === undefined) fieldErrors[`items.${index}.amount`] = msg.invalidNumber;
-    if (itemTitle && hours !== undefined && rate !== undefined && amount !== undefined) {
-      items.push(normalizeItem({ id: text(r.id, 64) || newItemId(), title: itemTitle, description: text(r.description, 600), kind, hours: kind === "hourly" ? hours : 0, rate: kind === "hourly" ? rate : 0, amount: kind === "fixed" ? amount : 0 }));
+    if (quantity === undefined || unitPrice === undefined) fieldErrors[`items.${index}.quantity`] = msg.invalidNumber;
+    if (itemTitle && hours !== undefined && rate !== undefined && amount !== undefined && quantity !== undefined && unitPrice !== undefined) {
+      items.push(normalizeItem({
+        id: text(r.id, 64) || newItemId(), title: itemTitle, description: text(r.description, 600), kind,
+        hours: kind === "hourly" ? hours : 0, rate: kind === "hourly" ? rate : 0, amount: kind === "fixed" ? amount : 0,
+        quantity: kind === "unit" ? quantity : 0, unitPrice: kind === "unit" ? unitPrice : 0, unitLabel: kind === "unit" ? text(r.unitLabel, 30) || null : null,
+      }));
     }
   });
 

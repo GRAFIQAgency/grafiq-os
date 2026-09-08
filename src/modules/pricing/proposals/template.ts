@@ -10,6 +10,7 @@ import type { GeneratedProposal, ProposalItem, ProposalSource, TemplateLabels } 
  *   up to the client price (each line keeps its share of the direct costs).
  *   Hourly cost lines become hourly plan lines with a SELL rate; fixed and
  *   percent cost lines become fixed plan lines.
+ * - Per-unit estimates without cost lines: one unit line (count × unit price).
  * - Without cost lines (or with no costs): standard agency phases split by
  *   the given shares of the client price.
  */
@@ -23,15 +24,24 @@ export function templateProposal(source: ProposalSource, labels: TemplateLabels)
     const factor = revenue / costs;
     items = usable.map((i) => {
       const cost = costItemTotal(i, revenue);
+      const base = { id: newItemId(), title: i.name, description: labels.lineDescription, quantity: 0, unitPrice: 0, unitLabel: null as string | null };
       if (i.kind === "hourly" && i.hours > 0) {
         const sellRate = Math.round(i.hourlyRate * factor);
-        return { id: newItemId(), title: i.name, description: labels.lineDescription, kind: "hourly" as const, hours: round2(i.hours), rate: sellRate, amount: round2(i.hours * sellRate) };
+        return { ...base, kind: "hourly" as const, hours: round2(i.hours), rate: sellRate, amount: round2(i.hours * sellRate) };
       }
-      return { id: newItemId(), title: i.name, description: labels.lineDescription, kind: "fixed" as const, hours: 0, rate: 0, amount: Math.round(cost * factor) };
+      if (i.kind === "unit" && i.quantity > 0) {
+        const sellUnit = Math.round(i.unitCost * factor);
+        return { ...base, kind: "unit" as const, hours: 0, rate: 0, quantity: round2(i.quantity), unitPrice: sellUnit, unitLabel: i.unitLabel, amount: round2(i.quantity * sellUnit) };
+      }
+      return { ...base, kind: "fixed" as const, hours: 0, rate: 0, amount: Math.round(cost * factor) };
     });
     items = fitToTarget(items, revenue);
+  } else if ((source.unitCount ?? 0) > 0 && (source.unitPrice ?? 0) > 0) {
+    const count = source.unitCount as number;
+    const price = source.unitPrice as number;
+    items = [{ id: newItemId(), title: source.projectName, description: labels.lineDescription, kind: "unit", hours: 0, rate: 0, quantity: count, unitPrice: price, unitLabel: source.unitLabel ?? null, amount: round2(count * price) }];
   } else {
-    items = labels.phases.map((p) => ({ id: newItemId(), title: p.title, description: p.description, kind: "fixed" as const, hours: 0, rate: 0, amount: Math.round((revenue * p.share) / 100) }));
+    items = labels.phases.map((p) => ({ id: newItemId(), title: p.title, description: p.description, kind: "fixed" as const, hours: 0, rate: 0, quantity: 0, unitPrice: 0, unitLabel: null, amount: Math.round((revenue * p.share) / 100) }));
     items = fitToTarget(items, revenue);
   }
 

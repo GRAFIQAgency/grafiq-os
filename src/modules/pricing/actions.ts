@@ -20,6 +20,9 @@ function toItemRows(estimateId: string, estimate: EstimateInput) {
     hourly_rate: item.hourlyRate,
     fixed_amount: item.fixedAmount,
     percent: item.percent,
+    quantity: item.quantity,
+    unit_cost: item.unitCost,
+    unit_label: item.unitLabel,
     position,
   }));
 }
@@ -48,6 +51,10 @@ export async function saveEstimate(raw: unknown): Promise<SaveEstimateResult> {
     currency: estimate.currency,
     revenue: estimate.revenue,
     target_margin: estimate.targetMargin,
+    pricing_basis: estimate.pricingBasis,
+    unit_count: estimate.unitCount,
+    unit_price: estimate.unitPrice,
+    unit_label: estimate.unitLabel,
   };
 
   let estimateId = estimate.id;

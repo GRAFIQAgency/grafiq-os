@@ -9,7 +9,7 @@ const roleCosts: RoleCost[] = [
   { id: "r1", name: "Designer", hourlyCost: 900, currency: "CZK", isActive: true, position: 0 },
   { id: "r2", name: "Developer", hourlyCost: 1100, currency: "CZK", isActive: false, position: 1 },
 ];
-const person = (over: Partial<PersonOption>): PersonOption => ({ id: "p1", kind: "talent", label: "Anna", role: "Designer", hourlyCost: null, currency: null, costIsPersonSpecific: false, pricingModel: "hourly", fixedPrice: null, marginPercent: null, ...over });
+const person = (over: Partial<PersonOption>): PersonOption => ({ id: "p1", kind: "talent", label: "Anna", role: "Designer", hourlyCost: null, currency: null, costIsPersonSpecific: false, pricingModel: "hourly", fixedPrice: null, marginPercent: null, unitPrice: null, unitLabel: null, ...over });
 
 describe("suggestRate", () => {
   it("prefers the person's own Talent cost", () => {
@@ -28,10 +28,11 @@ describe("suggestRate", () => {
 
 describe("suggestPayModel", () => {
   it("follows the person's Talent default and lets the project override it", () => {
-    expect(suggestPayModel(person({ pricingModel: "fixed", fixedPrice: 12000 }))).toEqual({ payModel: "fixed", fixedCost: 12000, percent: null });
-    expect(suggestPayModel(person({ pricingModel: "percent", marginPercent: 10 }))).toEqual({ payModel: "percent", fixedCost: null, percent: 10 });
-    expect(suggestPayModel(person({}))).toEqual({ payModel: "hourly", fixedCost: null, percent: null });
-    expect(suggestPayModel(person({ kind: "user", pricingModel: null }))).toEqual({ payModel: "hourly", fixedCost: null, percent: null });
+    expect(suggestPayModel(person({ pricingModel: "fixed", fixedPrice: 12000 }))).toEqual({ payModel: "fixed", fixedCost: 12000, percent: null, unitCost: null, unitLabel: null });
+    expect(suggestPayModel(person({ pricingModel: "percent", marginPercent: 10 }))).toEqual({ payModel: "percent", fixedCost: null, percent: 10, unitCost: null, unitLabel: null });
+    expect(suggestPayModel(person({ pricingModel: "unit", unitPrice: 500, unitLabel: "model" }))).toEqual({ payModel: "unit", fixedCost: null, percent: null, unitCost: 500, unitLabel: "model" });
+    expect(suggestPayModel(person({}))).toEqual({ payModel: "hourly", fixedCost: null, percent: null, unitCost: null, unitLabel: null });
+    expect(suggestPayModel(person({ kind: "user", pricingModel: null }))).toEqual({ payModel: "hourly", fixedCost: null, percent: null, unitCost: null, unitLabel: null });
     expect(suggestPayModel(null).payModel).toBe("hourly");
   });
 });

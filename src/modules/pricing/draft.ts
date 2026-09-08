@@ -3,7 +3,7 @@
  * Numbers are kept as strings while editing so inputs behave naturally;
  * `draftToInput` parses them for calculations and saving.
  */
-import type { CostItemInput, CostItemKind, Currency, EstimateInput, PricingDefaults } from "./types";
+import type { CostItemInput, CostItemKind, Currency, EstimateInput, PricingBasis, PricingDefaults } from "./types";
 
 export interface CostItemDraft {
   /** Client-only stable key for React lists. */
@@ -14,6 +14,9 @@ export interface CostItemDraft {
   hourlyRate: string;
   fixedAmount: string;
   percent: string;
+  quantity: string;
+  unitCost: string;
+  unitLabel: string;
 }
 
 export interface EstimateDraft {
@@ -24,6 +27,10 @@ export interface EstimateDraft {
   revenue: string;
   targetMargin: string;
   items: CostItemDraft[];
+  pricingBasis: PricingBasis;
+  unitCount: string;
+  unitPrice: string;
+  unitLabel: string;
 }
 
 function newKey() {
@@ -33,7 +40,7 @@ function newKey() {
 }
 
 export function newCostItemDraft(name = ""): CostItemDraft {
-  return { key: newKey(), name, kind: "hourly", hours: "", hourlyRate: "", fixedAmount: "", percent: "" };
+  return { key: newKey(), name, kind: "hourly", hours: "", hourlyRate: "", fixedAmount: "", percent: "", quantity: "", unitCost: "", unitLabel: "" };
 }
 
 export function createEmptyDraft(defaults: PricingDefaults): EstimateDraft {
@@ -48,6 +55,10 @@ export function createEmptyDraft(defaults: PricingDefaults): EstimateDraft {
     revenue: "",
     targetMargin: String(defaults.targetMargin),
     items: [firstItem],
+    pricingBasis: "total",
+    unitCount: "",
+    unitPrice: "",
+    unitLabel: "",
   };
 }
 
@@ -71,7 +82,14 @@ export function draftFromEstimate(estimate: EstimateInput): EstimateDraft {
       hourlyRate: numToText(item.hourlyRate),
       fixedAmount: numToText(item.fixedAmount),
       percent: numToText(item.percent),
+      quantity: numToText(item.quantity),
+      unitCost: numToText(item.unitCost),
+      unitLabel: item.unitLabel ?? "",
     })),
+    pricingBasis: estimate.pricingBasis,
+    unitCount: numToText(estimate.unitCount ?? 0),
+    unitPrice: numToText(estimate.unitPrice ?? 0),
+    unitLabel: estimate.unitLabel ?? "",
   };
 }
 
@@ -88,6 +106,9 @@ export function costItemDraftToInput(item: CostItemDraft): CostItemInput {
     hourlyRate: parseNumber(item.hourlyRate),
     fixedAmount: parseNumber(item.fixedAmount),
     percent: parseNumber(item.percent),
+    quantity: parseNumber(item.quantity),
+    unitCost: parseNumber(item.unitCost),
+    unitLabel: item.unitLabel.trim() || null,
   };
 }
 
@@ -100,5 +121,9 @@ export function draftToInput(draft: EstimateDraft): EstimateInput {
     revenue: parseNumber(draft.revenue),
     targetMargin: parseNumber(draft.targetMargin),
     items: draft.items.map(costItemDraftToInput),
+    pricingBasis: draft.pricingBasis,
+    unitCount: draft.pricingBasis === "per_unit" ? parseNumber(draft.unitCount) : null,
+    unitPrice: draft.pricingBasis === "per_unit" ? parseNumber(draft.unitPrice) : null,
+    unitLabel: draft.unitLabel.trim() || null,
   };
 }

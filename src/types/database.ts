@@ -23,8 +23,10 @@ export interface ProfileRow {
 /** Currencies supported by the app (also enforced by DB check constraints). */
 export type Currency = "CZK" | "EUR" | "USD";
 export type PricingCurrency = Currency;
-/** hourly = hours × rate, fixed = flat amount, percent = share of the client price. */
-export type PricingCostItemKind = "hourly" | "fixed" | "percent";
+/** hourly = hours × rate, fixed = flat amount, percent = share of the client price, unit = quantity × price per unit. */
+export type PricingCostItemKind = "hourly" | "fixed" | "percent" | "unit";
+/** total = client price entered directly; per_unit = unit_count × unit_price. */
+export type PricingBasis = "total" | "per_unit";
 /** How a Talent Bench person is usually paid (Settings → People rates). */
 export type PricingModel = PricingCostItemKind;
 
@@ -40,6 +42,10 @@ export interface PricingEstimateRow {
   revenue: number;
   /** Target gross margin in percent (0–99.99). */
   target_margin: number;
+  pricing_basis: PricingBasis;
+  unit_count: number | null;
+  unit_price: number | null;
+  unit_label: string | null;
 }
 
 export interface PricingCostItemRow {
@@ -53,6 +59,10 @@ export interface PricingCostItemRow {
   fixed_amount: number;
   /** Percent of the client price (kind = percent). */
   percent: number;
+  /** kind = unit: quantity × unit_cost. */
+  quantity: number;
+  unit_cost: number;
+  unit_label: string | null;
   position: number;
 }
 
@@ -351,12 +361,14 @@ export interface TalentBenchDetailsRow {
   pricing_model: PricingModel;
   fixed_price: number | null;
   margin_percent: number | null;
+  unit_price: number | null;
+  unit_label: string | null;
 }
 
 // --- Pricing proposals (supabase/migrations/0012_member_pay_models_and_proposals.sql) ---
 
 export type ProposalStatus = "draft" | "shared";
-export type ProposalItemKind = "hourly" | "fixed";
+export type ProposalItemKind = "hourly" | "fixed" | "unit";
 
 export interface PricingProposalItemJson {
   id: string;
@@ -366,6 +378,10 @@ export interface PricingProposalItemJson {
   hours: number;
   rate: number;
   amount: number;
+  /** kind = unit: quantity × unitPrice (older rows may omit them). */
+  quantity?: number;
+  unitPrice?: number;
+  unitLabel?: string | null;
 }
 
 export interface PricingProposalRow {
@@ -435,6 +451,9 @@ export interface ProjectRow {
   baseline_direct_cost: number;
   baseline_target_margin: number;
   baseline_created_at: string;
+  baseline_unit_count: number | null;
+  baseline_unit_price: number | null;
+  unit_label: string | null;
   pricing_estimate_id: string | null;
   manual_progress: number | null;
   notes: string | null;
@@ -450,6 +469,9 @@ export interface ProjectBaselineCostRow {
   hourly_rate: number;
   fixed_amount: number;
   percent: number;
+  quantity: number;
+  unit_cost: number;
+  unit_label: string | null;
   total: number;
   position: number;
 }
@@ -475,6 +497,9 @@ export interface ProjectMemberRow {
   pay_model: PricingModel;
   fixed_cost: number | null;
   percent: number | null;
+  unit_cost: number | null;
+  planned_units: number | null;
+  delivered_units: number;
 }
 
 export interface ProjectMilestoneRow {

@@ -26,10 +26,12 @@ export function suggestRate(person: PersonOption | null, projectRole: string | n
  * be hourly on one project and fixed on another. Internal users default to hourly.
  */
 export function suggestPayModel(person: PersonOption | null): PayModelSuggestion {
-  if (!person || !person.pricingModel) return { payModel: "hourly", fixedCost: null, percent: null };
+  if (!person || !person.pricingModel) return { payModel: "hourly", fixedCost: null, percent: null, unitCost: null, unitLabel: null };
   return {
     payModel: person.pricingModel,
     fixedCost: person.pricingModel === "fixed" ? person.fixedPrice : null,
     percent: person.pricingModel === "percent" ? person.marginPercent : null,
+    unitCost: person.pricingModel === "unit" ? person.unitPrice : null,
+    unitLabel: person.pricingModel === "unit" ? person.unitLabel : null,
   };
 }

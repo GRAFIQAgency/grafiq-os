@@ -48,6 +48,8 @@ export function validateBenchDetails(raw: unknown, msg: BenchValidationMessages)
   if (fixedPrice === undefined) fieldErrors.fixedPrice = msg.invalidNumber;
   const marginPercent = optNum(raw.marginPercent);
   if (marginPercent === undefined || (marginPercent ?? 0) > 100) fieldErrors.marginPercent = msg.percentRange;
+  const unitPrice = optNum(raw.unitPrice);
+  if (unitPrice === undefined) fieldErrors.unitPrice = msg.invalidNumber;
 
   const minimumEngagement = text(raw.minimumEngagement, 120);
   const commercialNotes = text(raw.commercialNotes, 2000);
@@ -71,6 +73,8 @@ export function validateBenchDetails(raw: unknown, msg: BenchValidationMessages)
       pricingModel: oneOf(raw.pricingModel, PRICING_MODELS) ?? "hourly",
       fixedPrice: fixedPrice ?? null,
       marginPercent: marginPercent ?? null,
+      unitPrice: unitPrice ?? null,
+      unitLabel: text(raw.unitLabel, 30) || null,
     },
   };
 }
@@ -89,6 +93,8 @@ export function validatePersonRate(raw: unknown, msg: BenchValidationMessages, o
   if (fixedPrice === undefined) fieldErrors.fixedPrice = msg.invalidNumber;
   const marginPercent = optNum(raw.marginPercent);
   if (marginPercent === undefined || (marginPercent ?? 0) > 100) fieldErrors.marginPercent = msg.percentRange;
+  const unitPrice = optNum(raw.unitPrice);
+  if (unitPrice === undefined) fieldErrors.unitPrice = msg.invalidNumber;
   if (Object.keys(fieldErrors).length) return { errors: { error: Object.values(fieldErrors)[0], fieldErrors } };
   return {
     data: {
@@ -99,6 +105,8 @@ export function validatePersonRate(raw: unknown, msg: BenchValidationMessages, o
       costCurrency: oneOf(raw.costCurrency, CURRENCIES) ?? null,
       fixedPrice: fixedPrice ?? null,
       marginPercent: marginPercent ?? null,
+      unitPrice: unitPrice ?? null,
+      unitLabel: text(raw.unitLabel, 30) || null,
     },
   };
 }

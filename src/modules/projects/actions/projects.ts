@@ -33,7 +33,7 @@ export async function createProject(raw: unknown): Promise<CreateProjectResult> 
 
   const supabase = await createClient();
   const actor = await currentActor();
-  let baselineLines: { name: string; kind: "hourly" | "fixed" | "percent"; hours: number; hourly_rate: number; fixed_amount: number; percent: number; total: number; position: number }[] = [];
+  let baselineLines: { name: string; kind: "hourly" | "fixed" | "percent" | "unit"; hours: number; hourly_rate: number; fixed_amount: number; percent: number; quantity: number; unit_cost: number; unit_label: string | null; total: number; position: number }[] = [];
 
   if (input.estimateId) {
     const { data: existing } = await supabase.from("projects").select("id").eq("pricing_estimate_id", input.estimateId).maybeSingle<{ id: string }>();
@@ -43,9 +43,9 @@ export async function createProject(raw: unknown): Promise<CreateProjectResult> 
     // Snapshot the cost breakdown as it is right now.
     const revenue = Number(estimate.revenue);
     baselineLines = [...estimate.pricing_cost_items].sort((a, b) => a.position - b.position).map((i, position) => {
-      const hours = Number(i.hours), rate = Number(i.hourly_rate), fixed = Number(i.fixed_amount), percent = Number(i.percent ?? 0);
-      const total = i.kind === "fixed" ? fixed : i.kind === "percent" ? (revenue * percent) / 100 : hours * rate;
-      return { name: i.name, kind: i.kind, hours, hourly_rate: rate, fixed_amount: fixed, percent, total, position };
+      const hours = Number(i.hours), rate = Number(i.hourly_rate), fixed = Number(i.fixed_amount), percent = Number(i.percent ?? 0), quantity = Number(i.quantity ?? 0), unitCost = Number(i.unit_cost ?? 0);
+      const total = i.kind === "fixed" ? fixed : i.kind === "percent" ? (revenue * percent) / 100 : i.kind === "unit" ? quantity * unitCost : hours * rate;
+      return { name: i.name, kind: i.kind, hours, hourly_rate: rate, fixed_amount: fixed, percent, quantity, unit_cost: unitCost, unit_label: i.unit_label ?? null, total, position };
     });
   }
 
@@ -56,6 +56,7 @@ export async function createProject(raw: unknown): Promise<CreateProjectResult> 
       contact_phone: input.contactPhone, project_type: input.projectType, status: input.status, priority: input.priority, owner_id: input.ownerId,
       start_date: input.startDate, deadline: input.deadline, currency: input.currency, baseline_revenue: input.baselineRevenue,
       baseline_direct_cost: input.baselineDirectCost, baseline_target_margin: input.baselineTargetMargin, pricing_estimate_id: input.estimateId,
+      baseline_unit_count: input.baselineUnitCount, baseline_unit_price: input.baselineUnitPrice, unit_label: input.unitLabel,
       notes: input.notes,
     })
     .select("id")

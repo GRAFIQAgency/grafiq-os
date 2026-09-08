@@ -10,9 +10,11 @@ export function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-/** Amount of one line: hourly lines are hours × rate, fixed lines carry their amount. */
-export function itemAmount(item: Pick<ProposalItem, "kind" | "hours" | "rate" | "amount">): number {
-  return item.kind === "hourly" ? round2(item.hours * item.rate) : round2(item.amount);
+/** Amount of one line: hourly = hours × rate, unit = quantity × unit price, fixed lines carry their amount. */
+export function itemAmount(item: Pick<ProposalItem, "kind" | "hours" | "rate" | "amount" | "quantity" | "unitPrice">): number {
+  if (item.kind === "hourly") return round2(item.hours * item.rate);
+  if (item.kind === "unit") return round2(item.quantity * item.unitPrice);
+  return round2(item.amount);
 }
 
 /** Recomputes the stored `amount` so the JSON is always consistent. */
@@ -20,7 +22,7 @@ export function normalizeItem(item: ProposalItem): ProposalItem {
   return { ...item, amount: itemAmount(item) };
 }
 
-export function proposalTotals(items: readonly Pick<ProposalItem, "kind" | "hours" | "rate" | "amount">[], vatRate: number): ProposalTotals {
+export function proposalTotals(items: readonly Pick<ProposalItem, "kind" | "hours" | "rate" | "amount" | "quantity" | "unitPrice">[], vatRate: number): ProposalTotals {
   const subtotal = round2(items.reduce((s, i) => s + itemAmount(i), 0));
   const vat = round2((subtotal * vatRate) / 100);
   return { subtotal, vat, total: round2(subtotal + vat) };
@@ -33,7 +35,7 @@ export function proposalTotals(items: readonly Pick<ProposalItem, "kind" | "hour
  */
 export function fitToTarget(items: ProposalItem[], target: number): ProposalItem[] {
   if (target <= 0) return items;
-  const hourlyTotal = items.filter((i) => i.kind === "hourly").reduce((s, i) => s + itemAmount(i), 0);
+  const hourlyTotal = items.filter((i) => i.kind !== "fixed").reduce((s, i) => s + itemAmount(i), 0);
   const fixed = items.filter((i) => i.kind === "fixed");
   const fixedTotal = fixed.reduce((s, i) => s + i.amount, 0);
   const remaining = target - hourlyTotal;

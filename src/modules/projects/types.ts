@@ -33,6 +33,10 @@ export interface Project {
   baselineDirectCost: number;
   baselineTargetMargin: number;
   baselineCreatedAt: string;
+  /** Per-unit projects: what was sold as count × unit price (informational). */
+  baselineUnitCount: number | null;
+  baselineUnitPrice: number | null;
+  unitLabel: string | null;
   pricingEstimateId: string | null;
   manualProgress: number | null;
   notes: string | null;
@@ -47,6 +51,9 @@ export interface BaselineCostLine {
   hourlyRate: number;
   fixedAmount: number;
   percent: number;
+  quantity: number;
+  unitCost: number;
+  unitLabel: string | null;
   total: number;
 }
 
@@ -72,6 +79,10 @@ export interface ProjectMember {
   fixedCost: number | null;
   /** Share of the project revenue in percent (payModel = percent). */
   percent: number | null;
+  /** payModel = unit: cost per delivered unit, planned and delivered units. */
+  unitCost: number | null;
+  plannedUnits: number | null;
+  deliveredUnits: number;
 }
 
 export interface Milestone {
@@ -259,6 +270,8 @@ export interface PersonOption extends PickerOption {
   pricingModel: PricingModel | null;
   fixedPrice: number | null;
   marginPercent: number | null;
+  unitPrice: number | null;
+  unitLabel: string | null;
 }
 
 export interface RateSuggestion {
@@ -272,6 +285,8 @@ export interface PayModelSuggestion {
   payModel: PricingModel;
   fixedCost: number | null;
   percent: number | null;
+  unitCost: number | null;
+  unitLabel: string | null;
 }
 
 export interface ActionResult {

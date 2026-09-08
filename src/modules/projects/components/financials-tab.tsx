@@ -20,6 +20,7 @@ export function FinancialsTab({ detail, dict, locale }: { detail: ProjectDetail;
           <p className="mb-3 text-xs text-muted-foreground">{t.baselineHint}</p>
           <Facts columns={1} items={[
             { label: t.soldRevenue, value: money(f.baseline.revenue) },
+            ...(detail.project.baselineUnitCount && detail.project.baselineUnitPrice ? [{ label: t.soldUnits, value: `${detail.project.baselineUnitCount} ${detail.project.unitLabel ?? dict.projects.team.unitShort} × ${money(detail.project.baselineUnitPrice)}` }] : []),
             { label: t.directCost, value: money(f.baseline.directCost) },
             { label: t.grossProfit, value: money(f.baseline.grossProfit) },
             { label: t.grossMargin, value: <span className="font-semibold">{pct(f.baseline.grossMargin)}</span> },
@@ -65,7 +66,7 @@ export function FinancialsTab({ detail, dict, locale }: { detail: ProjectDetail;
                 {detail.baselineCosts.map((c) => (
                   <tr key={c.id} className="border-b border-border/60">
                     <td className="py-1.5">{c.name}</td>
-                    <td className="py-1.5 text-xs text-muted-foreground">{c.kind === "hourly" ? `${formatHours(c.hours, locale)} × ${money(c.hourlyRate)}` : c.kind === "percent" ? `${c.percent} % ${dict.pricing.costs.ofPrice}` : dict.pricing.costs.fixed}</td>
+                    <td className="py-1.5 text-xs text-muted-foreground">{c.kind === "hourly" ? `${formatHours(c.hours, locale)} × ${money(c.hourlyRate)}` : c.kind === "percent" ? `${c.percent} % ${dict.pricing.costs.ofPrice}` : c.kind === "unit" ? `${c.quantity} ${c.unitLabel ?? dict.projects.team.unitShort} × ${money(c.unitCost)}` : dict.pricing.costs.fixed}</td>
                     <td className="py-1.5 text-right tabular-nums">{money(c.total)}</td>
                   </tr>
                 ))}

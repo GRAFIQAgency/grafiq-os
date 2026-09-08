@@ -36,6 +36,8 @@ interface PersonRow {
   hourlyCost: string;
   fixedPrice: string;
   marginPercent: string;
+  unitPrice: string;
+  unitLabel: string;
   currency: Currency;
   fromSourcing: boolean;
   dirty: boolean;
@@ -49,14 +51,14 @@ const num = (v: number | null) => (v == null ? "" : String(v));
 function toRow(p: TalentCapacityRecord, defaultCurrency: Currency): PersonRow {
   return {
     key: p.id, id: p.id, fullName: p.fullName, role: p.role ?? "", pricingModel: p.pricingModel,
-    hourlyCost: num(p.hourlyCost), fixedPrice: num(p.fixedPrice), marginPercent: num(p.marginPercent),
+    hourlyCost: num(p.hourlyCost), fixedPrice: num(p.fixedPrice), marginPercent: num(p.marginPercent), unitPrice: num(p.unitPrice), unitLabel: p.unitLabel ?? "",
     currency: p.costCurrency ?? defaultCurrency, fromSourcing: p.hourlyCost != null && !p.costIsPersonSpecific, dirty: false,
   };
 }
 
 /** The value that matters for the row's pay model (drives the status badge). */
 function rateValue(row: PersonRow): string {
-  return row.pricingModel === "fixed" ? row.fixedPrice : row.pricingModel === "percent" ? row.marginPercent : row.hourlyCost;
+  return row.pricingModel === "fixed" ? row.fixedPrice : row.pricingModel === "percent" ? row.marginPercent : row.pricingModel === "unit" ? row.unitPrice : row.hourlyCost;
 }
 
 /**
@@ -87,7 +89,7 @@ export function PeopleRatesTable({ people, roleNames, defaultCurrency }: PeopleR
     run(row.key, async () => {
       const input = {
         fullName: row.fullName, role: row.role, pricingModel: row.pricingModel, hourlyCost: row.hourlyCost,
-        costCurrency: row.currency, fixedPrice: row.fixedPrice, marginPercent: row.marginPercent,
+        costCurrency: row.currency, fixedPrice: row.fixedPrice, marginPercent: row.marginPercent, unitPrice: row.unitPrice, unitLabel: row.unitLabel,
       };
       const result: AddPersonResult = row.id ? await setPersonRate(row.id, input) : await addPersonWithRate(input);
       if (result.error) {
@@ -102,8 +104,8 @@ export function PeopleRatesTable({ people, roleNames, defaultCurrency }: PeopleR
   const sorted = [...rows].sort((a, b) => (a.id && b.id ? a.role.localeCompare(b.role) || a.fullName.localeCompare(b.fullName) : a.id ? -1 : b.id ? 1 : 0));
 
   const amountInput = (row: PersonRow) => {
-    const field: "hourlyCost" | "fixedPrice" | "marginPercent" = row.pricingModel === "fixed" ? "fixedPrice" : row.pricingModel === "percent" ? "marginPercent" : "hourlyCost";
-    const suffix = row.pricingModel === "percent" ? "%" : row.pricingModel === "fixed" ? row.currency : `${row.currency}/h`;
+    const field: "hourlyCost" | "fixedPrice" | "marginPercent" | "unitPrice" = row.pricingModel === "fixed" ? "fixedPrice" : row.pricingModel === "percent" ? "marginPercent" : row.pricingModel === "unit" ? "unitPrice" : "hourlyCost";
+    const suffix = row.pricingModel === "percent" ? "%" : row.pricingModel === "fixed" ? row.currency : row.pricingModel === "unit" ? `${row.currency}/${row.unitLabel.trim() || t.unitShort}` : `${row.currency}/h`;
     return (
       <div className="relative">
         <Input
@@ -169,6 +171,9 @@ export function PeopleRatesTable({ people, roleNames, defaultCurrency }: PeopleR
                     </TableCell>
                     <TableCell className="align-top">
                       {amountInput(row)}
+                      {row.pricingModel === "unit" ? (
+                        <Input value={row.unitLabel} onChange={(e) => edit(row.key, { unitLabel: e.target.value })} placeholder={t.unitLabelPlaceholder} aria-label={t.unitLabel} className="mt-1 w-36 text-xs" maxLength={30} />
+                      ) : null}
                       {row.pricingModel === "fixed" ? <p className="mt-1 text-[11px] text-muted-foreground">{t.fixedHint}</p> : null}
                       {row.pricingModel === "percent" ? <p className="mt-1 text-[11px] text-muted-foreground">{t.percentHint}</p> : null}
                     </TableCell>
@@ -211,7 +216,7 @@ export function PeopleRatesTable({ people, roleNames, defaultCurrency }: PeopleR
           </Table>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="button" variant="outline" size="sm" onClick={() => setRows((prev) => [...prev, { key: newKey(), fullName: "", role: "", pricingModel: "hourly", hourlyCost: "", fixedPrice: "", marginPercent: "", currency: defaultCurrency, fromSourcing: false, dirty: true }])}>
+          <Button type="button" variant="outline" size="sm" onClick={() => setRows((prev) => [...prev, { key: newKey(), fullName: "", role: "", pricingModel: "hourly", hourlyCost: "", fixedPrice: "", marginPercent: "", unitPrice: "", unitLabel: "", currency: defaultCurrency, fromSourcing: false, dirty: true }])}>
             <Plus data-icon="inline-start" />
             {t.add}
           </Button>

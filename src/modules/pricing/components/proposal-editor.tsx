@@ -129,11 +129,11 @@ export function ProposalEditor({ proposal, shareUrl, shareAvailable }: { proposa
             </div>
           </DetailSection>
 
-          <DetailSection title={t.fields.items} action={<Button type="button" size="sm" variant="outline" onClick={() => { setItems((prev) => [...prev, { id: newItemId(), title: "", description: "", kind: "fixed", hours: 0, rate: 0, amount: 0 }]); setDirty(true); }}><Plus data-icon="inline-start" />{t.fields.addItem}</Button>}>
+          <DetailSection title={t.fields.items} action={<Button type="button" size="sm" variant="outline" onClick={() => { setItems((prev) => [...prev, { id: newItemId(), title: "", description: "", kind: "fixed", hours: 0, rate: 0, amount: 0, quantity: 0, unitPrice: 0, unitLabel: null }]); setDirty(true); }}><Plus data-icon="inline-start" />{t.fields.addItem}</Button>}>
             {items.length === 0 ? <p className="text-sm text-muted-foreground">{t.fields.noItems}</p> : (
               <ol className="space-y-3">
                 {items.map((it, index) => (
-                  <li key={it.id} className="rounded-md border p-3">
+                  <li key={it.id} className="rounded-md border p-3" data-item-kind={it.kind}>
                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto_auto]">
                       <div>
                         <Input value={it.title} onChange={(e) => patchItem(it.id, { title: e.target.value })} placeholder={t.fields.itemTitle} aria-label={`${t.fields.item} ${index + 1}`} aria-invalid={Boolean(fieldErrors[`items.${index}.title`])} className="font-medium" />
@@ -143,8 +143,16 @@ export function ProposalEditor({ proposal, shareUrl, shareAvailable }: { proposa
                         <select value={it.kind} onChange={(e) => patchItem(it.id, { kind: e.target.value as ProposalItem["kind"] })} className={selectCls} aria-label={t.fields.kind}>
                           <option value="fixed">{t.kinds.fixed}</option>
                           <option value="hourly">{t.kinds.hourly}</option>
+                          <option value="unit">{t.kinds.unit}</option>
                         </select>
-                        {it.kind === "hourly" ? (
+                        {it.kind === "unit" ? (
+                          <div className="flex items-center gap-1">
+                            <Input type="number" min={0} step="any" value={it.quantity || ""} onChange={(e) => patchItem(it.id, { quantity: Number(e.target.value) || 0 })} placeholder={t.fields.quantity} aria-label={t.fields.quantity} className="w-20 text-right tabular-nums" />
+                            <Input value={it.unitLabel ?? ""} onChange={(e) => patchItem(it.id, { unitLabel: e.target.value || null })} placeholder={t.fields.unitLabel} aria-label={t.fields.unitLabel} className="w-14 text-xs" maxLength={30} />
+                            <span className="text-xs text-muted-foreground">×</span>
+                            <Input type="number" min={0} step="any" value={it.unitPrice || ""} onChange={(e) => patchItem(it.id, { unitPrice: Number(e.target.value) || 0 })} placeholder={t.fields.unitPrice} aria-label={t.fields.unitPrice} className="w-24 text-right tabular-nums" />
+                          </div>
+                        ) : it.kind === "hourly" ? (
                           <div className="flex items-center gap-1">
                             <Input type="number" min={0} step="any" value={it.hours || ""} onChange={(e) => patchItem(it.id, { hours: Number(e.target.value) || 0 })} placeholder={t.fields.hours} aria-label={t.fields.hours} className="w-20 text-right tabular-nums" />
                             <span className="text-xs text-muted-foreground">×</span>

@@ -38,6 +38,7 @@ export async function addMember(projectId: string, raw: unknown): Promise<Action
     project_id: projectId, talent_candidate_id: m.talentCandidateId, user_id: m.userId, display_name: displayName, project_role: m.projectRole,
     status: m.status, planned_hours: m.plannedHours, starts_on: m.startsOn, ends_on: m.endsOn, cost_rate: m.costRate, currency: m.currency,
     rate_source: m.rateSource, notes: m.notes, pay_model: m.payModel, fixed_cost: m.fixedCost, percent: m.percent,
+    unit_cost: m.unitCost, planned_units: m.plannedUnits, delivered_units: m.deliveredUnits,
   });
   if (error) return error.code === "23505" ? { error: dict.projects.errors.duplicateMember } : fail(error.message);
   await logActivity(supabase, [{ entityType: "project", entityId: projectId, action: "member_added", details: { name: displayName, role: m.projectRole, payModel: m.payModel, rate: m.costRate, fixedCost: m.fixedCost, percent: m.percent, source: m.rateSource } }], actor);
@@ -59,9 +60,12 @@ export async function updateMember(memberId: string, raw: unknown): Promise<Acti
     planned_hours: num(r.plannedHours), starts_on: (r.startsOn as string) || null, ends_on: (r.endsOn as string) || null,
     cost_rate: num(r.costRate), currency: ["CZK", "EUR", "USD"].includes(String(r.currency)) ? String(r.currency) : null,
     rate_source: r.costRate !== undefined ? "manual" : undefined, notes: String(r.notes ?? "").trim().slice(0, 2000) || null,
-    pay_model: ["hourly", "fixed", "percent"].includes(String(r.payModel)) ? String(r.payModel) : undefined,
+    pay_model: ["hourly", "fixed", "percent", "unit"].includes(String(r.payModel)) ? String(r.payModel) : undefined,
     fixed_cost: r.payModel === undefined ? undefined : r.payModel === "fixed" ? num(r.fixedCost) : null,
     percent: r.payModel === undefined ? undefined : r.payModel === "percent" ? num(r.percent) : null,
+    unit_cost: r.payModel === undefined ? undefined : r.payModel === "unit" ? num(r.unitCost) : null,
+    planned_units: r.payModel === undefined ? undefined : r.payModel === "unit" ? num(r.plannedUnits) : null,
+    delivered_units: r.deliveredUnits === undefined ? undefined : Math.max(0, num(r.deliveredUnits) ?? 0),
   }).eq("id", memberId);
   if (error) return fail(error.message);
   revalidateProjects();

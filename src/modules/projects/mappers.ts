@@ -14,12 +14,13 @@ export function rowToProject(r: ProjectRow, clientName: string | null, ownerName
     status: r.status, priority: r.priority, ownerId: r.owner_id, ownerName, startDate: r.start_date, deadline: r.deadline,
     currency: r.currency, baselineRevenue: Number(r.baseline_revenue), baselineDirectCost: Number(r.baseline_direct_cost),
     baselineTargetMargin: Number(r.baseline_target_margin), baselineCreatedAt: r.baseline_created_at,
+    baselineUnitCount: num(r.baseline_unit_count), baselineUnitPrice: num(r.baseline_unit_price), unitLabel: r.unit_label ?? null,
     pricingEstimateId: r.pricing_estimate_id, manualProgress: r.manual_progress, notes: r.notes, completedAt: r.completed_at,
   };
 }
 
 export function rowToBaselineCost(r: ProjectBaselineCostRow): BaselineCostLine {
-  return { id: r.id, name: r.name, kind: r.kind, hours: Number(r.hours), hourlyRate: Number(r.hourly_rate), fixedAmount: Number(r.fixed_amount), percent: Number(r.percent ?? 0), total: Number(r.total) };
+  return { id: r.id, name: r.name, kind: r.kind, hours: Number(r.hours), hourlyRate: Number(r.hourly_rate), fixedAmount: Number(r.fixed_amount), percent: Number(r.percent ?? 0), quantity: Number(r.quantity ?? 0), unitCost: Number(r.unit_cost ?? 0), unitLabel: r.unit_label ?? null, total: Number(r.total) };
 }
 
 export function rowToMember(r: ProjectMemberRow): ProjectMember {
@@ -28,6 +29,7 @@ export function rowToMember(r: ProjectMemberRow): ProjectMember {
     projectRole: r.project_role, status: r.status, plannedHours: num(r.planned_hours), startsOn: r.starts_on, endsOn: r.ends_on,
     costRate: num(r.cost_rate), currency: r.currency, rateSource: r.rate_source, notes: r.notes,
     payModel: r.pay_model ?? "hourly", fixedCost: num(r.fixed_cost), percent: num(r.percent),
+    unitCost: num(r.unit_cost), plannedUnits: num(r.planned_units), deliveredUnits: Number(r.delivered_units ?? 0),
   };
 }
 

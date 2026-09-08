@@ -25,6 +25,8 @@ export async function getPricingDefaults(): Promise<PricingDefaults> {
       hourlyCost: p.hourlyCost,
       fixedPrice: p.fixedPrice,
       marginPercent: p.marginPercent,
+      unitPrice: p.unitPrice,
+      unitLabel: p.unitLabel,
       currency: p.costCurrency,
     })),
   };

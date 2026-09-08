@@ -92,6 +92,13 @@ export function BenchDetailsForm({ person }: { person: TalentPerson }) {
           ), t.pricingModelHint)}
           {pricingModel === "fixed" ? field("fixedPrice", t.fixedPrice, <Input id="fixedPrice" name="fixedPrice" type="number" min={0} step="any" defaultValue={d.fixedPrice ?? ""} className="text-right tabular-nums" aria-invalid={Boolean(fieldErrors.fixedPrice)} />, t.fixedPriceHint) : null}
           {pricingModel === "percent" ? field("marginPercent", t.marginPercent, <Input id="marginPercent" name="marginPercent" type="number" min={0} max={100} step="any" defaultValue={d.marginPercent ?? ""} className="text-right tabular-nums" aria-invalid={Boolean(fieldErrors.marginPercent)} />, t.marginPercentHint) : null}
+          {pricingModel === "unit" ? (
+            <div className="grid grid-cols-[1fr_auto] gap-2">
+              {field("unitPrice", t.unitPrice, <Input id="unitPrice" name="unitPrice" type="number" min={0} step="any" defaultValue={d.unitPrice ?? ""} className="text-right tabular-nums" aria-invalid={Boolean(fieldErrors.unitPrice)} />, t.unitPriceHint)}
+              {field("unitLabel", t.unitLabel, <Input id="unitLabel" name="unitLabel" defaultValue={d.unitLabel ?? ""} placeholder={dict.talent.people.unitLabelPlaceholder} className="w-24" maxLength={30} />)}
+            </div>
+          ) : null}
+          {pricingModel !== "unit" ? <><input type="hidden" name="unitPrice" value={d.unitPrice ?? ""} /><input type="hidden" name="unitLabel" value={d.unitLabel ?? ""} /></> : null}
           {pricingModel !== "fixed" ? <input type="hidden" name="fixedPrice" value={d.fixedPrice ?? ""} /> : null}
           {pricingModel !== "percent" ? <input type="hidden" name="marginPercent" value={d.marginPercent ?? ""} /> : null}
           <div className="grid grid-cols-[1fr_auto] gap-2">

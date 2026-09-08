@@ -29,7 +29,7 @@ interface CostItemRowProps {
   onRemove: () => void;
 }
 
-const KINDS: CostItemKind[] = ["hourly", "fixed", "percent"];
+const KINDS: CostItemKind[] = ["hourly", "fixed", "percent", "unit"];
 
 export function CostItemRow({
   item,
@@ -49,12 +49,13 @@ export function CostItemRow({
   const total = costItemTotal(costItemDraftToInput(item), revenue);
   const errorFor = (field: string) => fieldErrors[`items.${index}.${field}`];
   const match = resolvePreset(item.name, peoplePresets, rolePresets, currency);
+  const unitLabel = item.unitLabel.trim() || t.unitShort;
 
   /**
    * Picking a person (Talent Bench) or a role (Settings) sets the pay model
    * and pre-fills the matching value: the person's own rate / fixed price /
-   * percent wins, else the role default. Only fills while the value is still
-   * empty, so a manually typed number is never overwritten.
+   * percent / unit cost wins, else the role default. Only fills while the
+   * value is still empty, so a manually typed number is never overwritten.
    */
   function changeName(name: string) {
     const preset = resolvePreset(name, peoplePresets, rolePresets, currency);
@@ -66,10 +67,14 @@ export function CostItemRow({
     if (preset.payModel === "hourly" && item.hourlyRate === "" && preset.hourlyCost != null) patch.hourlyRate = String(preset.hourlyCost);
     if (preset.payModel === "fixed" && item.fixedAmount === "" && preset.fixedPrice != null) patch.fixedAmount = String(preset.fixedPrice);
     if (preset.payModel === "percent" && item.percent === "" && preset.percent != null) patch.percent = String(preset.percent);
+    if (preset.payModel === "unit") {
+      if (item.unitCost === "" && preset.unitCost != null) patch.unitCost = String(preset.unitCost);
+      if (item.unitLabel === "" && preset.unitLabel) patch.unitLabel = preset.unitLabel;
+    }
     onChange(patch);
   }
 
-  const numberInput = (field: "hours" | "hourlyRate" | "fixedAmount" | "percent", label: string, placeholder: string, extra?: React.ReactNode) => (
+  const numberInput = (field: "hours" | "hourlyRate" | "fixedAmount" | "percent" | "quantity" | "unitCost", label: string, placeholder: string, extra?: React.ReactNode) => (
     <div className="relative">
       <Input
         type="number"
@@ -82,7 +87,7 @@ export function CostItemRow({
         placeholder={placeholder}
         aria-label={label}
         aria-invalid={Boolean(errorFor(field))}
-        className={field === "hours" ? "w-24 text-right tabular-nums" : "w-36 pr-7 text-right tabular-nums"}
+        className={field === "hours" ? "w-24 text-right tabular-nums" : field === "quantity" ? "w-20 pr-7 text-right tabular-nums" : "w-36 pr-7 text-right tabular-nums"}
       />
       {extra}
     </div>
@@ -108,7 +113,7 @@ export function CostItemRow({
       </TableCell>
       <TableCell>
         <Select value={item.kind} onValueChange={(kind) => onChange({ kind: kind as CostItemKind })}>
-          <SelectTrigger aria-label={interpolate(t.costType, { n })} className="w-40">
+          <SelectTrigger aria-label={interpolate(t.costType, { n })} className="w-36">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -119,6 +124,11 @@ export function CostItemRow({
       <TableCell>
         {item.kind === "hourly" ? (
           numberInput("hours", interpolate(t.costHours, { n }), "0")
+        ) : item.kind === "unit" ? (
+          <div className="flex items-center gap-1">
+            {numberInput("quantity", interpolate(t.costQuantity, { n }), "0", suffix(unitLabel))}
+            <Input value={item.unitLabel} onChange={(e) => onChange({ unitLabel: e.target.value })} placeholder={t.unitShort} aria-label={t.unitLabel} className="w-14 px-1.5 text-xs" maxLength={30} />
+          </div>
         ) : (
           <span className="block text-center text-xs text-muted-foreground/60" title={item.kind === "fixed" ? t.noHoursHint : t.noHoursPercentHint}>—</span>
         )}
@@ -128,7 +138,9 @@ export function CostItemRow({
           ? numberInput("fixedAmount", interpolate(t.costAmount, { n }), t.perProjectPlaceholder, suffix(currency))
           : item.kind === "percent"
             ? numberInput("percent", interpolate(t.costPercent, { n }), "0", suffix("%"))
-            : numberInput("hourlyRate", interpolate(t.costRate, { n }), t.perHourPlaceholder, suffix(`${currency}/h`))}
+            : item.kind === "unit"
+              ? numberInput("unitCost", interpolate(t.costUnitCost, { n }), t.perUnitPlaceholder, suffix(`${currency}/${unitLabel}`))
+              : numberInput("hourlyRate", interpolate(t.costRate, { n }), t.perHourPlaceholder, suffix(`${currency}/h`))}
       </TableCell>
       <TableCell className="text-right font-medium tabular-nums">
         {formatMoney(total, currency, locale)}

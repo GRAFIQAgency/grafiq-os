@@ -20,7 +20,14 @@ export function estimateFromRows(row: EstimateWithItems): EstimateInput {
       hourlyRate: Number(item.hourly_rate),
       fixedAmount: Number(item.fixed_amount),
       percent: Number(item.percent ?? 0),
+      quantity: Number(item.quantity ?? 0),
+      unitCost: Number(item.unit_cost ?? 0),
+      unitLabel: item.unit_label ?? null,
     })),
+    pricingBasis: row.pricing_basis ?? "total",
+    unitCount: row.unit_count == null ? null : Number(row.unit_count),
+    unitPrice: row.unit_price == null ? null : Number(row.unit_price),
+    unitLabel: row.unit_label ?? null,
   };
 }
 
