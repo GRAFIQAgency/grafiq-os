@@ -5,7 +5,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { Locale } from "@/lib/i18n/config";
 
 import { fitToTarget, newItemId, round2 } from "./calculations";
-import { templateProposal } from "./template";
+import { detectWorkType, templateProposal } from "./template";
 import type { GeneratedProposal, ProposalItem, ProposalSource, TemplateLabels } from "./types";
 
 const MODEL = "claude-opus-5";
@@ -14,11 +14,16 @@ export function isAiProposalEnabled(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY);
 }
 
-const SYSTEM = `You write client-facing pricing plans for GRAFIQ, a premium creative/digital agency (web, branding, 3D, motion, marketing).
-Return ONLY a JSON object: {"title": string, "intro": string, "items": [{"title": string, "description": string, "kind": "hourly"|"fixed"|"unit", "hours": number, "rate": number, "quantity": number, "unitPrice": number, "unitLabel": string, "amount": number}], "notes": string}
-Rules: write in the requested language; 4–8 items that describe deliverables and phases the client understands (no internal cost jargon);
-each item has a one-sentence description of what the client gets; "fixed" items carry the price in "amount", "hourly" items carry "hours" and a sell "rate", "unit" items carry "quantity", "unitPrice" and a short "unitLabel" (e.g. pcs) — use "unit" when the project is priced per piece;
-the items must add up to the given client price (excluding VAT); never mention margins, costs or freelancers; be concrete and calm, no hype.`;
+const SYSTEM = `You write client-facing pricing plans for GRAFIQ, a premium creative/digital agency (websites, e-shops, branding, 3D product visualisation, video/motion, marketing, apps).
+
+Method:
+1. From the project name, the internal breakdown and the brief, decide WHAT KIND OF WORK this is (website, e-shop, branding, 3D visualisation / product renders, video or motion, marketing campaign, app, or other).
+2. Lay out the STANDARD delivery process for that kind of work as the plan items, in the order the work happens (e.g. website: discovery & structure → wireframes & UX → visual design → development → content & SEO → testing, launch & handover). 5–8 items. Each item is a phase or deliverable the client understands, with a one-sentence description of what they get.
+3. Split the client price across the items so they ADD UP EXACTLY to the given price excluding VAT. Weight the split by the effort each phase normally takes for this kind of work.
+
+Return ONLY a JSON object:
+{"workType": string, "title": string, "intro": string, "items": [{"title": string, "description": string, "kind": "hourly"|"fixed"|"unit", "hours": number, "rate": number, "quantity": number, "unitPrice": number, "unitLabel": string, "amount": number}], "notes": string}
+Rules: write in the requested language; use "fixed" items with the price in "amount" unless the project is priced per piece (then a "unit" item with quantity, unitPrice and a short unitLabel); never mention margins, internal costs, hourly buy rates or freelancers; be concrete and calm, no hype.`;
 
 function extractJson(text: string): Record<string, unknown> | null {
   const start = text.indexOf("{");
@@ -50,17 +55,20 @@ function toItems(raw: unknown): ProposalItem[] {
   return items;
 }
 
-async function askClaude(source: ProposalSource, locale: Locale): Promise<GeneratedProposal> {
+async function askClaude(source: ProposalSource, locale: Locale, labels: TemplateLabels): Promise<GeneratedProposal> {
   const client = new Anthropic();
+  const guess = detectWorkType([source.projectName, ...source.items.map((i) => i.name), source.brief ?? ""].join(" "));
   const lines = source.items.map((i) => `- ${i.name}: ${i.kind === "hourly" ? `${i.hours} h` : i.kind === "percent" ? `${i.percent} % of price` : i.kind === "unit" ? `${i.quantity} ${i.unitLabel ?? "units"}` : "fixed"}`).join("\n");
+  const standard = labels.workTypes[guess].phases.map((p) => `- ${p.title} (~${p.share} %): ${p.description}`).join("\n");
   const prompt = [
     `Language: ${locale === "cs" ? "Czech" : "English"}`,
     `Project: ${source.projectName}`,
     source.clientName ? `Client: ${source.clientName}` : null,
     `Client price excluding VAT: ${source.revenue} ${source.currency}`,
     source.unitCount && source.unitPrice ? `Priced per unit: ${source.unitCount} ${source.unitLabel ?? "units"} × ${source.unitPrice} ${source.currency}` : null,
-    lines ? `Internal work breakdown (for structure only, do not expose costs):\n${lines}` : null,
+    lines ? `Internal work breakdown (hints about the work only — never expose costs):\n${lines}` : null,
     source.brief ? `Brief from the agency:\n${source.brief}` : null,
+    `Our keyword guess for the kind of work: ${labels.workTypes[guess].name}. Standard process we normally use for it (adapt it, do not copy blindly):\n${standard}`,
   ].filter(Boolean).join("\n\n");
 
   const response = await client.messages.create({ model: MODEL, max_tokens: 3000, system: SYSTEM, messages: [{ role: "user", content: prompt }] });
@@ -81,7 +89,7 @@ async function askClaude(source: ProposalSource, locale: Locale): Promise<Genera
 export async function generateProposal(source: ProposalSource, locale: Locale, labels: TemplateLabels): Promise<{ generatedBy: "claude" | "template"; proposal: GeneratedProposal }> {
   if (isAiProposalEnabled()) {
     try {
-      return { generatedBy: "claude", proposal: await askClaude(source, locale) };
+      return { generatedBy: "claude", proposal: await askClaude(source, locale, labels) };
     } catch (error) {
       console.error("[pricing] AI proposal failed, using template:", error instanceof Error ? error.message : error);
     }

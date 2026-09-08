@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Check, Copy, ExternalLink, Loader2, Mail, MessageCircle, Plus, Save, Send, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, Copy, ExternalLink, Link2Off, Loader2, Mail, MessageCircle, Plus, Save, Send, Sparkles, Trash2 } from "lucide-react";
 
 import { DetailSection } from "@/components/shared/detail-section";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import { interpolate } from "@/lib/i18n/interpolate";
 import { cn } from "@/lib/utils";
 
 import { formatMoney } from "../format";
-import { saveProposal, shareProposal } from "../proposals/actions";
+import { deleteProposal, regenerateProposal, saveProposal, shareProposal, unpublishProposal } from "../proposals/actions";
 import { itemAmount, newItemId, proposalTotals } from "../proposals/calculations";
 import type { Proposal, ProposalItem } from "../proposals/types";
 
@@ -26,7 +26,7 @@ import type { Proposal, ProposalItem } from "../proposals/types";
  * Native editor for a pricing plan: edit the text and lines, save, then share
  * by public link (copy / WhatsApp / e-mail). Totals are derived live.
  */
-export function ProposalEditor({ proposal, shareUrl, shareAvailable }: { proposal: Proposal; shareUrl: string; shareAvailable: boolean }) {
+export function ProposalEditor({ proposal, shareUrl, aiEnabled }: { proposal: Proposal; shareUrl: string; aiEnabled: boolean }) {
   const router = useRouter();
   const { dict, locale } = useI18n();
   const t = dict.pricing.proposal;
@@ -44,6 +44,9 @@ export function ProposalEditor({ proposal, shareUrl, shareAvailable }: { proposa
   const [dirty, setDirty] = useState(false);
   const [pending, start] = useTransition();
   const [sharing, startShare] = useTransition();
+  const [brief, setBrief] = useState("");
+  const [regenerating, startRegenerate] = useTransition();
+  const [danger, startDanger] = useTransition();
 
   const totals = useMemo(() => proposalTotals(items, Number(vatRate.replace(",", ".")) || 0), [items, vatRate]);
   const money = (v: number) => formatMoney(v, currency, locale);
@@ -68,6 +71,36 @@ export function ProposalEditor({ proposal, shareUrl, shareAvailable }: { proposa
     });
     if (dirty) save(publish);
     else publish();
+  }
+
+  function regenerate() {
+    if (!window.confirm(t.regenerate.confirm)) return;
+    startRegenerate(async () => {
+      const r = await regenerateProposal(proposal.id, brief);
+      setMessage(r.error ?? t.regenerate.done);
+      if (!r.error) {
+        setDirty(false);
+        router.refresh();
+      }
+    });
+  }
+
+  function unpublish() {
+    if (!window.confirm(t.share.unpublishConfirm)) return;
+    startDanger(async () => {
+      const r = await unpublishProposal(proposal.id);
+      setMessage(r.error ?? t.share.unpublished);
+      if (!r.error) router.refresh();
+    });
+  }
+
+  function remove() {
+    if (!window.confirm(t.deleteConfirm)) return;
+    startDanger(async () => {
+      const r = await deleteProposal(proposal.id);
+      if (r.error) setMessage(r.error);
+      else router.push(proposal.estimateId ? `${getModule("pricing").href}?estimate=${proposal.estimateId}` : getModule("pricing").href);
+    });
   }
 
   const waText = interpolate(t.share.message, { title, url: shareUrl });
@@ -188,7 +221,6 @@ export function ProposalEditor({ proposal, shareUrl, shareAvailable }: { proposa
             <div className="space-y-3" data-guide="pricing-share">
               <p className="text-xs text-muted-foreground">{t.share.description}</p>
               <p className={cn("text-xs", shared ? "text-emerald-400" : "text-amber-400")}>{shared ? interpolate(t.share.shared, { date: sharedOn }) : t.share.draft}</p>
-              {!shareAvailable ? <p className="rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-300">{t.share.unavailable}</p> : null}
               <div className="flex items-center gap-2">
                 <Input readOnly value={shareUrl} className="h-8 text-xs" aria-label={t.share.link} onFocus={(e) => e.currentTarget.select()} />
                 <Button type="button" size="sm" variant="outline" onClick={() => { navigator.clipboard?.writeText(shareUrl); setCopied(true); setTimeout(() => setCopied(false), 1500); }}>
@@ -210,7 +242,31 @@ export function ProposalEditor({ proposal, shareUrl, shareAvailable }: { proposa
               <a href={shareUrl} target="_blank" rel="noreferrer" className={cn(buttonVariants({ size: "xs", variant: "ghost" }), "w-full", !shared && "pointer-events-none opacity-50")} aria-disabled={!shared}>
                 <ExternalLink data-icon="inline-start" />{t.share.openPublic}
               </a>
+              {shared ? (
+                <Button type="button" size="xs" variant="ghost" onClick={unpublish} disabled={danger} className="w-full text-muted-foreground hover:text-destructive">
+                  <Link2Off data-icon="inline-start" />{t.share.unpublish}
+                </Button>
+              ) : null}
             </div>
+          </DetailSection>
+
+          <DetailSection title={t.regenerate.title}>
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">{t.regenerate.description}</p>
+              <p className={cn("text-xs", aiEnabled ? "text-emerald-400" : "text-amber-400")}>{aiEnabled ? t.regenerate.aiOn : t.regenerate.aiOff}</p>
+              <Textarea rows={3} value={brief} onChange={(e) => setBrief(e.target.value)} placeholder={t.regenerate.briefPlaceholder} aria-label={t.regenerate.brief} />
+              <Button type="button" size="sm" variant="outline" onClick={regenerate} disabled={regenerating || pending} className="w-full">
+                {regenerating ? <Loader2 className="animate-spin" data-icon="inline-start" /> : <Sparkles data-icon="inline-start" />}
+                {regenerating ? t.regenerate.running : t.regenerate.button}
+              </Button>
+            </div>
+          </DetailSection>
+
+          <DetailSection title={t.danger.title}>
+            <p className="mb-3 text-xs text-muted-foreground">{t.danger.description}</p>
+            <Button type="button" size="sm" variant="outline" onClick={remove} disabled={danger} className="w-full text-destructive hover:text-destructive">
+              <Trash2 data-icon="inline-start" />{t.danger.delete}
+            </Button>
           </DetailSection>
         </div>
       </div>

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { getDictionary } from "@/lib/i18n/server";
 import { ProposalEditor } from "@/modules/pricing/components/proposal-editor";
+import { isAiProposalEnabled } from "@/modules/pricing/proposals/generate";
 import { getProposal } from "@/modules/pricing/proposals/queries";
 
 export async function generateMetadata({ params }: PageProps<"/pricing/proposals/[id]">) {
@@ -21,5 +22,5 @@ export default async function ProposalPage({ params }: PageProps<"/pricing/propo
   const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   const shareUrl = `${proto}://${host}/p/${proposal.shareToken}`;
 
-  return <ProposalEditor proposal={proposal} shareUrl={shareUrl} shareAvailable={Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY)} />;
+  return <ProposalEditor proposal={proposal} shareUrl={shareUrl} aiEnabled={isAiProposalEnabled()} />;
 }

@@ -116,14 +116,20 @@ The reference implementation of a "real" module. Notable choices:
   to reset client state when the id changes.
 - Reads (`queries.ts`) fail soft with a server-side log so the page still
   renders if the migration has not been applied yet.
-- **Pricing plans** (`proposals/`, migration 0012): a client-facing document
-  generated from a saved estimate — by Claude when `ANTHROPIC_API_KEY` is set
-  (`generate.ts`), otherwise by the deterministic `template.ts` (cost lines
-  marked up to the client price, or standard phases). Edited in
-  `/pricing/proposals/[id]` (`proposal-editor.tsx`), stored as JSON items in
-  `pricing_proposals`, and shared read-only at the public route `/p/<token>`
-  (unguessable `share_token`, served through the service-role client; no
-  anonymous RLS policy). Share buttons only build WhatsApp / mailto links.
+- **Pricing plans** (`proposals/`, migrations 0012 + 0014): a client-facing
+  document generated from a saved estimate. `template.ts` detects the kind of
+  work (web, e-shop, branding, 3D, motion, marketing, app, other) from the
+  project name, cost lines and brief and lays out that type's standard
+  delivery process (phases from the dictionary, shares of the client price);
+  `generate.ts` asks Claude to do the same with judgement when
+  `ANTHROPIC_API_KEY` is set and falls back to the template. "Generate again"
+  re-drafts with an optional brief. Edited in `/pricing/proposals/[id]`
+  (`proposal-editor.tsx`), stored as JSON items in `pricing_proposals`, and
+  shared read-only at the public route `/p/<token>` through the
+  SECURITY DEFINER function `get_shared_proposal(token)` (one row per exact
+  token, no anonymous table access, no service key). "Revoke link" rotates the
+  token; "Delete plan" removes the row. Share buttons only build WhatsApp /
+  mailto links.
 
 ### The `settings` module (existing, Business Settings v1)
 

@@ -8,7 +8,7 @@ import { getBusinessSettings } from "@/modules/settings/queries";
 export async function generateMetadata({ params }: PageProps<"/p/[token]">): Promise<Metadata> {
   const { token } = await params;
   const [proposal, dict] = await Promise.all([getSharedProposal(token), getDictionary()]);
-  return { title: proposal && proposal !== "unavailable" ? proposal.title : dict.pricing.proposal.title, robots: { index: false, follow: false } };
+  return { title: proposal ? proposal.title : dict.pricing.proposal.title, robots: { index: false, follow: false } };
 }
 
 /** Public, read-only pricing plan. Reached only through the unguessable share link. */
@@ -16,11 +16,11 @@ export default async function SharedProposalPage({ params }: PageProps<"/p/[toke
   const { token } = await params;
   const [proposal, dict, locale, settings] = await Promise.all([getSharedProposal(token), getDictionary(), getLocale(), getBusinessSettings()]);
 
-  if (!proposal || proposal === "unavailable") {
+  if (!proposal) {
     return (
       <div className="py-16 text-center">
         <h1 className="text-xl font-semibold tracking-tight">{dict.pricing.proposal.title}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{proposal === "unavailable" ? dict.pricing.proposal.public.unavailable : dict.pricing.proposal.public.notFound}</p>
+        <p className="mt-2 text-sm text-muted-foreground">{dict.pricing.proposal.public.notFound}</p>
       </div>
     );
   }

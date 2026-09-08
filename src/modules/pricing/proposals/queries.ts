@@ -1,4 +1,3 @@
-import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { PricingProposalRow } from "@/types/database";
 
@@ -39,14 +38,20 @@ export async function proposalIdsByEstimate(estimateIds: string[]): Promise<Reco
 }
 
 /**
- * Public read for /p/<token>: no session, so it goes through the service-role
- * client and is limited to ONE row by its unguessable token. Returns null when
- * the key is not configured or the plan was never shared.
+ * Public read for /p/<token>: no session needed. Goes through the
+ * SECURITY DEFINER function get_shared_proposal (migration 0014), which
+ * returns at most ONE shared row for an exact token — anonymous visitors can
+ * never list plans. Returns null when the token is unknown or the plan is
+ * not published.
  */
-export async function getSharedProposal(token: string): Promise<Proposal | null | "unavailable"> {
+export async function getSharedProposal(token: string): Promise<Proposal | null> {
   if (!/^[A-Za-z0-9_-]{16,}$/.test(token)) return null;
-  const admin = createAdminClient();
-  if (!admin) return "unavailable";
-  const { data } = await admin.from("pricing_proposals").select("*").eq("share_token", token).eq("status", "shared").maybeSingle<PricingProposalRow>();
-  return data ? rowToProposal(data) : null;
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_shared_proposal", { p_token: token });
+  if (error) {
+    console.error("[pricing] getSharedProposal failed:", error.message);
+    return null;
+  }
+  const rows = (Array.isArray(data) ? data : data ? [data] : []) as PricingProposalRow[];
+  return rows[0] ? rowToProposal(rows[0]) : null;
 }

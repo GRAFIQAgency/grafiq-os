@@ -72,12 +72,23 @@ export interface GeneratedProposal {
   notes: string | null;
 }
 
+/** Kinds of work GRAFIQ sells; each has a standard delivery process (see the dictionary). */
+export type WorkType = "web" | "eshop" | "branding" | "threeD" | "motion" | "marketing" | "app" | "other";
+export const WORK_TYPES: readonly WorkType[] = ["web", "eshop", "branding", "threeD", "motion", "marketing", "app", "other"];
+
+export interface TemplatePhase {
+  title: string;
+  description: string;
+  /** Share of the client price in percent; a type's phases add up to 100. */
+  share: number;
+}
+
 /** Texts the template generator needs (passed in; pure code never imports dictionaries). */
 export interface TemplateLabels {
   intro: string;
   notes: string;
   lineDescription: string;
-  phases: { title: string; description: string; share: number }[];
+  workTypes: Record<WorkType, { name: string; phases: TemplatePhase[] }>;
 }
 
 export interface ActionResult {
