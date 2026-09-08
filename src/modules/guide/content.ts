@@ -13,7 +13,7 @@ import { modules, type ModuleId } from "@/config/modules";
  * the tour can spotlight the real control.
  */
 
-export const GUIDE_CHAPTER_IDS = ["start", "setup", "pricing", "talent", "bench", "projects", "capacity", "qa", "clients", "sales", "sources", "next"] as const;
+export const GUIDE_CHAPTER_IDS = ["start", "setup", "pricing", "talent", "bench", "projects", "capacity", "qa", "finance", "clients", "sales", "sources", "next"] as const;
 export type GuideChapterId = (typeof GUIDE_CHAPTER_IDS)[number];
 
 export interface GuideChapter {
@@ -43,6 +43,7 @@ export const GUIDE_CHAPTERS: readonly GuideChapter[] = [
   { id: "projects", moduleId: "projects", pathPrefix: "/projects" },
   { id: "capacity", moduleId: "capacity", pathPrefix: "/capacity" },
   { id: "qa", moduleId: "qa", pathPrefix: "/qa" },
+  { id: "finance", moduleId: "finance", pathPrefix: "/finance" },
   { id: "clients", moduleId: "sourcing", pathPrefix: "/sourcing/companies" },
   { id: "sales", moduleId: "sales", pathPrefix: "/sales" },
   { id: "sources", moduleId: "sourcing", pathPrefix: "/sourcing" },
@@ -125,12 +126,25 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
   { id: "qa-filters", chapterId: "qa", moduleId: "qa", href: "/qa", anchor: "qa-filters" },
   { id: "qa-templates", chapterId: "qa", moduleId: "qa", href: "/qa", anchor: "qa-tabs" },
 
-  // 9. Find clients
+  // 9. Manage money (profit ≠ cash)
+  { id: "finance-concept", chapterId: "finance", moduleId: "finance", href: "/finance", anchor: "finance-concept" },
+  { id: "finance-accounts", chapterId: "finance", moduleId: "finance", href: "/finance/cashflow", anchor: "finance-accounts" },
+  { id: "finance-schedule", chapterId: "finance", moduleId: "projects", href: "/projects", anchor: "projects-list" },
+  { id: "finance-receivables", chapterId: "finance", moduleId: "finance", href: "/finance/receivables", anchor: "finance-receivables" },
+  { id: "finance-record-payment", chapterId: "finance", moduleId: "finance", href: "/finance/receivables", anchor: "finance-receivables" },
+  { id: "finance-payables", chapterId: "finance", moduleId: "finance", href: "/finance/payables", anchor: "finance-add-payable" },
+  { id: "finance-pay", chapterId: "finance", moduleId: "finance", href: "/finance/payables", anchor: "finance-payables" },
+  { id: "finance-recurring", chapterId: "finance", moduleId: "finance", href: "/finance/costs", anchor: "finance-recurring" },
+  { id: "finance-forecast", chapterId: "finance", moduleId: "finance", href: "/finance/cashflow", anchor: "finance-forecast" },
+  { id: "finance-profitability", chapterId: "finance", moduleId: "finance", href: "/finance/profitability", anchor: "finance-profitability" },
+  { id: "finance-risks", chapterId: "finance", moduleId: "finance", href: "/finance", anchor: "finance-risks" },
+
+  // 10. Find clients
   { id: "clients-search", chapterId: "clients", moduleId: "sourcing", href: "/sourcing/companies", anchor: "sourcing-search" },
   { id: "clients-signals", chapterId: "clients", moduleId: "sourcing", href: "/sourcing/companies", anchor: "sourcing-review" },
   { id: "clients-crm", chapterId: "clients", moduleId: "sourcing", href: "/sourcing/companies", anchor: "sourcing-review" },
 
-  // 10. Win the deal
+  // 11. Win the deal
   { id: "sales-list", chapterId: "sales", moduleId: "sales", href: "/sales", anchor: "sales-list" },
   { id: "sales-board", chapterId: "sales", moduleId: "sales", href: "/sales", anchor: "sales-view" },
   { id: "sales-stage", chapterId: "sales", moduleId: "sales", href: "/sales", anchor: "sales-list" },
@@ -140,7 +154,7 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
   { id: "sales-won", chapterId: "sales", moduleId: "sales", href: "/sales", anchor: "sales-list" },
   { id: "sales-add", chapterId: "sales", moduleId: "sales", href: "/sales", anchor: "sales-add-company" },
 
-  // 11. Sources and saved searches
+  // 12. Sources and saved searches
   { id: "sources-manage", chapterId: "sources", moduleId: "sourcing", href: "/sourcing/sources", anchor: "sources-table" },
   { id: "sources-csv", chapterId: "sources", moduleId: "sourcing", href: "/sourcing/sources", anchor: "sources-csv" },
   { id: "sources-saved", chapterId: "sources", moduleId: "sourcing", href: "/sourcing/searches", anchor: "searches-table" },

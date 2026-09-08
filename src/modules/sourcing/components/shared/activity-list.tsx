@@ -7,7 +7,7 @@ export function ActivityList({ entries, dict, locale }: { entries: ActivityEntry
   const t = dict.sourcing.common;
   if (!entries.length) return <p className="text-sm text-muted-foreground">{t.noActivity}</p>;
   const fmt = new Intl.DateTimeFormat(INTL_LOCALES[locale], { dateStyle: "medium", timeStyle: "short" });
-  const labels = { ...(dict.projects?.activity.actions ?? {}), ...(dict.sales?.activity.actions ?? {}), ...dict.qa.activity.actions, ...t.actions } as Record<string, string>;
+  const labels = { ...(dict.projects?.activity.actions ?? {}), ...(dict.sales?.activity.actions ?? {}), ...dict.qa.activity.actions, ...dict.finance.activity.actions, ...t.actions } as Record<string, string>;
   return (
     <ul className="space-y-2 text-sm">
       {entries.map((e) => {

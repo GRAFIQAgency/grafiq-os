@@ -18,8 +18,8 @@ import { ProjectTabs, type ProjectTab } from "./project-tabs";
 import { TeamTab } from "./team-tab";
 import { WorkTab } from "./work-tab";
 
-/** `qaSignal`, `qaCount` and `qaTab` are slots filled by the route from the QA module (Projects does not import QA). */
-export function ProjectDetailView({ detail, tab, view, pickers, dict, locale, qaSignal, qaCount, qaTab }: { detail: ProjectDetail; tab: ProjectTab; view: "list" | "board"; pickers: ProjectPickers; dict: Dictionary; locale: Locale; qaSignal?: ReactNode; qaCount?: number; qaTab?: ReactNode }) {
+/** `qaSignal`, `qaCount`, `qaTab` and `paymentsPanel` are slots filled by the route from the QA / Finance modules (Projects imports neither). */
+export function ProjectDetailView({ detail, tab, view, pickers, dict, locale, qaSignal, qaCount, qaTab, paymentsPanel }: { detail: ProjectDetail; tab: ProjectTab; view: "list" | "board"; pickers: ProjectPickers; dict: Dictionary; locale: Locale; qaSignal?: ReactNode; qaCount?: number; qaTab?: ReactNode; paymentsPanel?: ReactNode }) {
   const p = detail.project;
   const href = `${getModule("projects").href}/${p.id}`;
   const types = dict.projects.types as Record<string, string>;
@@ -49,7 +49,7 @@ export function ProjectDetailView({ detail, tab, view, pickers, dict, locale, qa
       {tab === "work" ? <WorkTab projectId={p.id} milestones={detail.milestones} tasks={detail.tasks} members={detail.members} view={view} href={href} /> : null}
       {tab === "team" ? <TeamTab projectId={p.id} currency={p.currency} members={detail.members} tasks={detail.tasks} people={pickers.people} roleCosts={pickers.roleCosts} /> : null}
       {tab === "qa" ? qaTab : null}
-      {tab === "financials" ? <FinancialsTab detail={detail} dict={dict} locale={locale} /> : null}
+      {tab === "financials" ? <FinancialsTab detail={detail} dict={dict} locale={locale} paymentsPanel={paymentsPanel} /> : null}
       {tab === "activity" ? <ActivityTab detail={detail} dict={dict} locale={locale} /> : null}
     </div>
   );

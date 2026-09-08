@@ -226,8 +226,25 @@ export async function getProjectStats(): Promise<ProjectStats> {
   };
 }
 
-export async function listProjectFinancials(): Promise<{ projectId: string; name: string; status: Project["status"]; financials: ProjectFinancials }[]> {
-  return (await fetchAllItems()).map((i) => ({ projectId: i.project.id, name: i.project.name, status: i.project.status, financials: i.financials }));
+/** Project economics for Finance / Dashboard: one row per project, numbers from `computeFinancials` (never recomputed elsewhere). */
+export interface ProjectFinancialSummary {
+  projectId: string;
+  name: string;
+  status: Project["status"];
+  clientId: string | null;
+  clientName: string | null;
+  projectType: string;
+  currency: Currency;
+  deadline: string | null;
+  completedAt: string | null;
+  financials: ProjectFinancials;
+}
+
+export async function listProjectFinancials(): Promise<ProjectFinancialSummary[]> {
+  return (await fetchAllItems()).map((i) => ({
+    projectId: i.project.id, name: i.project.name, status: i.project.status, clientId: i.project.clientId, clientName: i.project.clientName,
+    projectType: i.project.projectType, currency: i.project.currency, deadline: i.project.deadline, completedAt: i.project.completedAt, financials: i.financials,
+  }));
 }
 
 /**

@@ -4,9 +4,9 @@ Internal operating system for the GRAFIQ creative & digital agency. One modular
 web app that grows module by module: Dashboard, Projects, Pricing, Capacity,
 Talent, Sales, Finance, QA and Settings.
 
-**Current state:** foundation (app shell, auth, navigation, EN/CS), the
-**Pricing / Profit Calculator** module and **Business Settings**. Other
-modules are placeholders.
+**Current state:** foundation (app shell, auth, navigation, EN/CS) and the
+Pricing, Settings, Sourcing, Talent, Projects, Sales, Capacity, QA and Finance
+modules. The Dashboard still shows example data.
 
 ## Tech stack
 
@@ -67,6 +67,7 @@ npm test        # Vitest unit tests (business logic)
    - `0013_unit_pricing.sql` — per-unit pricing: `unit` cost lines and per-unit client price in Pricing, unit pay for people and project members, unit baseline on projects.
    - `0014_shared_proposals.sql` — `get_shared_proposal(token)` function so public pricing-plan links work without the service-role key.
    - `0015_qa.sql` — QA: `qa_templates` + `qa_template_items` (reusable checklists, 5 built-in GRAFIQ templates seeded), `qa_checklists` + `qa_checklist_items` (frozen per-project copies with results, fix-task links, approval).
+   - `0016_finance.sql` — Finance: `finance_accounts` (manual cash balances), `finance_receivables`, `finance_payables`, `finance_recurring_costs`, `finance_cash_events` (ledger of actual money movements, currency-checked by trigger).
 5. Create users. This is an internal tool with **no public signup**: add team
    members in **Authentication → Users → Add user** (set a password, or send an
    invite). Optionally give them a `full_name` in the user metadata; it becomes
@@ -109,7 +110,7 @@ src/
     capacity/             Capacity: derived planning layer over Talent + Projects (utilization, matrix, what-if)
     qa/                   QA: delivery quality control — templates, frozen project checklists, fix tasks, approval, completion gate
     guide/                Interactive tutorial: /guide page, "?" help panel, cross-page tour (must stay 1:1 with the product)
-    finance/              Reserved folder with a README
+    finance/              Finance: management cash flow — accounts, receivables, payables, recurring costs, forecast, risks, profitability (from Projects)
   types/
     database.ts           Database row types (hand-written for now)
 supabase/

@@ -201,7 +201,9 @@ SNAPSHOT), `project_milestones`, `project_tasks`, `project_links`,
   by delivered units now / max(delivered, planned) units in the forecast.
   Capacity ignores pay models.
 - Read API for Dashboard / Finance / Capacity: `getProjectStats`,
-  `listProjectFinancials`, `listProjectAssignments`, `projectIdsByEstimate`.
+  `listProjectFinancials` (one `ProjectFinancialSummary` per project: client,
+  type, currency, dates + `ProjectFinancials`), `listProjectAssignments`,
+  `projectIdsByEstimate`.
 - Dependency direction: projects → pricing/settings/talent/sourcing
   services & queries (one-way).
 
@@ -282,10 +284,44 @@ detail and the `/qa` control centre read the same rows.
   `ProjectQaSignal` / `ProjectQaTab` into `ProjectDetailView` slots, and the
   status action imports only the pure gate + one query.
 
+### The `finance` module (existing, Management Finance & Cash Flow v1)
+
+The management cockpit — not accounting. Two concepts are kept strictly apart:
+**profitability** (from Projects: `listProjectFinancials()` → sold / current /
+forecast revenue, cost, GP, GM; Finance only sums per currency with a weighted
+margin) and **cash flow** (Finance's own tables, migration 0016:
+`finance_accounts` with a manually typed balance + as-of date,
+`finance_receivables`, `finance_payables`, `finance_recurring_costs` and
+`finance_cash_events`, the ledger of real movements). Cash received is never
+revenue; VAT only appears on the cash side (net + rate → gross expected).
+
+- `calculations/status.ts` — receivable / payable status is derived from the
+  expected amount and its cash events (partial payments; never above the
+  outstanding amount). `schedule.ts` — payment schedule from the contract value
+  (baseline + approved change requests) and Settings payment terms, written
+  once as a project **snapshot**; `reconcileContract` only warns when the
+  schedule and the contract value drift apart. `recurring.ts` — occurrences
+  are derived, paying advances `next_due_date`. `forecast.ts` — current cash
+  = typed balances + events after their as-of date; monthly forecast per
+  currency; runway from the forecast. `risk.ts` — explainable signals with the
+  numbers behind them. `payee.ts` — "Create payable" amount from the member's
+  pay-model snapshot via Projects' `memberCurrentFee` (never today's Talent).
+- Currencies are never combined; a DB trigger rejects cash events whose
+  currency differs from the linked item or account.
+- Read API for Dashboard: `getFinanceOverview`, `getCashForecast`,
+  `getReceivablesSummary`, `getPayablesSummary`, `getPortfolioProfitability`,
+  `getFinanceAlerts`.
+- Routes: `/finance` + `/finance/{cashflow,receivables,payables,costs,profitability}`
+  (route group with a shared layout) and `/finance/projects/[id]`.
+- Dependency direction: finance → projects (queries, pure financial
+  calculations, `saveTask`-style one-way use), settings, talent. Projects
+  never imports Finance: the project route composes `ProjectPaymentsPanel`
+  into the Financials tab through the `paymentsPanel` slot.
+
 ### The `guide` module (existing) — the interactive tutorial
 
 `src/modules/guide/content.ts` is the product's work-process description in
-chapters and steps (setup → pricing → talent → bench → projects → capacity → qa → clients → sales → sources → what's next).
+chapters and steps (setup → pricing → talent → bench → projects → capacity → qa → finance → clients → sales → sources → what's next).
 It powers three surfaces: the `/guide` page with progress checkboxes, the "?"
 help panel in the top bar (chapter for the current route), and the cross-page
 tour (`?guide=<step-id>` spotlights the element with a matching

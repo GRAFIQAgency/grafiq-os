@@ -645,3 +645,108 @@ export interface ProjectChangeRequestRow {
   notes: string | null;
   approved_at: string | null;
 }
+
+// --- Finance module (supabase/migrations/0016_finance.sql) ---
+
+export type FinanceAccountType = "bank" | "cash" | "other";
+export type CashDirection = "in" | "out";
+/** Soft lifecycle of a receivable / payable row; the operational status is derived from cash events. */
+export type FinanceItemState = "open" | "cancelled";
+export type PayableCategory =
+  | "freelancer" | "subcontractor" | "software" | "printing" | "photography" | "equipment"
+  | "accounting" | "legal" | "office" | "marketing" | "hosting" | "insurance" | "other";
+export type RecurringCostCategory =
+  | "software" | "accounting" | "office" | "rent" | "phone" | "hosting" | "insurance" | "marketing" | "legal" | "other";
+export type RecurringFrequency = "monthly" | "quarterly" | "yearly";
+
+export interface FinanceAccountRow {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+  name: string;
+  currency: Currency;
+  type: FinanceAccountType;
+  current_balance: number;
+  balance_as_of: string;
+  is_active: boolean;
+  notes: string | null;
+}
+
+export interface FinanceReceivableRow {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+  project_id: string | null;
+  project_name: string | null;
+  client_id: string | null;
+  client_name: string | null;
+  label: string;
+  net_amount: number;
+  vat_rate: number;
+  amount: number;
+  currency: Currency;
+  due_date: string;
+  expected_date: string | null;
+  percent_of_contract: number | null;
+  invoice_reference: string | null;
+  invoice_sent_at: string | null;
+  notes: string | null;
+  status: FinanceItemState;
+  cancelled_at: string | null;
+  position: number;
+}
+
+export interface FinancePayableRow {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+  label: string;
+  amount: number;
+  currency: Currency;
+  due_date: string;
+  project_id: string | null;
+  project_name: string | null;
+  talent_candidate_id: string | null;
+  supplier_id: string | null;
+  payee_name: string | null;
+  category: PayableCategory;
+  notes: string | null;
+  status: FinanceItemState;
+  cancelled_at: string | null;
+}
+
+export interface FinanceRecurringCostRow {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+  name: string;
+  category: RecurringCostCategory;
+  amount: number;
+  currency: Currency;
+  frequency: RecurringFrequency;
+  next_due_date: string;
+  is_active: boolean;
+  notes: string | null;
+}
+
+export interface FinanceCashEventRow {
+  id: string;
+  created_at: string;
+  created_by: string | null;
+  direction: CashDirection;
+  amount: number;
+  currency: Currency;
+  occurred_at: string;
+  account_id: string | null;
+  receivable_id: string | null;
+  payable_id: string | null;
+  recurring_cost_id: string | null;
+  label: string;
+  note: string | null;
+  voided_at: string | null;
+  void_reason: string | null;
+}

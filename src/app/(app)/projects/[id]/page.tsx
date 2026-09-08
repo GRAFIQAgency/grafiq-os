@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { ProjectPaymentsPanel } from "@/modules/finance/components/project-payments-panel";
 import { ProjectDetailView } from "@/modules/projects/components/project-detail";
 import type { ProjectTab } from "@/modules/projects/components/project-tabs";
 import { getProjectDetail, getProjectPickers } from "@/modules/projects/queries";
@@ -23,7 +24,7 @@ export default async function ProjectPage({ params, searchParams }: PageProps<"/
   const [detail, pickers, dict, locale, qa] = await Promise.all([getProjectDetail(id), getProjectPickers(), getDictionary(), getLocale(), getProjectQaSummary(id)]);
   if (!detail) notFound();
 
-  // QA is composed here (route level) so Projects never imports the QA module.
+  // QA and Finance are composed here (route level) so Projects never imports those modules.
   return (
     <ProjectDetailView
       detail={detail}
@@ -35,6 +36,7 @@ export default async function ProjectPage({ params, searchParams }: PageProps<"/
       qaSignal={<ProjectQaSignal summary={qa} dict={dict} locale={locale} />}
       qaCount={qa.failed + qa.blocked}
       qaTab={tab === "qa" ? <ProjectQaTab project={detail.project} members={detail.members} dict={dict} locale={locale} /> : null}
+      paymentsPanel={tab === "financials" ? <ProjectPaymentsPanel projectId={detail.project.id} financials={detail.financials} dict={dict} locale={locale} /> : null}
     />
   );
 }

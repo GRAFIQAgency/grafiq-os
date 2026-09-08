@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { DetailSection, Facts } from "@/components/shared/detail-section";
 import { formatHours, formatMoney, formatPercent } from "@/lib/format";
 import type { Dictionary, Locale } from "@/lib/i18n/config";
@@ -6,7 +8,8 @@ import { interpolate } from "@/lib/i18n/interpolate";
 import type { ProjectDetail } from "../types";
 import { ChangeRequestsPanel, DirectCostsPanel } from "./financials-forms";
 
-export function FinancialsTab({ detail, dict, locale }: { detail: ProjectDetail; dict: Dictionary; locale: Locale }) {
+/** `paymentsPanel` is the Finance module's cash-timing section, composed by the route (economic numbers stay here). */
+export function FinancialsTab({ detail, dict, locale, paymentsPanel }: { detail: ProjectDetail; dict: Dictionary; locale: Locale; paymentsPanel?: ReactNode }) {
   const t = dict.projects.financials;
   const f = detail.financials;
   const cur = detail.project.currency;
@@ -75,6 +78,8 @@ export function FinancialsTab({ detail, dict, locale }: { detail: ProjectDetail;
           ) : <p className="text-sm text-muted-foreground">{t.noBaselineCosts}</p>}
         </DetailSection>
       </div>
+
+      {paymentsPanel}
 
       <DirectCostsPanel projectId={detail.project.id} currency={cur} costs={detail.costs} />
       <ChangeRequestsPanel projectId={detail.project.id} currency={cur} changes={detail.changeRequests} />

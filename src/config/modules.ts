@@ -103,7 +103,7 @@ export const modules: readonly ModuleDefinition[] = [
     id: "finance",
     href: "/finance",
     icon: Landmark,
-    status: "planned",
+    status: "active",
     group: "modules",
   },
   {
