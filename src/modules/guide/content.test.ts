@@ -48,6 +48,7 @@ describe("guide content stays aligned with the product", () => {
   });
 
   it("maps pages to chapters and walks steps in order", () => {
+    expect(chapterForPath("/dashboard")?.id).toBe("dashboard");
     expect(chapterForPath("/sourcing/talent/123")?.id).toBe("talent");
     expect(chapterForPath("/talent/123")?.id).toBe("bench");
     expect(chapterForPath("/projects/new")?.id).toBe("projects");
@@ -59,6 +60,7 @@ describe("guide content stays aligned with the product", () => {
     expect(chapterForPath("/sourcing/sources")?.id).toBe("sources");
     expect(chapterForPath("/pricing")?.id).toBe("pricing");
     expect(nextStep("start-navigate")?.id).toBe("start-dashboard");
+    expect(nextStep("start-mobile")?.id).toBe("dashboard-what");
     expect(nextStep("start-help")?.id).toBe("start-mobile");
     expect(nextStep(GUIDE_STEPS[GUIDE_STEPS.length - 1].id)).toBeUndefined();
   });

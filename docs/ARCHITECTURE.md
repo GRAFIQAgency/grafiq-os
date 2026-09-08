@@ -79,10 +79,30 @@ small components over one large one.
 - `actions.ts` — `signIn` (used with `useActionState`) and `signOut`.
 - `components/login-form.tsx` — the only client component in the module.
 
-### The `dashboard` module (existing, placeholder)
+### The `dashboard` module (existing, company command centre v1)
 
-`data/placeholder.ts` holds example numbers, clearly marked. When real modules
-exist, add `queries.ts` that aggregates their data and delete the placeholder.
+An aggregation and decision layer, not a business module: it answers "what
+needs our attention right now?" and links into the module that owns each
+record. **It never recomputes domain numbers** — margins and health come from
+Projects, utilization from Capacity, QA state from QA, cash and the weighted
+portfolio margin from Finance, pipeline values from Sales.
+
+- `queries.ts` — one parallel pass over those read APIs. Each read is wrapped
+  in `load()`, which returns `Loaded<T>`: `ok`, `unconfigured` (nothing set up
+  yet → a setup hint, never a `0`) or `error` (that card says "data
+  unavailable"; the rest of the page still renders).
+- `services/attention.ts` — module signals → one `DashboardAttentionItem`
+  feed, sorted deterministically by severity, then source (finance → projects →
+  capacity → qa → sales), then date, then amount. No AI anywhere.
+- `services/health.ts` — five plain area statuses (delivery, finance, capacity,
+  quality, sales) with the rule that produced each one. No composite score.
+- `services/timeline.ts` — the dated events the modules already own (project
+  deadlines, milestones, QA due dates, sales next actions, receivables and
+  payables) merged into "today / overdue" and "next 7 days".
+- `services/activity.ts` — the shared `activity_log` feed with per-entity links.
+- Currencies are always listed separately; nothing is converted or summed.
+- Dependency direction: dashboard → every module's read API (one-way). No
+  module imports the dashboard, and the dashboard owns no tables.
 
 ### The `pricing` module (existing, v1)
 
@@ -321,7 +341,7 @@ revenue; VAT only appears on the cash side (net + rate → gross expected).
 ### The `guide` module (existing) — the interactive tutorial
 
 `src/modules/guide/content.ts` is the product's work-process description in
-chapters and steps (setup → pricing → talent → bench → projects → capacity → qa → finance → clients → sales → sources → what's next).
+chapters and steps (getting around → the dashboard → setup → pricing → talent → bench → projects → capacity → qa → finance → clients → sales → sources → what's next).
 It powers three surfaces: the `/guide` page with progress checkboxes, the "?"
 help panel in the top bar (chapter for the current route), and the cross-page
 tour (`?guide=<step-id>` spotlights the element with a matching

@@ -14,7 +14,7 @@ function item(over: Partial<ProjectListItem["project"]> & { margin?: number; hea
     manualProgress: null, notes: null, completedAt: null, ...p,
   };
   const financials = computeFinancials({ project, members: [], tasks: [], costs: [], changeRequests: [] });
-  return { project, financials, progress: { percent: 0, basis: "none", done: 0, total: 0 }, health: { status: health ?? "healthy", reasons: [] }, memberCount: 0, openTasks: 0 };
+  return { project, financials, progress: { percent: 0, basis: "none", done: 0, total: 0 }, health: { status: health ?? "healthy", reasons: [] }, memberCount: 0, openTasks: 0, blockedTasks: 0 };
 }
 
 describe("project list filters", () => {

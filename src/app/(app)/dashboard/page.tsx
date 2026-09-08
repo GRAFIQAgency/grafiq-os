@@ -1,26 +1,20 @@
 import { PageHeader } from "@/components/shared/page-header";
-import { PlaceholderBadge } from "@/components/shared/placeholder-badge";
 import { moduleMetadata } from "@/lib/i18n/metadata";
-import { getDictionary } from "@/lib/i18n/server";
-import { DashboardOverview } from "@/modules/dashboard/components/dashboard-overview";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { DashboardView } from "@/modules/dashboard/components/dashboard-view";
+import { getDashboardData } from "@/modules/dashboard/queries";
 import { WelcomeBanner } from "@/modules/guide/components/welcome-banner";
 
 export const generateMetadata = moduleMetadata("dashboard");
 
 export default async function DashboardPage() {
-  const dict = await getDictionary();
+  const [dict, locale, data] = await Promise.all([getDictionary(), getLocale(), getDashboardData()]);
 
   return (
-    <div className="space-y-8">
-      <PageHeader
-        title={dict.modules.dashboard.title}
-        description={dict.modules.dashboard.description}
-        actions={<PlaceholderBadge label={dict.common.exampleData} />}
-      />
+    <div className="space-y-6">
+      <PageHeader title={dict.modules.dashboard.title} description={dict.dashboard.intro} />
       <WelcomeBanner />
-      <div data-guide="dashboard-stats">
-        <DashboardOverview dict={dict} />
-      </div>
+      <DashboardView data={data} dict={dict} locale={locale} />
     </div>
   );
 }

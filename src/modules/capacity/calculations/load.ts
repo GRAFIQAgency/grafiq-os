@@ -173,10 +173,18 @@ export function overview(data: CapacityDataset, period: Period): CapacityOvervie
     overloadedPeople: s.overloadedPeople,
     availableHours: s.totalAvailable,
     remainingHours: s.remaining,
+    unscheduledHours: s.totalUnscheduled,
+    configuredPeople: s.people - s.peopleUnconfigured,
+    unconfiguredPeople: s.peopleUnconfigured,
     mostFree: loads
       .filter((l) => l.remaining != null && l.remaining > 0)
       .sort((a, b) => (b.remaining ?? 0) - (a.remaining ?? 0))
       .slice(0, 5)
-      .map((l) => ({ personKey: l.person.key, name: l.person.name, role: l.person.role, remaining: l.remaining ?? 0 })),
+      .map((l) => ({ personKey: l.person.key, name: l.person.name, role: l.person.role, remaining: l.remaining ?? 0, utilization: l.utilization })),
+    overloaded: loads
+      .filter((l) => l.remaining != null && l.remaining < 0)
+      .sort((a, b) => (a.remaining ?? 0) - (b.remaining ?? 0))
+      .slice(0, 5)
+      .map((l) => ({ personKey: l.person.key, name: l.person.name, role: l.person.role, overBy: Math.abs(l.remaining ?? 0), utilization: l.utilization })),
   };
 }

@@ -51,6 +51,9 @@ export function GuidePage() {
             </CardHeader>
             <CardContent>
               {chapter.id === "next" ? (
+                planned.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">{t.allBuilt}</p>
+                ) : (
                 <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {planned.map((m) => {
                     const Icon = m.icon;
@@ -65,6 +68,7 @@ export function GuidePage() {
                     );
                   })}
                 </ul>
+                )
               ) : (
                 <ol className="space-y-2">
                   {steps.map((step, i) => {

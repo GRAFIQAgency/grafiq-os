@@ -260,3 +260,37 @@ export const getFinancePickers = cache(async (): Promise<FinancePickers> => {
     settings,
   };
 });
+
+// ---------------------------------------------------------------------------
+// Dated cash events for the Dashboard timeline
+// ---------------------------------------------------------------------------
+
+export interface FinanceDateEvent {
+  kind: "receivable" | "payable";
+  id: string;
+  label: string;
+  party: string | null;
+  projectId: string | null;
+  projectName: string | null;
+  amount: number;
+  currency: Currency;
+  date: string;
+  overdue: boolean;
+}
+
+/** Open receivables and payables due inside [from, to], with what is still outstanding. */
+export async function listFinanceDateEvents(from: string, to: string): Promise<FinanceDateEvent[]> {
+  const [receivables, payables] = await Promise.all([listReceivableViews(), listPayableViews()]);
+  const inRange = (d: string) => d >= from && d <= to;
+  const out: FinanceDateEvent[] = [];
+  for (const r of receivables) {
+    if (r.state === "cancelled" || r.outstanding <= 0) continue;
+    const date = r.expectedDate ?? r.dueDate;
+    if (inRange(date)) out.push({ kind: "receivable", id: r.id, label: r.label, party: r.clientName, projectId: r.projectId, projectName: r.projectName, amount: r.outstanding, currency: r.currency, date, overdue: r.status === "overdue" });
+  }
+  for (const p of payables) {
+    if (p.state === "cancelled" || p.outstanding <= 0) continue;
+    if (inRange(p.dueDate)) out.push({ kind: "payable", id: p.id, label: p.label, party: p.payeeName, projectId: p.projectId, projectName: p.projectName, amount: p.outstanding, currency: p.currency, date: p.dueDate, overdue: p.status === "overdue" });
+  }
+  return out.sort((a, b) => a.date.localeCompare(b.date));
+}

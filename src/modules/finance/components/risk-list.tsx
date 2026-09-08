@@ -2,31 +2,17 @@ import Link from "next/link";
 import { AlertTriangle, Info } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
-import { formatDate, formatMoney } from "@/lib/format";
 import type { Dictionary, Locale } from "@/lib/i18n/config";
-import { INTL_LOCALES } from "@/lib/i18n/config";
 import { interpolate } from "@/lib/i18n/interpolate";
 import { cn } from "@/lib/utils";
 
+import { formatRiskParams } from "../services/risk-format";
 import type { FinanceRisk } from "../types";
-
-const MONEY = new Set(["ending", "outgoing", "incoming", "starting", "amount", "shortfall", "largest", "contract", "scheduled"]);
-const DATES = new Set(["date", "asOf"]);
 
 /** Every warning says WHY, with the numbers that explain it. */
 export function RiskList({ risks, dict, locale, compact = false }: { risks: FinanceRisk[]; dict: Dictionary; locale: Locale; compact?: boolean }) {
   const t = dict.finance.risks;
-  const monthFmt = new Intl.DateTimeFormat(INTL_LOCALES[locale], { month: "long", year: "numeric" });
-  const format = (r: FinanceRisk) => {
-    const p: Record<string, string | number> = { currency: r.currency ?? "" };
-    for (const [k, v] of Object.entries(r.params)) {
-      if (k === "month" && typeof v === "string") p[k] = monthFmt.format(new Date(`${v}-01T00:00:00Z`));
-      else if (MONEY.has(k) && typeof v === "number") p[k] = formatMoney(v, r.currency, locale);
-      else if (DATES.has(k) && typeof v === "string") p[k] = formatDate(v, locale);
-      else p[k] = v;
-    }
-    return p;
-  };
+  const format = (r: FinanceRisk) => formatRiskParams(r, locale);
   if (!risks.length) return <p className="text-sm text-emerald-400">{dict.finance.overview.noRisks}</p>;
   return (
     <ul className="space-y-2" data-guide="finance-risks">

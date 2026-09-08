@@ -6,7 +6,7 @@ Talent, Sales, Finance, QA and Settings.
 
 **Current state:** foundation (app shell, auth, navigation, EN/CS) and the
 Pricing, Settings, Sourcing, Talent, Projects, Sales, Capacity, QA and Finance
-modules. The Dashboard still shows example data.
+modules, with the **Dashboard** aggregating all of them into one command centre.
 
 ## Tech stack
 
@@ -100,7 +100,7 @@ src/
     utils.ts              `cn()` helper
   modules/                Feature modules (see below)
     auth/                 Login/logout actions, current-user queries, login form
-    dashboard/            Placeholder dashboard widgets and example data
+    dashboard/            Company command centre: aggregates every module's read API (attention feed, timeline, health, snapshots)
     pricing/              Pricing / profit calculator (first real module, see its README)
     settings/             Business settings: company, margins, payment terms, role costs
     sourcing/             Talent & lead discovery engine (see docs/SOURCING.md)

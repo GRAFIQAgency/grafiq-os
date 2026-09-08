@@ -5,11 +5,14 @@ import { listRecentEstimates } from "@/modules/pricing/queries";
 import { listProjectsByClient } from "@/modules/projects/queries";
 import { rowToCompany, rowToContact } from "@/modules/sourcing/queries/mappers";
 import type { CompanyContact } from "@/modules/sourcing/types";
-import type { CompanyContactRow, CompanyCrmDetailsRow, CompanyLeadRow, ProfileRow } from "@/types/database";
+import type { CompanyContactRow, CompanyCrmDetailsRow, CompanyLeadRow, Currency, ProfileRow } from "@/types/database";
 
-import { PIPELINE_LIST_LIMIT } from "./constants";
+import { PIPELINE_LIST_LIMIT, STALE_AFTER_DAYS } from "./constants";
 import { matchesFilters, pipelineStats, rowToDetails, sortDeals, toCustomerRecord, toDeal } from "./services/pipeline";
-import type { CustomerRecord, Deal, DealFilters, DealProject, DealSort, PipelineStats, SalesPickers } from "./types";
+import type { CrmStage, CustomerRecord, Deal, DealFilters, DealProject, DealSort, PipelineStats, SalesPickers } from "./types";
+
+/** Stages where a deal without a planned next action is already a problem. */
+const LATE_STAGES: readonly CrmStage[] = ["qualified", "proposal", "negotiation"];
 
 type JoinedRow = CompanyLeadRow & { company_crm_details: CompanyCrmDetailsRow | CompanyCrmDetailsRow[] | null };
 
@@ -49,7 +52,7 @@ async function loadNames(rows: JoinedRow[]): Promise<Names> {
  * a company is a deal when `crm_status` is set — by "Save to CRM" in Sourcing
  * or "Add company" in Sales. Closed deals (customer / lost) stay in the list.
  */
-async function fetchPipeline(): Promise<Deal[]> {
+const fetchPipeline = cache(async (): Promise<Deal[]> => {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("company_leads")
@@ -66,7 +69,7 @@ async function fetchPipeline(): Promise<Deal[]> {
   const names = await loadNames(rows);
   const today = new Date();
   return rows.map((r) => joined(r, names, today));
-}
+});
 
 export async function listDeals(filters: DealFilters, sort: DealSort): Promise<Deal[]> {
   const deals = await fetchPipeline();
@@ -123,4 +126,65 @@ export async function listCustomers(): Promise<CustomerRecord[]> {
 /** Every company in the pipeline, compact. */
 export async function listPipelineCompanies(): Promise<CustomerRecord[]> {
   return (await fetchPipeline()).map(toCustomerRecord);
+}
+
+/**
+ * Deals that need a sales action, for the Dashboard attention feed. Reasons
+ * come from the existing pipeline rules (`nextActionOverdue`, `ageDays`),
+ * never from a second implementation.
+ */
+export type SalesAttentionReason = "overdue_action" | "no_next_action" | "stale";
+
+export interface SalesAttentionItem {
+  companyId: string;
+  name: string;
+  stage: CrmStage;
+  ownerName: string | null;
+  value: number | null;
+  currency: Currency | null;
+  nextStep: string | null;
+  nextActionAt: string | null;
+  daysOverdue: number;
+  ageDays: number;
+  reason: SalesAttentionReason;
+}
+
+export async function listSalesAttention(): Promise<SalesAttentionItem[]> {
+  const today = new Date();
+  const day = today.toISOString().slice(0, 10);
+  const out: SalesAttentionItem[] = [];
+  for (const d of await fetchPipeline()) {
+    if (!d.isOpen) continue;
+    const reason: SalesAttentionReason | null = d.nextActionOverdue
+      ? "overdue_action"
+      : !d.details.nextActionAt
+        ? d.ageDays >= STALE_AFTER_DAYS ? "stale" : LATE_STAGES.includes(d.stage) ? "no_next_action" : null
+        : null;
+    if (!reason) continue;
+    out.push({
+      companyId: d.company.id, name: d.company.name, stage: d.stage, ownerName: d.ownerName,
+      value: d.details.dealValue, currency: d.details.dealCurrency, nextStep: d.details.nextStep, nextActionAt: d.details.nextActionAt,
+      daysOverdue: d.details.nextActionAt && d.details.nextActionAt < day ? Math.max(0, Math.round((Date.parse(day) - Date.parse(d.details.nextActionAt)) / 86400000)) : 0,
+      ageDays: d.ageDays, reason,
+    });
+  }
+  return out.sort((a, b) => b.daysOverdue - a.daysOverdue || (b.value ?? 0) - (a.value ?? 0));
+}
+
+/** Sales next actions due inside [from, to] — dated events for the Dashboard timeline. */
+export interface SalesDateEvent {
+  companyId: string;
+  name: string;
+  stage: CrmStage;
+  title: string | null;
+  date: string;
+  overdue: boolean;
+}
+
+export async function listSalesDateEvents(from: string, to: string): Promise<SalesDateEvent[]> {
+  const day = new Date().toISOString().slice(0, 10);
+  return (await fetchPipeline())
+    .filter((d) => d.isOpen && d.details.nextActionAt && d.details.nextActionAt >= from && d.details.nextActionAt <= to)
+    .map((d) => ({ companyId: d.company.id, name: d.company.name, stage: d.stage, title: d.details.nextStep, date: d.details.nextActionAt as string, overdue: (d.details.nextActionAt as string) < day }))
+    .sort((a, b) => a.date.localeCompare(b.date));
 }

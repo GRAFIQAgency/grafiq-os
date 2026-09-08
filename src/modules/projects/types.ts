@@ -221,6 +221,7 @@ export interface ProjectListItem {
   health: HealthResult;
   memberCount: number;
   openTasks: number;
+  blockedTasks: number;
 }
 
 export interface ProjectDetail {

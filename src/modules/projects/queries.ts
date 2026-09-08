@@ -19,8 +19,8 @@ import { ACTIVE_STATUSES, PROJECT_LIST_LIMIT } from "./constants";
 import { rowToBaselineCost, rowToChangeRequest, rowToDirectCost, rowToLink, rowToMember, rowToMilestone, rowToProject, rowToTask } from "./mappers";
 import { matchesProjectFilters, sortProjects } from "./services/list";
 import type {
-  ChangeRequest, DirectCost, Milestone, PersonOption, PickerOption, Project, ProjectAssignment, ProjectDetail,
-  ProjectFilters, ProjectFinancials, ProjectListItem, ProjectMember, ProjectSort, ProjectStats, Task,
+  ChangeRequest, DirectCost, HealthReason, Milestone, PersonOption, PickerOption, ProgressResult, Project, ProjectAssignment, ProjectDetail,
+  ProjectFilters, ProjectFinancials, ProjectHealth, ProjectListItem, ProjectMember, ProjectSort, ProjectStats, ProjectStatus, Task,
 } from "./types";
 
 // The client join works through the FK to company_leads. The owner column
@@ -79,10 +79,12 @@ async function computeItem(project: Project, rel: Related, thresholds: Awaited<R
     project, financials, progress, health,
     memberCount: rel.members.filter((m) => m.status !== "removed").length,
     openTasks: rel.tasks.filter((t) => t.status !== "done").length,
+    blockedTasks: rel.tasks.filter((t) => t.status === "blocked").length,
   };
 }
 
-async function fetchAllItems(): Promise<ProjectListItem[]> {
+/** Cached per request: several read APIs (list, stats, financials, summaries) share one fetch. */
+const fetchAllItems = cache(async (): Promise<ProjectListItem[]> => {
   const supabase = await createClient();
   const { data, error } = await supabase.from("projects").select(PROJECT_SELECT).order("created_at", { ascending: false }).limit(PROJECT_LIST_LIMIT).returns<ProjectJoined[]>();
   if (error) {
@@ -92,7 +94,7 @@ async function fetchAllItems(): Promise<ProjectListItem[]> {
   const projects = await toProjects(data ?? []);
   const [related, thresholds] = await Promise.all([loadRelated(projects.map((p) => p.id)), getMarginThresholds()]);
   return Promise.all(projects.map((p) => computeItem(p, related[p.id], thresholds)));
-}
+});
 
 export async function listProjects(filters: ProjectFilters, sort: ProjectSort): Promise<ProjectListItem[]> {
   const items = await fetchAllItems();
@@ -274,4 +276,75 @@ export async function listProjectAssignments(): Promise<ProjectAssignment[]> {
     }
   }
   return out;
+}
+
+/**
+ * Compact project rows for the Dashboard: health, progress and forecast
+ * numbers exactly as `computeFinancials` / `computeHealth` produced them.
+ * Consumers must not recompute any of these.
+ */
+export interface ProjectSummary {
+  id: string;
+  name: string;
+  clientId: string | null;
+  clientName: string | null;
+  status: ProjectStatus;
+  projectType: string;
+  deadline: string | null;
+  currency: Currency;
+  health: ProjectHealth;
+  healthReasons: HealthReason[];
+  progress: ProgressResult;
+  currentRevenue: number;
+  forecastGrossProfit: number;
+  forecastMargin: number | null;
+  openTasks: number;
+  blockedTasks: number;
+  memberCount: number;
+  completedAt: string | null;
+}
+
+export async function listProjectSummaries(): Promise<ProjectSummary[]> {
+  return (await fetchAllItems()).map((i) => ({
+    id: i.project.id, name: i.project.name, clientId: i.project.clientId, clientName: i.project.clientName,
+    status: i.project.status, projectType: i.project.projectType, deadline: i.project.deadline, currency: i.project.currency,
+    health: i.health.status, healthReasons: i.health.reasons, progress: i.progress,
+    currentRevenue: i.financials.current.revenue, forecastGrossProfit: i.financials.forecast.grossProfit,
+    forecastMargin: i.financials.forecast.grossMargin, openTasks: i.openTasks, blockedTasks: i.blockedTasks,
+    memberCount: i.memberCount, completedAt: i.project.completedAt,
+  }));
+}
+
+/** A dated project event (deadline or milestone) for the Dashboard timeline. */
+export interface ProjectDateEvent {
+  kind: "project_deadline" | "milestone";
+  id: string;
+  projectId: string;
+  projectName: string;
+  title: string;
+  date: string;
+  health: ProjectHealth;
+}
+
+/** Project deadlines and open milestone due dates inside [from, to] (projects in delivery only). */
+export async function listProjectDateEvents(from: string, to: string): Promise<ProjectDateEvent[]> {
+  const items = (await fetchAllItems()).filter((i) => ACTIVE_STATUSES.includes(i.project.status));
+  const byId = new Map(items.map((i) => [i.project.id, i]));
+  const out: ProjectDateEvent[] = items
+    .filter((i) => i.project.deadline && i.project.deadline >= from && i.project.deadline <= to)
+    .map((i) => ({ kind: "project_deadline" as const, id: i.project.id, projectId: i.project.id, projectName: i.project.name, title: i.project.name, date: i.project.deadline as string, health: i.health.status }));
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("project_milestones")
+    .select("id, title, due_date, status, project_id")
+    .gte("due_date", from).lte("due_date", to).neq("status", "completed")
+    .returns<Pick<ProjectMilestoneRow, "id" | "title" | "due_date" | "status" | "project_id">[]>();
+  if (error) console.error("[projects] listProjectDateEvents failed:", error.message);
+  for (const m of data ?? []) {
+    const owner = byId.get(m.project_id);
+    if (!owner || !m.due_date) continue;
+    out.push({ kind: "milestone", id: m.id, projectId: m.project_id, projectName: owner.project.name, title: m.title, date: m.due_date, health: owner.health.status });
+  }
+  return out.sort((a, b) => a.date.localeCompare(b.date));
 }

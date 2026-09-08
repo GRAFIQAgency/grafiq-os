@@ -212,3 +212,22 @@ export async function getQaStats(): Promise<QaStats> {
 export async function listQaAttentionItems(): Promise<QaAttentionItem[]> {
   return attentionItems(await listChecklistOverview());
 }
+
+/** QA due dates inside [from, to] for the Dashboard timeline (unapproved checklists only). */
+export interface QaDateEvent {
+  checklistId: string;
+  projectId: string;
+  projectName: string;
+  title: string;
+  date: string;
+  status: QaChecklistOverview["status"];
+  overdue: boolean;
+}
+
+export async function listQaDateEvents(from: string, to: string): Promise<QaDateEvent[]> {
+  const day = today();
+  return (await listChecklistOverview())
+    .filter((c) => c.status !== "approved" && c.dueDate && c.dueDate >= from && c.dueDate <= to)
+    .map((c) => ({ checklistId: c.id, projectId: c.projectId, projectName: c.projectName, title: c.title, date: c.dueDate as string, status: c.status, overdue: (c.dueDate as string) < day }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+}

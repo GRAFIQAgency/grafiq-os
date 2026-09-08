@@ -216,11 +216,18 @@ export interface CapacityDataset {
 /** Read API for Dashboard. */
 export interface CapacityOverview {
   period: Period;
+  /** Null when nobody has capacity configured — "unknown", never render as 0 %. */
   utilization: number | null;
   overloadedPeople: number;
   availableHours: number;
   remainingHours: number;
-  mostFree: { personKey: string; name: string; role: string | null; remaining: number }[];
+  unscheduledHours: number;
+  /** People with a configured capacity number, and those without. */
+  configuredPeople: number;
+  unconfiguredPeople: number;
+  mostFree: { personKey: string; name: string; role: string | null; remaining: number; utilization: number | null }[];
+  /** People booked above their capacity, worst first. */
+  overloaded: { personKey: string; name: string; role: string | null; overBy: number; utilization: number | null }[];
 }
 
 export interface InternalCapacityInput {
