@@ -338,10 +338,38 @@ revenue; VAT only appears on the cash side (net + rate → gross expected).
   never imports Finance: the project route composes `ProjectPaymentsPanel`
   into the Financials tab through the `paymentsPanel` slot.
 
+### The `hermes` module (existing, MCP endpoint for the operator agent)
+
+`/api/mcp` is a Model Context Protocol server (Vercel's `mcp-handler`) that
+lets Hermes — an operator agent with no user account — read the system and
+propose changes. It owns one table, `pending_actions` (migration 0017).
+
+- **Auth**: one static bearer token (`HERMES_API_TOKEN`), compared in constant
+  time over SHA-256 digests; unset or shorter than 24 characters means every
+  request is refused. 60 requests/minute/token, then `429`.
+- **Data access**: the service-role client, because RLS cannot scope a client
+  that has no user. The guardrail is the module: a fixed set of queries with
+  explicit column lists, zod-validated arguments, capped limits and paging.
+  No SQL, table name, column or filter can be supplied from outside, and no
+  response contains env values, keys, e-mail addresses or phone numbers.
+- **The numbers are not recomputed**: `reads/` fetches rows and hands them to
+  the owning modules' pure functions (`computeFinancials`, `computeHealth`,
+  `pipelineStats`, `toReceivableView`, `allLoads`, `completionGate`), so what
+  Hermes reports matches the UI. Every amount carries its currency and totals
+  are per currency; profit (ex-VAT economics) and cash (incl. VAT timing) are
+  reported by separate tools that say so.
+- **Writes are proposals**: the five write tools only insert into
+  `pending_actions`. Approving at `/admin/pending` (the `approvals` module)
+  calls the same Server Action the UI calls, as the signed-in user, so the QA
+  completion gate, validation and activity log all apply. A refusal leaves the
+  proposal queued with the reason attached.
+- The proxy exempts `siteConfig.tokenAuthRoutes` from its session check so the
+  route can do its own bearer authentication.
+
 ### The `guide` module (existing) — the interactive tutorial
 
 `src/modules/guide/content.ts` is the product's work-process description in
-chapters and steps (getting around → the dashboard → setup → pricing → talent → bench → projects → capacity → qa → finance → clients → sales → sources → what's next).
+chapters and steps (getting around → the dashboard → setup → pricing → talent → bench → projects → capacity → qa → finance → clients → sales → sources → approvals → what's next).
 It powers three surfaces: the `/guide` page with progress checkboxes, the "?"
 help panel in the top bar (chapter for the current route), and the cross-page
 tour (`?guide=<step-id>` spotlights the element with a matching
@@ -453,7 +481,9 @@ components.
 
 ## Things deliberately not done yet
 
-- No validation library (add `zod` when forms grow beyond login).
+- Validation: modules hand-roll it (`validation.ts` per module). `zod` is a
+  dependency but is used only for the MCP endpoint's tool inputs, where a
+  machine-readable schema is part of the protocol.
 - No form library, global state, or data-fetching client.
 - No theme toggle (dark is default; light tokens exist).
 - No working search / command palette (top-bar search is a visual placeholder).

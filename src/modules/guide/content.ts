@@ -13,7 +13,7 @@ import { modules, type ModuleId } from "@/config/modules";
  * the tour can spotlight the real control.
  */
 
-export const GUIDE_CHAPTER_IDS = ["start", "dashboard", "setup", "pricing", "talent", "bench", "projects", "capacity", "qa", "finance", "clients", "sales", "sources", "next"] as const;
+export const GUIDE_CHAPTER_IDS = ["start", "dashboard", "setup", "pricing", "talent", "bench", "projects", "capacity", "qa", "finance", "clients", "sales", "sources", "approvals", "next"] as const;
 export type GuideChapterId = (typeof GUIDE_CHAPTER_IDS)[number];
 
 export interface GuideChapter {
@@ -48,6 +48,7 @@ export const GUIDE_CHAPTERS: readonly GuideChapter[] = [
   { id: "clients", moduleId: "sourcing", pathPrefix: "/sourcing/companies" },
   { id: "sales", moduleId: "sales", pathPrefix: "/sales" },
   { id: "sources", moduleId: "sourcing", pathPrefix: "/sourcing" },
+  { id: "approvals", moduleId: "approvals", pathPrefix: "/admin" },
   { id: "next", moduleId: "guide", pathPrefix: "/guide" },
 ];
 
@@ -172,6 +173,12 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
   { id: "sources-csv", chapterId: "sources", moduleId: "sourcing", href: "/sourcing/sources", anchor: "sources-csv" },
   { id: "sources-saved", chapterId: "sources", moduleId: "sourcing", href: "/sourcing/searches", anchor: "searches-table" },
   { id: "sources-overview", chapterId: "sources", moduleId: "sourcing", href: "/sourcing", anchor: "sourcing-overview" },
+
+  // 14. Decide on what Hermes proposes
+  { id: "approvals-what", chapterId: "approvals", moduleId: "approvals", href: "/admin/pending", anchor: "pending-intro" },
+  { id: "approvals-review", chapterId: "approvals", moduleId: "approvals", href: "/admin/pending", anchor: "pending-list" },
+  { id: "approvals-decide", chapterId: "approvals", moduleId: "approvals", href: "/admin/pending", anchor: "pending-list" },
+  { id: "approvals-history", chapterId: "approvals", moduleId: "approvals", href: "/admin/pending", anchor: "pending-tabs" },
 ];
 
 export function findStep(id: string | null | undefined): GuideStep | undefined {

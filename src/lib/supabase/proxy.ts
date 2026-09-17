@@ -8,6 +8,8 @@ import { siteConfig } from "@/config/site";
 const PUBLIC_ROUTES = [siteConfig.loginRoute, ...siteConfig.publicRoutes];
 /** Public routes that signed-in users should not see (they get sent to the app instead). */
 const AUTH_ONLY_ROUTES = [siteConfig.loginRoute];
+/** API routes that authenticate themselves with a bearer token, not a session. */
+const TOKEN_AUTH_ROUTES = siteConfig.tokenAuthRoutes;
 
 const matches = (routes: readonly string[], pathname: string) =>
   routes.some((route) => pathname === route || pathname.startsWith(`${route}/`));
@@ -48,6 +50,10 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const isApi = pathname.startsWith("/api/");
+  // Machine clients (the MCP endpoint) send a bearer token and never have a
+  // session cookie. Answering 401 here would make them unreachable, so the
+  // route handler is left to do its own authentication.
+  if (matches(TOKEN_AUTH_ROUTES, pathname)) return response;
 
   // CORS preflights carry no cookies; route handlers answer them themselves.
   if (isApi && request.method === "OPTIONS") return response;

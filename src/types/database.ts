@@ -750,3 +750,24 @@ export interface FinanceCashEventRow {
   voided_at: string | null;
   void_reason: string | null;
 }
+
+// --- Hermes approval queue (supabase/migrations/0017_pending_actions.sql) ---
+
+export type PendingActionType =
+  | "project_status_set" | "deal_stage_set" | "receivable_mark_paid" | "task_create" | "client_note_add";
+export type PendingActionStatus = "pending" | "approved" | "rejected";
+
+export interface PendingActionRow {
+  id: string;
+  created_at: string;
+  action_type: PendingActionType;
+  target_table: string;
+  target_id: string;
+  payload: Record<string, unknown>;
+  reason: string | null;
+  proposed_by: string;
+  status: PendingActionStatus;
+  decided_at: string | null;
+  decided_by: string | null;
+  result: string | null;
+}

@@ -1,5 +1,6 @@
 import {
   BookOpen,
+  ClipboardCheck,
   Calculator,
   CalendarRange,
   FolderKanban,
@@ -34,6 +35,7 @@ export type ModuleId =
   | "sales"
   | "finance"
   | "qa"
+  | "approvals"
   | "settings"
   | "guide";
 
@@ -112,6 +114,13 @@ export const modules: readonly ModuleDefinition[] = [
     icon: ShieldCheck,
     status: "active",
     group: "modules",
+  },
+  {
+    id: "approvals",
+    href: "/admin/pending",
+    icon: ClipboardCheck,
+    status: "active",
+    group: "system",
   },
   {
     id: "settings",

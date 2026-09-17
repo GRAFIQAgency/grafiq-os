@@ -12,7 +12,8 @@ import type { BusinessSettings, MarginThresholds, RoleCost } from "./types";
  * Other modules import from here instead of touching the tables directly.
  */
 
-function toBusinessSettings(row: BusinessSettingsRow): BusinessSettings {
+/** Exported so server-side callers without a user session (the Hermes MCP endpoint) can map the same row. */
+export function toBusinessSettings(row: BusinessSettingsRow): BusinessSettings {
   return {
     companyName: row.company_name,
     defaultCurrency: row.default_currency,

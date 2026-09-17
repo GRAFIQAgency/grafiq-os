@@ -68,6 +68,7 @@ npm test        # Vitest unit tests (business logic)
    - `0014_shared_proposals.sql` — `get_shared_proposal(token)` function so public pricing-plan links work without the service-role key.
    - `0015_qa.sql` — QA: `qa_templates` + `qa_template_items` (reusable checklists, 5 built-in GRAFIQ templates seeded), `qa_checklists` + `qa_checklist_items` (frozen per-project copies with results, fix-task links, approval).
    - `0016_finance.sql` — Finance: `finance_accounts` (manual cash balances), `finance_receivables`, `finance_payables`, `finance_recurring_costs`, `finance_cash_events` (ledger of actual money movements, currency-checked by trigger).
+   - `0017_pending_actions.sql` — Hermes approval queue: `pending_actions` (proposals from the MCP endpoint; nothing is applied until a human approves it on `/admin/pending`).
 5. Create users. This is an internal tool with **no public signup**: add team
    members in **Authentication → Users → Add user** (set a password, or send an
    invite). Optionally give them a `full_name` in the user metadata; it becomes
@@ -84,7 +85,8 @@ src/
     page.tsx              "/" → redirects to /dashboard
     (auth)/login/         Public login page
     (app)/                Authenticated area (layout checks the session, renders the shell)
-      dashboard/ projects/ pricing/ capacity/ talent/ sales/ finance/ qa/ settings/
+      dashboard/ projects/ pricing/ capacity/ talent/ sales/ finance/ qa/ admin/pending/ settings/
+    api/mcp/              MCP endpoint for the Hermes operator agent (bearer token)
   proxy.ts                Next.js proxy (middleware): refreshes session, guards routes
   components/
     ui/                   shadcn/ui primitives (generated; safe to re-add/update via CLI)
@@ -110,6 +112,7 @@ src/
     capacity/             Capacity: derived planning layer over Talent + Projects (utilization, matrix, what-if)
     qa/                   QA: delivery quality control — templates, frozen project checklists, fix tasks, approval, completion gate
     guide/                Interactive tutorial: /guide page, "?" help panel, cross-page tour (must stay 1:1 with the product)
+    hermes/               Hermes MCP endpoint: read tools, proposals, approval queue (see its README)
     finance/              Finance: management cash flow — accounts, receivables, payables, recurring costs, forecast, risks, profitability (from Projects)
   types/
     database.ts           Database row types (hand-written for now)
@@ -155,6 +158,99 @@ Short version (full details in `docs/ARCHITECTURE.md`):
   manager. Add them when a module genuinely needs them.
 - **Business logic is pure and tested.** Calculations live in plain functions
   (e.g. `modules/pricing/calculations.ts`) with Vitest tests, never in components.
+
+## 6. Hermes MCP endpoint (`/api/mcp`)
+
+An MCP server that lets the operator agent (Hermes, running in the cloud)
+**read** GRAFIQ OS and **propose** changes. It can never change anything by
+itself: a proposal is a row in `pending_actions` that a signed-in person
+approves or rejects at `/admin/pending`.
+
+### Environment
+
+| Variable | Required | What it is for |
+| --- | --- | --- |
+| `HERMES_API_TOKEN` | yes | The only credential. Sent as `Authorization: Bearer <token>`; compared in constant time. Shorter than 24 characters counts as unset and every request is refused. Generate with `openssl rand -base64 48`. |
+| `SUPABASE_SERVICE_ROLE_KEY` | yes | Hermes has no user account, so RLS cannot scope it. Reads run with the service role and are limited by the endpoint's fixed queries instead. |
+
+Set both in `.env.local` locally and in the Vercel project for the deployment.
+Run migration `0017_pending_actions.sql` before using the write tools.
+
+### Guardrails
+
+- One static bearer token; anything else gets `401` with a `WWW-Authenticate`
+  header. No token configured also means `401` — it fails closed.
+- 60 requests per minute per token (in memory, per server instance) → `429`
+  with `Retry-After`.
+- No SQL, table name, column or filter expression can be sent from outside.
+  Every tool is a fixed query with an explicit column list, zod-validated
+  arguments and a capped limit (max 100 rows, paged).
+- The endpoint never returns environment values, keys, e-mail addresses or
+  phone numbers. Talent is reported as name, role, rate and availability only.
+- Write tools only ever insert into `pending_actions`. Approval on
+  `/admin/pending` runs the same Server Action the UI runs, as the signed-in
+  user, so the same validation, the QA completion gate and the activity log all
+  apply.
+
+### Tools
+
+Reads: `projects_overview`, `project_detail`, `deadlines_due`,
+`sales_pipeline`, `finance_overview`, `capacity_snapshot`, `qa_blockers`,
+`talent_available`.
+
+Proposals (queue only): `project_status_set`, `deal_stage_set`,
+`receivable_mark_paid`, `task_create`, `client_note_add`, plus `pending_list`
+to see what is waiting and what was decided.
+
+Money always travels with its currency and currencies are never added
+together; project margins are economics excluding VAT, while `finance_overview`
+is cash timing including VAT — the two are never mixed.
+
+### Testing it with curl
+
+No token, or a wrong one → `401`:
+
+```bash
+curl -i -X POST http://localhost:3000/api/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+```
+
+List the tools (needs `Accept` for both content types):
+
+```bash
+curl -s -X POST http://localhost:3000/api/mcp \
+  -H "Authorization: Bearer $HERMES_API_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+```
+
+Call a read tool:
+
+```bash
+curl -s -X POST http://localhost:3000/api/mcp \
+  -H "Authorization: Bearer $HERMES_API_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call",
+       "params":{"name":"projects_overview","arguments":{"limit":5}}}'
+```
+
+Propose a change (this only queues it):
+
+```bash
+curl -s -X POST http://localhost:3000/api/mcp \
+  -H "Authorization: Bearer $HERMES_API_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":3,"method":"tools/call",
+       "params":{"name":"client_note_add","arguments":{
+         "companyId":"<company-uuid>","body":"Called, they want a quote.",
+         "reason":"Recording what the client said on the phone"}}}'
+```
+
+Then open `/admin/pending` and approve or reject it.
 
 ## Install on a phone (PWA)
 
